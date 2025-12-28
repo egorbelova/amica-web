@@ -1,4 +1,3 @@
-// src/stores/authStore.ts
 import { createContext } from 'react';
 
 type AuthStoreType = {

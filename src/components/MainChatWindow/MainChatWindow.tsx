@@ -7,6 +7,7 @@ import BackgroundComponent from '../BackgroundComponent/BackgroundComponent';
 import { useChat } from '../../contexts/ChatContext';
 import SideBarMedia from '../SideBarMedia/SideBarMedia';
 import styles from './MainChatWindow.module.scss';
+import { useTranslation, type Locale } from '@/contexts/LanguageContext';
 
 interface MainChatWindowProps {
   staticUrl?: string;
@@ -35,6 +36,8 @@ const MainChatWindow: React.FC = () => {
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { t, locale } = useTranslation();
 
   const { selectedChat } = useChat();
 
@@ -138,20 +141,22 @@ const MainChatWindow: React.FC = () => {
             <div className={styles.tipsMenu}>
               {activeTab === 'appearance' && (
                 <div className={styles.mainContent}>
-                  <div className={styles.header}>Appearance</div>
+                  <div className={styles.header}>
+                    {t('tipsMenu.appearance')}
+                  </div>
                 </div>
               )}
               {activeTab === 'chats' && (
                 <div className={styles.mainContent}>
-                  <div className={styles.header}>Chats</div>
+                  <div className={styles.header}>{t('tipsMenu.chats')}</div>
                 </div>
               )}
               <div className={styles.pageSwitch}>
                 <div className={styles.switchButton} onClick={handlePrevTab}>
-                  {'<'} Previous Tip
+                  {'<'} {t('tipsMenu.previousTip')}
                 </div>
                 <div className={styles.switchButton} onClick={handleNextTab}>
-                  Next Tip {'>'}
+                  {t('tipsMenu.nextTip')} {'>'}
                 </div>
               </div>
             </div>

@@ -107,7 +107,7 @@ const Message: React.FC<MessageProps> = ({
   //     messages.forEach((msg) => (msg.el.style.transform = ''));
   //   };
   // }, []);
-
+  // console.log(message);
   const handleDoubleClick = () => {};
   return (
     <div
@@ -118,15 +118,15 @@ const Message: React.FC<MessageProps> = ({
       onDoubleClick={handleDoubleClick}
       onContextMenu={onContextMenu}
     >
-      {!isOwnMessage() && (
+      {/* {!isOwnMessage() && (
         <Avatar
           className={styles.avatar}
           // @ts-ignore
           displayName={message.user.username}
           // @ts-ignore
-          imageUrl={message.user.profile.thumbnail_small}
+          displayMedia={message.user.profile.primary_avatar}
         />
-      )}
+      )} */}
       <div
         className={`${styles.message_div} ${
           isOwnMessage() ? `${styles.darker} ${styles.right}` : ''
@@ -231,7 +231,6 @@ const FilePreview: React.FC<{ file: File; isLast?: boolean }> = ({
   const fileType = getFileType(file.original_name || file.file_url);
 
   const previewMediaHandler = () => {
-    // Implement media preview logic here
     console.log('Preview media:', file.file_url);
   };
   return (

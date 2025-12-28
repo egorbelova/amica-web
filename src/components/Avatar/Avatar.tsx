@@ -2,19 +2,34 @@ import React, { useState, useEffect, useRef } from 'react';
 import { stringToColor, pSBC } from '../../utils/index';
 import styles from './Avatar.module.scss';
 
+export interface PhotoMedia {
+  type: 'photo';
+  small: string;
+  medium?: string;
+}
+
+export interface VideoMedia {
+  type: 'video';
+  url: string;
+  duration?: number | null;
+}
+
+export type DisplayMedia = PhotoMedia | VideoMedia;
+
 export interface AvatarProps {
   displayName: string;
-  imageUrl?: string | null;
+  //@ts-ignore
+  displayMedia?: DisplayMedia | null;
   className?: string;
-  mediaType?: string;
+  size?: 'small' | 'medium';
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 const Avatar: React.FC<AvatarProps> = ({
   displayName,
-  imageUrl,
+  displayMedia,
   className = '',
-  mediaType = 'photo',
+  size,
   onClick,
 }) => {
   const avatarColor = stringToColor(displayName);
@@ -22,6 +37,7 @@ const Avatar: React.FC<AvatarProps> = ({
   const darkerColor = pSBC(-0.8, avatarColor);
 
   const getInitials = (name: string): string => {
+    if (!name) return '';
     const words = name.trim().split(/\s+/);
 
     if (words.length === 0) return '';
@@ -38,7 +54,7 @@ const Avatar: React.FC<AvatarProps> = ({
   const initials = getInitials(displayName);
 
   const avatarStyle = {
-    ...(imageUrl
+    ...(displayMedia
       ? {}
       : {
           background: `linear-gradient(0deg, ${darkerColor} 0%, ${middleColor} 35%, ${avatarColor} 100%)`,
@@ -63,7 +79,15 @@ const Avatar: React.FC<AvatarProps> = ({
     observer.observe(el);
 
     return () => observer.disconnect();
-  }, [displayName, imageUrl]);
+  }, [displayName, displayMedia]);
+
+  const isVideo = displayMedia?.type === 'video';
+  const mediaUrl =
+    displayMedia?.type === 'photo'
+      ? size === 'medium' && displayMedia.medium
+        ? displayMedia.medium
+        : displayMedia.small
+      : displayMedia?.url;
 
   return (
     <div
@@ -73,40 +97,29 @@ const Avatar: React.FC<AvatarProps> = ({
       title={displayName}
       onClick={onClick}
     >
-      {(() => {
-        if (!imageUrl) {
-          return (
-            <span className={styles.avatarInitials} style={{ fontSize }}>
-              {initials}
-            </span>
-          );
-        }
-
-        switch (mediaType) {
-          case 'video':
-            return (
-              <video
-                className={styles.avatarImage}
-                src={imageUrl}
-                muted
-                autoPlay
-                loop
-                playsInline
-              />
-            );
-
-          case 'photo':
-          default:
-            return (
-              <img
-                className={styles.avatarImage}
-                src={imageUrl}
-                alt={`${displayName} avatar`}
-                loading='eager'
-              />
-            );
-        }
-      })()}
+      {displayMedia ? (
+        isVideo ? (
+          <video
+            className={styles.avatarImage}
+            src={mediaUrl}
+            muted
+            autoPlay
+            loop
+            playsInline
+          />
+        ) : (
+          <img
+            className={styles.avatarImage}
+            src={mediaUrl}
+            alt={`${displayName} avatar`}
+            loading='eager'
+          />
+        )
+      ) : (
+        <span className={styles.avatarInitials} style={{ fontSize }}>
+          {initials}
+        </span>
+      )}
     </div>
   );
 };

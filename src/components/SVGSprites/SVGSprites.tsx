@@ -1,4 +1,3 @@
-// components/SVGSprites/SVGSprites.tsx
 const SVGSprites: React.FC = () => {
   return (
     <svg

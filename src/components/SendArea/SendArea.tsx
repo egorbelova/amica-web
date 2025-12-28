@@ -3,7 +3,7 @@ import { websocketManager } from '../../utils/websocket-manager';
 import { useChat } from '../../contexts/ChatContext';
 import { useUser } from '../../contexts/UserContext';
 import { apiFetch } from '../../utils/apiFetch';
-import { apiUpload } from '../../utils/apiUpload';
+import { apiUpload } from '../../utils/apiFetch';
 import DropZone from '../DropZone/DropZone';
 import { Icon } from '../Icons/AutoIcons';
 
@@ -72,7 +72,7 @@ const MessageInput: React.FC = () => {
       const formData = new FormData();
 
       formData.append('message', textMessage);
-      formData.append('room_id', roomId.toString());
+      formData.append('chat_id', roomId.toString());
 
       filesToSend.forEach((file) => {
         formData.append('file', file);

@@ -1,6 +1,6 @@
 interface WebSocketMessage {
   type: string;
-  room_id?: number;
+  chat_id?: number;
   data?: any;
   message_id?: number;
   message?: string;
@@ -207,7 +207,7 @@ class WebSocketManager {
       if (
         data.type === 'chat_message' &&
         data.data &&
-        data.room_id !== undefined
+        data.chat_id !== undefined
       ) {
         console.log('WebSocket message received:', data);
 
@@ -228,13 +228,13 @@ class WebSocketManager {
   }
 
   private handleChatMessage(data: WebSocketMessage): void {
-    if (!data.room_id || !data.data) return;
+    if (!data.chat_id || !data.data) return;
 
     console.log('New chat message:', data);
 
     const event = new CustomEvent('newChatMessage', {
       detail: {
-        roomId: data.room_id,
+        roomId: data.chat_id,
         message: data.data,
       },
     });
@@ -302,10 +302,10 @@ class WebSocketManager {
     }
   }
 
-  public sendChatMessage(roomId: number, message: string): boolean {
+  public sendChatMessage(chatId: number, message: string): boolean {
     return this.sendMessage({
       type: 'chat_message',
-      room_id: roomId,
+      chat_id: chatId,
       data: {
         value: message,
       },

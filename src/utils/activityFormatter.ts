@@ -17,7 +17,7 @@ export const formatLastSeen = (lastSeenString: string | null): string => {
 
     if (lastSeen.toDateString() === now.toDateString()) {
       if (diffMins < 60) {
-        return `${diffMins} min ago`;
+        return `${diffMins} minutes ago`;
       } else {
         return `today at ${lastSeen.toLocaleTimeString('en-US', {
           hour: '2-digit',

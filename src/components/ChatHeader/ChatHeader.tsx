@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Icon from '../Icon/Icon';
 import { useChat } from '../../contexts/ChatContext';
 import { useUser } from '../../contexts/UserContext';
@@ -27,33 +27,24 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
     return;
   }
 
-  const getDisplayInfo = () => {
-    if (selectedChat.room_type === 'G') {
-      return {
-        displayName: selectedChat.name || 'Group Chat',
-        imageUrl: selectedChat.image,
-        subtitle: `${selectedChat.users.length} members`,
-      };
-    } else {
-      const interlocutor = selectedChat.users.find(
-        (chatUser) => chatUser.id !== user?.id
-      );
-      return {
-        displayName: interlocutor?.username || 'Deleted User',
-        //@ts-ignore
-        imageUrl: interlocutor?.profile?.primary_photo?.small,
-        subtitle: formatLastSeen(interlocutor!.last_seen),
-      };
-    }
-  };
-
   const [avatarModalVisible, setAvatarModalVisible] = useState(false);
   const avatarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setAvatarModalVisible(true);
   };
 
-  const { displayName, imageUrl, subtitle } = getDisplayInfo();
+  const [subtitle, setSubtitle] = useState('');
+
+  useEffect(() => {
+    //@ts-ignore
+    if (selectedChat.chat_type === 'G') {
+      // @ts-ignore
+      setSubtitle(`${selectedChat.info} members`);
+    } else {
+      // @ts-ignore
+      setSubtitle(formatLastSeen(selectedChat.info));
+    }
+  }, [selectedChat, user]);
 
   return (
     <div id='opponent_title_name' onClick={onChatInfoClick}>
@@ -68,23 +59,27 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
         <Icon name='arrow' className='arrow-left' />
       </div>
 
-      <div id='name' title={displayName}>
-        <span className='title_name'>{displayName}</span>
+      <div id='name'>
+        <span className='title_name'>{selectedChat.name}</span>
         {subtitle && <span className='title_name_subtitle'>{subtitle}</span>}
       </div>
 
       <div className='opponent_photo_div'>
         <Avatar
-          displayName={displayName}
-          imageUrl={imageUrl}
+          // @ts-ignore
+          displayName={selectedChat.display_name}
+          // @ts-ignore
+          displayMedia={selectedChat.primary_media}
           className={styles.avatar}
           onClick={avatarClick}
         />
 
         {avatarModalVisible && (
           <Avatar
-            displayName={displayName}
-            imageUrl={imageUrl}
+            // @ts-ignore
+            displayName={selectedChat.display_name}
+            // @ts-ignore
+            displayMedia={selectedChat.primary_media}
             className='user-info-avatar big'
           />
         )}

@@ -1,0 +1,153 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 20px;
+}
+
+.tab {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.tab svg {
+  width: 18px;
+  height: 18px;
+}
+
+.tab:hover {
+  color: var(--color-text);
+}
+
+.tab.active {
+  color: var(--color-accent-text);
+  border-bottom-color: var(--color-accent);
+  font-weight: 600;
+}
+
+.content {
+  padding: 0 20px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section h3 {
+  font-size: 1rem;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--color-danger-text);
+  transition: color 0.2s ease;
+}
+
+.logoutBtn:hover {
+  color: var(--color-danger);
+}
+
+.logoutIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.avatar {
+  width: 70px;
+  height: 70px;
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.languageItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.languageInfo {
+  display: flex;
+  flex-direction: column;
+  margin-left: 8px;
+}
+.languageName {
+  font-weight: 500;
+}
+.languageLabel {
+  font-size: 0.85rem;
+  color: #999;
+}
+.languageFlag {
+  font-size: 1.5rem;
+}
+
+.sessionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: #999 solid 1px;
+  padding: 8px 0;
+
+  .sessionInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 15px;
+
+    &.currentSession {
+      border: 2px solid rgb(255, 255, 255);
+      border-radius: 36px;
+    }
+
+    .device {
+      font-weight: 500;
+    }
+    .subInfo {
+      color: #999;
+      font-size: 0.875rem;
+    }
+  }
+
+  .revokeBtn {
+    cursor: pointer;
+    background-color: rgb(62, 118, 209);
+    border-radius: 20px;
+    padding: 5px;
+  }
+}
+
+.revokeAllBtn {
+  cursor: pointer;
+  background-color: rgb(209, 62, 77);
+  border-radius: 20px;
+  padding: 5px;
+}

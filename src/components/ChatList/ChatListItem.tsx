@@ -9,16 +9,9 @@ import type { User } from '../../types';
 import styles from './ChatListItem.module.scss';
 
 export interface ChatListItemProps {
-  chat: {
-    id: number;
-    name: string | null;
-    users: User[];
-    room_type: 'D' | 'G';
-    image: string | null;
-  };
+  chatId: number;
+  displayPrimaryMedia?: string;
   displayName: string;
-  interlocutor: User | null;
-  chatType: 'dialog' | 'group';
   lastMessage: any | null;
   unread_count: number;
   isActive: boolean;
@@ -28,10 +21,9 @@ export interface ChatListItemProps {
 const ChatListItem = forwardRef<HTMLFormElement, ChatListItemProps>(
   (
     {
-      chat,
+      chatId,
+      displayPrimaryMedia,
       displayName,
-      interlocutor,
-      chatType,
       lastMessage,
       unread_count,
       isActive,
@@ -47,33 +39,14 @@ const ChatListItem = forwardRef<HTMLFormElement, ChatListItemProps>(
     const lastMessageFiles = lastMessage?.files?.slice(0, 3) || [];
 
     const unread_counter = unreadCountFormat(unread_count);
-
-    const getAvatarUrl = (): string | null => {
-      if (chat.image) {
-        return chat.image;
-      }
-      //@ts-ignore
-      if (
-        chatType === 'dialog' &&
-        //@ts-ignore
-        interlocutor?.profile?.primary_photo?.small
-      ) {
-        //@ts-ignore
-        return interlocutor.profile.primary_photo.small;
-      }
-      return null;
-    };
-
-    const avatarUrl = getAvatarUrl();
-
     const goToChat = (
       e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
     ): void => {
       e.preventDefault();
       e.stopPropagation();
-      onChatClick(chat.id);
+      onChatClick(chatId);
     };
-
+    console.log('Rendering ChatListItem:', lastMessage);
     return (
       // <SquircleContainer
       //   style={{
@@ -84,13 +57,14 @@ const ChatListItem = forwardRef<HTMLFormElement, ChatListItemProps>(
       //   smoothness={1}
       // >
       <a
-        href={`#${chat.id}`}
+        href={`#${chatId}`}
         className={`users_full_form ${isActive ? 'active' : ''}`}
         onMouseDown={goToChat}
       >
         <Avatar
           displayName={displayName}
-          imageUrl={avatarUrl}
+          //@ts-ignore
+          displayMedia={displayPrimaryMedia}
           className={styles.avatar}
         />
 
@@ -145,9 +119,10 @@ const ChatListItem = forwardRef<HTMLFormElement, ChatListItemProps>(
                 </div>
               )}
 
-              {lastMessageText
-                ? lastMessageText
-                : `${lastMessageFiles.length} Photos`}
+              {lastMessage &&
+                (lastMessageText
+                  ? lastMessageText
+                  : `${lastMessageFiles.length} Photos`)}
             </div>
             {unread_count > 0 && (
               <span className='unread_messages_count'>{unread_counter}</span>

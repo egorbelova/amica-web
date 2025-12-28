@@ -1,52 +1,48 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
+import { useUser } from '../../contexts/UserContext';
 
 function GoogleLoginButton() {
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
+  const { loginWithGoogle } = useUser();
 
-    script.onload = () => {
-      const g = (window as any).google;
+  const handleCredentialResponse = useCallback(
+    async (response: any) => {
+      const id_token = response?.credential;
+      if (!id_token) return;
 
-      if (!g) return;
-
-      g.accounts.id.initialize({
-        client_id:
-          '661213065242-4dt9tro2q8iokcfbnof6m7r2g9th1qcc.apps.googleusercontent.com',
-        callback: handleCredentialResponse,
-      });
-
-      g.accounts.id.renderButton(document.getElementById('google-button'), {
-        theme: 'outline',
-        size: 'large',
-      });
-    };
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  const handleCredentialResponse = (response) => {
-    const id_token = response?.credential;
-    if (!id_token) return;
-
-    fetch('/api/auth/google/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ id_token }),
-    }).then((res) => {
-      if (res.ok) {
-        console.log('Login successful');
+      try {
+        await loginWithGoogle(id_token);
+      } catch (err) {
+        console.error('Google login error', err);
       }
-    });
-  };
+    },
+    [loginWithGoogle]
+  );
 
-  return <div id='google-button'></div>;
+  useEffect(() => {
+    const scriptId = 'google-client-script';
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.id = scriptId;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        const g = (window as any).google;
+        if (g?.accounts?.id) {
+          g.accounts.id.initialize({
+            client_id:
+              '661213065242-4dt9tro2q8iokcfbnof6m7r2g9th1qcc.apps.googleusercontent.com',
+            callback: handleCredentialResponse,
+            auto_select: false,
+          });
+          g.accounts.id.prompt();
+        }
+      };
+      document.body.appendChild(script);
+    }
+  }, [handleCredentialResponse]);
+
+  return null;
 }
 
 export default GoogleLoginButton;

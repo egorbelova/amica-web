@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import ChooseList from '../components/ChooseList/ChooseList';
+import LeftSideBar from '../components/LeftSideBar/LeftSideBar';
 import MainChatWindow from '../components/MainChatWindow/MainChatWindow';
 import { websocketManager } from '../utils/websocket-manager';
 import './room.scss';
@@ -64,7 +64,7 @@ const RoomPage: React.FC = () => {
       )}
       {/* {windowWidth > 768 && <BackgroundComponent />} */}
 
-      <ChooseList />
+      <LeftSideBar />
       <MainChatWindow />
     </>
   );

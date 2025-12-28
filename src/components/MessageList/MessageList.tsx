@@ -1,4 +1,3 @@
-// components/MessageList/MessageList.tsx
 import Message from '../Message/Message';
 import { useChat } from '../../contexts/ChatContext';
 import { useEffect, useCallback, useRef, useState } from 'react';
@@ -22,7 +21,7 @@ const MessageList: React.FC = () => {
       const currentSelectedChat = selectedChatRef.current;
       const currentMessages = messagesRef.current;
 
-      if (!currentSelectedChat || data.room_id !== currentSelectedChat.id)
+      if (!currentSelectedChat || data.chat_id !== currentSelectedChat.id)
         return;
 
       const isDuplicate = currentMessages.some(
@@ -433,6 +432,7 @@ const ViewersList: React.FC<{ viewers: any[]; onClose: () => void }> = ({
           <div key={v.user.id} className={styles['viewer-item']}>
             <Avatar
               displayName={v.user.username}
+              //@ts-ignore
               imageUrl={v.user.profile.thumbnail_small}
               className='user-info-avatar'
             />

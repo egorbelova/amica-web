@@ -1,6 +1,9 @@
-// shared/contexts/MediaModalContext.tsx
-//@ts-ignore
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  type ReactNode,
+} from 'react';
 import MediaModal from '../components/Message/MediaModal';
 
 interface File {
@@ -9,7 +12,6 @@ interface File {
   category?: string;
   thumbnail_medium_url?: string;
   dominant_color?: string;
-  // ... остальные поля
 }
 
 interface MediaModalContextType {

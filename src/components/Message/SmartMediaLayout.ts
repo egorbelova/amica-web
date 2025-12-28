@@ -28,39 +28,40 @@ const RATIO_3_TOP = 0.62;
 
 export function generateLayout(files: File[]): LayoutItem[] {
   const count = files.length;
-  const result: LayoutItem[] = [];
+  if (count === 0) return [];
 
+  const result: LayoutItem[] = [];
   const W = Math.min(MAX_W, Math.max(MIN_W, MAX_W));
-  let H = Math.min(MAX_H, Math.max(MIN_H, W));
+  const H = Math.min(MAX_H, Math.max(MIN_H, W));
 
   if (count === 1) {
     const file = files[0];
-    const ratio = (file.height || H) / (file.width || W);
-    const height = Math.min(Math.max(W * ratio, MIN_H), MAX_H);
+    const imgWidth = file.width || W;
+    const imgHeight = file.height || H;
+    const ratio = imgWidth / imgHeight;
 
-    const width = Math.min(Math.max(W, MIN_W), MAX_W);
+    let width = imgWidth;
+    let height = imgHeight;
 
-    result.push({
-      file,
-      top: 0,
-      left: 0,
-      width,
-      height,
-    });
+    if (width > MAX_W) {
+      width = MAX_W;
+      height = width / ratio;
+    }
+    if (height > MAX_H) {
+      height = MAX_H;
+      width = height * ratio;
+    }
+
+    width = Math.max(width, MIN_W);
+    height = Math.max(height, MIN_H);
+
+    result.push({ file, top: 0, left: 0, width, height });
     return result;
   }
 
   if (count === 2) {
     const half = (W - GAP) / 2;
-
-    result.push({
-      file: files[0],
-      top: 0,
-      left: 0,
-      width: half,
-      height: H,
-    });
-
+    result.push({ file: files[0], top: 0, left: 0, width: half, height: H });
     result.push({
       file: files[1],
       top: 0,
@@ -76,14 +77,7 @@ export function generateLayout(files: File[]): LayoutItem[] {
     const bottomH = H - topH - GAP;
     const half = (W - GAP) / 2;
 
-    result.push({
-      file: files[0],
-      top: 0,
-      left: 0,
-      width: W,
-      height: topH,
-    });
-
+    result.push({ file: files[0], top: 0, left: 0, width: W, height: topH });
     result.push({
       file: files[1],
       top: topH + GAP,
@@ -91,7 +85,6 @@ export function generateLayout(files: File[]): LayoutItem[] {
       width: half,
       height: bottomH,
     });
-
     result.push({
       file: files[2],
       top: topH + GAP,
@@ -99,7 +92,6 @@ export function generateLayout(files: File[]): LayoutItem[] {
       width: half,
       height: bottomH,
     });
-
     return result;
   }
 
@@ -108,14 +100,7 @@ export function generateLayout(files: File[]): LayoutItem[] {
     const midH = H * 0.28;
     const bottomH = H - topH - midH - GAP * 2;
 
-    result.push({
-      file: files[0],
-      top: 0,
-      left: 0,
-      width: W,
-      height: topH,
-    });
-
+    result.push({ file: files[0], top: 0, left: 0, width: W, height: topH });
     result.push({
       file: files[1],
       top: topH + GAP,
@@ -123,7 +108,6 @@ export function generateLayout(files: File[]): LayoutItem[] {
       width: W * 0.4 - GAP,
       height: midH,
     });
-
     result.push({
       file: files[2],
       top: topH + GAP,
@@ -131,7 +115,6 @@ export function generateLayout(files: File[]): LayoutItem[] {
       width: W * 0.6,
       height: midH,
     });
-
     result.push({
       file: files[3],
       top: topH + midH + GAP * 2,
@@ -139,38 +122,37 @@ export function generateLayout(files: File[]): LayoutItem[] {
       width: W,
       height: bottomH,
     });
-
     return result;
   }
 
-  let y = 0;
+  const rows = Math.ceil(Math.sqrt(count));
+  let currentIndex = 0;
+  let top = 0;
 
-  result.push({
-    file: files[0],
-    top: y,
-    left: 0,
-    width: W,
-    height: H * 0.55,
-  });
-  y += H * 0.55 + GAP;
+  for (let row = 0; row < rows; row++) {
+    const remaining = count - currentIndex;
+    const remainingRows = rows - row;
+    const itemsInRow = Math.ceil(remaining / remainingRows);
 
-  const smallH = 100;
-  let left = 0;
+    const width = (W - GAP * (itemsInRow - 1)) / itemsInRow;
+    const height = (H - GAP * (rows - 1)) / rows;
 
-  for (let i = 1; i < files.length; i++) {
-    result.push({
-      file: files[i],
-      top: y,
-      left,
-      width: 100,
-      height: smallH,
-    });
+    for (let col = 0; col < itemsInRow; col++) {
+      if (currentIndex >= count) break;
 
-    left += 100 + GAP;
-    if (left + 100 > W) {
-      left = 0;
-      y += smallH + GAP;
+      const left = col * (width + GAP);
+      result.push({
+        file: files[currentIndex],
+        top,
+        left,
+        width,
+        height,
+      });
+
+      currentIndex++;
     }
+
+    top += height + GAP;
   }
 
   return result;

@@ -23,7 +23,6 @@ interface Props {
 }
 
 const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
-  const layout = useMemo(() => generateLayout(files), [files]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -35,20 +34,17 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
   const MIN_H = 200;
 
   const singleFile = files.length === 1 ? files[0] : null;
-  const containerWidth =
-    files.length > 1
-      ? MAX_W
-      : Math.min(Math.max(singleFile?.width || MIN_W, MIN_W), MAX_W);
-  const containerHeight =
-    files.length > 1
-      ? Math.min(
-          layout.reduce(
-            (max, item) => Math.max(max, item.top + item.height),
-            0
-          ),
-          MAX_H
-        )
-      : Math.min(Math.max(singleFile?.height || MIN_H, MIN_H), MAX_H);
+  const layout = useMemo(() => generateLayout(files), [files]);
+
+  const containerWidth = Math.min(
+    layout.reduce((max, item) => Math.max(max, item.left + item.width), 0),
+    MAX_W
+  );
+
+  const containerHeight = Math.min(
+    layout.reduce((max, item) => Math.max(max, item.top + item.height), 0),
+    MAX_H
+  );
 
   const handleItemClick = (file: File, rect: DOMRect) => {
     setSelectedFile(file);
@@ -58,7 +54,6 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
 
   const closeModal = () => setIsModalOpen(false);
 
-  // Получаем координаты кликнутого элемента для анимации
   const getItemRect = (fileId: number) => {
     const element = document.querySelector(
       `[data-file-id="${fileId}"]`
@@ -69,7 +64,6 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
   useEffect(() => {
     if (selectedFile) {
       const rect = getItemRect(selectedFile.id);
-      // Можно сохранить rect для анимации из начальной позиции
     }
   }, [selectedFile]);
 

@@ -5,6 +5,8 @@ import { ChatProvider } from '../contexts/ChatContext';
 import { AudioProvider } from '../contexts/AudioContext';
 import { AuthProvider } from '../contexts/AuthContext';
 import { MediaModalProvider } from '../contexts/MediaModalContext';
+import { LanguageProvider } from '../contexts/LanguageContext';
+import { SettingsProvider } from '../contexts/settings/SettingsProvider';
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -25,7 +27,9 @@ const AppProvidersComponent = composeProviders(
   UserProvider,
   ChatProvider,
   MessagesProvider,
-  AudioProvider
+  AudioProvider,
+  LanguageProvider,
+  SettingsProvider
 );
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {

@@ -10,7 +10,7 @@ import React, {
 import ChatListItem from './ChatListItem';
 import { useChat } from '../../contexts/ChatContext';
 import { useUser } from '../../contexts/UserContext';
-import type { Chat, User } from '../../types';
+import type { Chat } from '../../types';
 
 const ChatList: React.FC = () => {
   const { user } = useUser();
@@ -110,30 +110,6 @@ const ChatList: React.FC = () => {
     });
   }, [sortedChats]);
 
-  const getInterlocutor = useCallback(
-    (chat: Chat): User | null =>
-      chat.room_type === 'D' && currentUserId
-        ? chat.users.find((u) => u.id !== currentUserId) || null
-        : null,
-    [currentUserId]
-  );
-
-  const getChatType = useCallback(
-    (roomType: 'D' | 'G'): 'dialog' | 'group' =>
-      roomType === 'D' ? 'dialog' : 'group',
-    []
-  );
-
-  const getChatDisplayName = useCallback(
-    (chat: Chat): string => {
-      if (chat.room_type === 'G')
-        return chat.name || chat.users.map((u) => u.username).join(', ');
-      const interlocutor = getInterlocutor(chat);
-      return interlocutor ? interlocutor.username : 'Unknown User';
-    },
-    [getInterlocutor]
-  );
-
   useEffect(() => {
     if (!loading && chats.length > 0) {
       chatListRef.current?.classList.add('active');
@@ -160,7 +136,6 @@ const ChatList: React.FC = () => {
         </button>
       </div>
     );
-
   return (
     <div id='users_search' className='users_search' ref={chatListRef}>
       {animatedChats.length === 0 ? (
@@ -174,10 +149,10 @@ const ChatList: React.FC = () => {
         animatedChats.map((chat) => (
           <MemoizedChatListItem
             key={chat.id}
-            chat={chat}
-            displayName={getChatDisplayName(chat)}
-            interlocutor={getInterlocutor(chat)}
-            chatType={getChatType(chat.room_type)}
+            chatId={chat.id}
+            //@ts-ignore
+            displayPrimaryMedia={chat.primary_media}
+            displayName={chat.name}
             lastMessage={chat.last_message}
             unread_count={chat.unread_count}
             isActive={selectedChat?.id === chat.id}

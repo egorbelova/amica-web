@@ -7,32 +7,21 @@ import { formatLastSeen } from '../../utils/activityFormatter';
 import { Icon } from '../Icons/AutoIcons';
 import { useChat } from '../../contexts/ChatContext';
 import { useUser } from '../../contexts/UserContext';
+import { useTranslation, type Locale } from '@/contexts/LanguageContext';
 
-interface MediaItem {
+interface MediaProfileItem {
   id: string | number;
   type: 'photo' | 'video';
   url?: string;
   small?: string;
   medium?: string;
-  video_url?: string; // для видео
-}
-
-interface ChatUser {
-  id: string | number;
-  username?: string;
-  profile?: {
-    primary_avatar?: MediaItem;
-    media?: MediaItem[];
-    last_seen?: string | Date;
-  };
+  video_url?: string;
 }
 
 interface FileItem {
   id: number;
   file_url: string;
   category: 'image' | 'video' | 'audio' | 'document' | 'pdf';
-  thumbnail_small_url?: string;
-  thumbnail_medium_url?: string;
   width?: number;
   height?: number;
 }
@@ -59,8 +48,9 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
 }) => {
   const hasImages = files.some((f) => f.category === 'image');
   const hasVideos = files.some((f) => f.category === 'video');
-  const { selectedChat } = useChat();
+  const { selectedChat }: any = useChat();
   const { user } = useUser();
+  const { t, locale }: { t: any; locale: Locale } = useTranslation();
 
   const initialTab = hasImages
     ? 'images'
@@ -90,109 +80,14 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
 
   const onInterlocutorEditBack = () => setInterlocutorEditVisible(false);
   const onInterlocutorEdit = () => setInterlocutorEditVisible(true);
-  console.log(selectedChat);
-  const getDisplayInfo = (): {
-    displayName: string;
-    imageSmall?: string | null;
-    imageMedium?: string | null;
-    primaryMedia?: string | null;
-    secondaryMedia?: string | null;
-    type?: string | null;
-    photoRoll: MediaItem[];
-    mediaRoll: MediaItem[];
-    subtitle: string;
-  } => {
-    if (selectedChat.room_type === 'G') {
-      return {
-        displayName: selectedChat.name || 'Group Chat',
-        imageSmall: selectedChat.photo || undefined,
-        imageMedium: selectedChat.photo || undefined,
-        photoRoll: [],
-        mediaRoll: [],
-        subtitle: `${selectedChat.users.length} members`,
-      };
-    }
 
-    // Находим собеседника
-    const interlocutor = selectedChat.users.find(
-      (chatUser: ChatUser) => chatUser.id !== user?.id
-    );
-
-    if (!interlocutor) {
-      return {
-        displayName: 'Deleted User',
-        photoRoll: [],
-        mediaRoll: [],
-        subtitle: 'User not found',
-      };
-    }
-
-    // 🆕 Универсальная функция для получения URL медиа
-    const getMediaUrl = (
-      media: MediaItem | undefined | null
-    ): string | null => {
-      if (!media) return null;
-
-      // Видео: используем video_url или url
-      if (media.type === 'video') {
-        return media.video_url || media.url || null;
-      }
-
-      // Изображение: small → medium → url
-      return media.small || media.medium || media.url || null;
-    };
-
-    const getMediaUrls = (media: MediaItem | undefined | null) => ({
-      primary: getMediaUrl(media),
-      secondary:
-        media?.type === 'video' ? getMediaUrl(media) : media?.medium || null,
-    });
-
-    const primaryAvatar = interlocutor.profile?.primary_avatar;
-    const { primary: primaryMedia, secondary: secondaryMedia } =
-      getMediaUrls(primaryAvatar);
-
-    // 🆕 Форматируем mediaRoll ТОЧНО как primaryAvatar
-    const mediaRoll = (interlocutor.profile?.media || [])
-      .map((media: MediaItem) => ({
-        ...media,
-        primaryMedia: getMediaUrl(media),
-        secondaryMedia:
-          media.type === 'video' ? getMediaUrl(media) : media.medium || null,
-        type: media.type,
-      }))
-      .filter((media): media is MediaItem & { primaryMedia: string } =>
-        Boolean(media.primaryMedia)
-      );
-
-    return {
-      displayName: interlocutor.username || 'Deleted User',
-      primaryMedia,
-      secondaryMedia,
-      type: primaryAvatar?.type || null,
-      photoRoll: [],
-      mediaRoll, // ✅ Теперь с primaryMedia/secondaryMedia как у primaryAvatar
-      subtitle: formatLastSeen(interlocutor.profile?.last_seen),
-    };
-  };
-
-  const displayInfo = useMemo(() => getDisplayInfo(), [selectedChat, user]);
-  const {
-    displayName,
-    primaryMedia,
-    secondaryMedia,
-    mediaRoll,
-    type,
-    subtitle,
-  } = displayInfo;
-
-  const [value, setValue] = useState(displayName);
+  const [value, setValue] = useState(selectedChat.name || '');
 
   useEffect(() => {
     if (!interlocutorEditVisible) {
-      setValue(displayName);
+      setValue(selectedChat.name || '');
     }
-  }, [interlocutorEditVisible, displayName]);
+  }, [interlocutorEditVisible, selectedChat.name]);
 
   const [isAvatarRollerOpen, setIsAvatarRollerOpen] = useState(false);
 
@@ -207,12 +102,14 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
 
   const handleRollPositionChange = () => {
     if (interlocutorEditVisible || !isAvatarRollerOpen) return;
-    setRollPosition((prev) => (prev === mediaRoll!.length ? 0 : prev + 1));
+    setRollPosition((prev) =>
+      prev === selectedChat.media!.length ? 0 : prev + 1
+    );
   };
 
   useEffect(() => {
     const sidebar = sidebarRef.current;
-    if (!sidebar) return;
+    if (!sidebar || interlocutorEditVisible) return;
 
     let touchStartY = 0;
     let isTrackingTouch = false;
@@ -274,11 +171,24 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
     setRollPosition,
     sidebarRef,
     selectedChat,
+    interlocutorEditVisible,
   ]);
 
   useEffect(() => {
     setRollPosition(0);
   }, [interlocutorEditVisible]);
+
+  const [subtitle, setSubtitle] = useState('');
+
+  useEffect(() => {
+    if (selectedChat.chat_type === 'G') {
+      setSubtitle(`${selectedChat.info} members`);
+    } else {
+      setSubtitle(formatLastSeen(selectedChat.info));
+    }
+  }, [selectedChat, user]);
+
+  console.log(selectedChat);
 
   return (
     <div
@@ -328,37 +238,35 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
           onClick={handleRollPositionChange}
         >
           <Avatar
-            displayName={displayInfo.displayName}
-            imageUrl={
-              isAvatarRollerOpen
-                ? displayInfo.secondaryMedia
-                : displayInfo.primaryMedia
-            }
+            displayName={selectedChat.name}
+            //@ts-ignore
+            displayMedia={selectedChat.primary_media}
+            size={isAvatarRollerOpen ? 'medium' : 'small'}
             className={styles['sidebar__avatar']}
-            mediaType={displayInfo.type}
             onClick={
-              displayInfo.primaryMedia && !interlocutorEditVisible
+              //@ts-ignore
+              selectedChat.primary_media && !interlocutorEditVisible
                 ? () => setIsAvatarRollerOpen(true)
                 : undefined
             }
           />
-          {/* ✅ Роллер - используем displayInfo.mediaRoll */}
-          {isAvatarRollerOpen &&
-            displayInfo.mediaRoll.length > 0 &&
-            !interlocutorEditVisible && (
-              <div className={styles.avatarRoller}>
-                {displayInfo.mediaRoll.map((photo) => (
-                  <Avatar
-                    key={photo.id}
-                    displayName={displayInfo.displayName}
-                    imageUrl={photo.primaryMedia}
-                    mediaType={photo.type}
-                    className={styles['sidebar__avatar']}
-                    size='small'
-                  />
-                ))}
-              </div>
-            )}
+          {selectedChat.media && selectedChat.media.length > 0 && (
+            <>
+              {selectedChat.media.map((media) => (
+                <Avatar
+                  key={media.id}
+                  displayName={selectedChat.name}
+                  displayMedia={media}
+                  size={isAvatarRollerOpen ? 'medium' : 'small'}
+                  className={`${styles['sidebar__avatar']} ${
+                    isAvatarRollerOpen && !interlocutorEditVisible
+                      ? ''
+                      : styles['hidden']
+                  }`}
+                />
+              ))}
+            </>
+          )}
         </div>
         <div className={styles['sidebar__info']}>
           <div
@@ -445,7 +353,9 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
                     return (
                       <ProgressiveImage
                         key={file.id}
+                        //@ts-ignore
                         small={file.thumbnail_small_url}
+                        //@ts-ignore
                         full={file.thumbnail_medium_url || file.file_url}
                         dominant_color='#eee'
                       />
@@ -489,7 +399,9 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
               </>
             )}
 
-            <div className={`${styles.button} ${styles.save}`}>Save</div>
+            <div className={`${styles.button} ${styles.save}`}>
+              {t('buttons.save')}
+            </div>
           </div>
         </div>
       )}

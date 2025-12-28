@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, use } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import RoomPage from './pages/RoomPage';
@@ -6,18 +6,14 @@ import getDeviceCornerRadius from './utils/getDeviceCornerRadius';
 import { IconsSprite } from './components/Icons/AutoIcons';
 import { useUser } from './contexts/UserContext';
 
-type AppView = 'login' | 'signup' | 'room';
+type AppView = 'login' | 'signup';
 
 const App: React.FC = () => {
-  const { isAuthenticated, loading, login } = useUser();
+  const { isAuthenticated, loading } = useUser();
   const [currentView, setCurrentView] = useState<AppView>('login');
 
-  const handleLoginSuccess = useCallback((userData: any) => {
-    login(userData);
-    setCurrentView('room');
-  }, []);
-
   const showSignup = useCallback(() => setCurrentView('signup'), []);
+  const showLogin = useCallback(() => setCurrentView('login'), []);
 
   useEffect(() => {
     const cornerRadiusPx = getDeviceCornerRadius();
@@ -55,12 +51,10 @@ const App: React.FC = () => {
         {isAuthenticated ? (
           <RoomPage />
         ) : currentView === 'login' ? (
-          <LoginPage
-            onLoginSuccess={handleLoginSuccess}
-            onShowSignup={showSignup}
-          />
+          <LoginPage onShowSignup={showSignup} />
         ) : (
-          <SignUpPage />
+          // @ts-ignore
+          <SignUpPage onShowLogin={showLogin} />
         )}
       </div>
     </>

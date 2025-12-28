@@ -1,4 +1,3 @@
-// contexts/ChatContext.tsx
 import React, {
   createContext,
   useCallback,
@@ -61,8 +60,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     const handleNewMessage = (data: any) => {
-      if (data.type === 'chat_message' && data.room_id && data.data) {
-        const roomId = data.room_id;
+      if (data.type === 'chat_message' && data.chat_id && data.data) {
+        const roomId = data.chat_id;
         const newMessage = data.data;
 
         console.log('New message received for room:', data);
@@ -177,7 +176,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     try {
       setLoading(true);
       setError(null);
-      const res = await apiFetch('/api/getChats/', {
+      const res = await apiFetch('/api/get_chats/', {
         method: 'GET',
       });
       if (!res.ok) throw new Error(`Failed: ${res.status}`);
@@ -194,7 +193,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const fetchMessages = useCallback(
     async (chatId: number) => {
       try {
-        const res = await apiFetch(`/api/GetMessages/${chatId}/`);
+        const res = await apiFetch(`/api/get_messages/${chatId}/`);
         if (!res.ok) throw new Error(`Failed: ${res.status}`);
         const data = await res.json();
         console.log(data);
