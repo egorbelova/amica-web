@@ -3,6 +3,7 @@ import styles from './SmartMediaLayout.module.scss';
 import { generateLayout } from './SmartMediaLayout';
 import ProgressiveImage from './ProgressiveImage';
 import { useMediaModal } from '../../contexts/MediaModalContext';
+import VideoLayout from './VideoLayout';
 
 interface File {
   id: number;
@@ -97,14 +98,7 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
               }}
             >
               {item.file.category === 'video' ? (
-                <video
-                  src={item.file.file_url}
-                  muted
-                  autoPlay
-                  loop
-                  playsInline
-                  className={styles.media}
-                />
+                <VideoLayout full={item.file.file_url} />
               ) : (
                 <ProgressiveImage
                   small={item.file.thumbnail_small_url}

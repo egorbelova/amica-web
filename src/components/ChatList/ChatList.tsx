@@ -6,11 +6,16 @@ import React, {
   memo,
   useMemo,
   useState,
+  useContext,
 } from 'react';
 import ChatListItem from './ChatListItem';
 import { useChat } from '../../contexts/ChatContext';
 import { useUser } from '../../contexts/UserContext';
 import type { Chat } from '../../types';
+import UserSearchInput from '@/components/LeftSideBar/UserSearchInput';
+import { UserSearchContext } from '@/contexts/userSearch/UserSearchContext';
+import Avatar from '../Avatar/Avatar';
+import styles from './ChatList.module.scss';
 
 const ChatList: React.FC = () => {
   const { user } = useUser();
@@ -32,6 +37,21 @@ const ChatList: React.FC = () => {
     },
     []
   );
+
+  const context = useContext(UserSearchContext);
+
+  if (!context) {
+    throw new Error('UserSearchInput must be used within a UserSearchProvider');
+  }
+
+  const {
+    searchTerm,
+    results,
+    loading: searchLoading,
+    error: searchError,
+    onChange,
+    clear,
+  } = context;
 
   const sortedChats = useMemo(() => {
     if (!chats.length) return [];
@@ -138,28 +158,52 @@ const ChatList: React.FC = () => {
     );
   return (
     <div id='users_search' className='users_search' ref={chatListRef}>
-      {animatedChats.length === 0 ? (
-        <div className='no-chats'>
-          <div className='no-chats-text'>No chats found</div>
-          <button onClick={fetchChats} className='retry-button'>
-            Refresh
-          </button>
-        </div>
+      <UserSearchInput />
+      {searchTerm.length === 0 ? (
+        animatedChats.length === 0 ? (
+          <div className='no-chats'>
+            <div className='no-chats-text'>No chats found</div>
+            <button onClick={fetchChats} className='retry-button'>
+              Refresh
+            </button>
+          </div>
+        ) : (
+          animatedChats.map((chat) => (
+            <MemoizedChatListItem
+              key={chat.id}
+              chatId={chat.id}
+              //@ts-ignore
+              displayPrimaryMedia={chat.primary_media}
+              displayName={chat.name}
+              lastMessage={chat.last_message}
+              unread_count={chat.unread_count}
+              isActive={selectedChat?.id === chat.id}
+              onChatClick={handleChatClick}
+              ref={(el) => setChatItemRef(chat.id, el)}
+            />
+          ))
+        )
       ) : (
-        animatedChats.map((chat) => (
-          <MemoizedChatListItem
-            key={chat.id}
-            chatId={chat.id}
-            //@ts-ignore
-            displayPrimaryMedia={chat.primary_media}
-            displayName={chat.name}
-            lastMessage={chat.last_message}
-            unread_count={chat.unread_count}
-            isActive={selectedChat?.id === chat.id}
-            onChatClick={handleChatClick}
-            ref={(el) => setChatItemRef(chat.id, el)}
-          />
-        ))
+        <>
+          {searchLoading && <div className='search_loading'>Loading...</div>}
+          {searchError && <div className='search_error'>{searchError}</div>}
+
+          {results.length > 0 && (
+            <ul className='search_results'>
+              {results.map((user) => (
+                <li key={user.id}>
+                  {user.username} {user.email}
+                  <Avatar
+                    displayName={user.username ?? user.display_name}
+                    displayMedia={user.profile?.primary_avatar}
+                    className={styles.avatar}
+                    size='small'
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </div>
   );

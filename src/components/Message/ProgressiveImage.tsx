@@ -1,56 +1,50 @@
-import { useEffect, useRef } from 'react';
+import { apiFetch } from '@/utils/apiFetch';
+import { useEffect, useRef, useState } from 'react';
 
 export default function ProgressiveImage({
   small,
   full,
-  //   width,
-  //   height,
   onClick = () => {},
-  //   priority,
   dominant_color,
 }) {
   const imgRef = useRef(null);
+  const [smallUrl, setSmallUrl] = useState(small);
+  const [fullUrl, setFullUrl] = useState(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    apiFetch(full, {
+      signal: controller.signal,
+    })
+      .then((res) => res.blob())
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        console.log('Loaded full image', url);
+        setFullUrl(url);
+      })
+      .catch((err) => console.warn('Failed to load protected image', err));
+
+    return () => controller.abort();
+  }, [full]);
 
   useEffect(() => {
     const img = imgRef.current;
-    if (!img) return;
+    if (!img || !fullUrl) return;
 
-    const handleLoad = () => {
-      img.classList.add('loaded');
-    };
-
-    const fullImg = new Image();
-
-    fullImg.onload = async () => {
-      try {
-        await fullImg.decode();
-      } catch (e) {}
-
-      if (!img) return;
-
-      img.src = full;
-      img.addEventListener('load', handleLoad, { once: true });
-    };
-
-    fullImg.onerror = () => {
-      console.warn('Failed to load full image:', full);
-    };
-
-    fullImg.src = full;
-  }, [full]);
+    img.onload = () => img.classList.add('loaded');
+    img.src = fullUrl;
+  }, [fullUrl]);
 
   return (
     <div style={{ background: dominant_color, width: '100%', height: '100%' }}>
       <img
         ref={imgRef}
-        src={small}
-        data-full={full}
+        src={smallUrl}
         className='mes_img progressive-image'
         onClick={onClick}
         alt='Attachment'
         decoding='async'
-        // loading={priority ? 'eager' : 'lazy'}
-        // fetchPriority={priority ? 'high' : 'low'}
       />
     </div>
   );

@@ -191,7 +191,6 @@ const FilePreview: React.FC<{ file: File; isLast?: boolean }> = ({
   file,
   isLast,
 }) => {
-  // console.log(isLast);
   const getFileType = (filename: string): string => {
     const ext = filename.split('.').pop()?.toLowerCase() || '';
     if (

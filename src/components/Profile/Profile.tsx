@@ -10,6 +10,7 @@ import ProfileAppearance from './ProfileAppearance';
 import ProfileSessions from './ProfileSessions';
 import Avatar from '../Avatar/Avatar';
 import { useUser } from '@/contexts/UserContext';
+import UserSearchInput from '../LeftSideBar/UserSearchInput';
 
 type SubTab =
   | 'account'
@@ -68,6 +69,8 @@ export default function Profile() {
 
   return (
     <div className={styles.container}>
+      <UserSearchInput />
+
       <nav className={styles.tabs}>
         {tabs.map((tab) => (
           <button

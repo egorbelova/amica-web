@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useContext } from 'react';
 import Icon from '../Icon/Icon';
 import { TabsProvider } from '../Tabs/TabsContext';
 import { Tabs } from '../Tabs/Tabs';
@@ -6,7 +6,6 @@ import { Tab } from '../Tabs/Tab';
 import Contacts from '@/components/Contacts/Contacts';
 import ChatList from '@/components/ChatList/ChatList';
 import Profile from '@/components/Profile/Profile';
-import UserSearchInput from './UserSearchInput';
 
 interface ChooseListProps {
   userInfo?: {
@@ -18,11 +17,10 @@ interface ChooseListProps {
   onRoomSelect?: (roomId: number) => void;
 }
 
-const LeftSideBar: React.FC<ChooseListProps> = ({ onLogout, onRoomSelect }) => {
+const LeftSideBar: React.FC<ChooseListProps> = () => {
   return (
     <div className='choose_list'>
       <div className='chat-list-title'>Messages</div>
-      <UserSearchInput />
       <TabsProvider>
         <div className='left-menu'>
           <div className='shadow-header'></div>
