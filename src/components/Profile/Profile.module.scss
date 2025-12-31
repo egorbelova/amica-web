@@ -80,6 +80,7 @@
 .avatar {
   width: 70px;
   height: 70px;
+  cursor: pointer;
 }
 
 .optionRow {
@@ -150,4 +151,8 @@
   background-color: rgb(209, 62, 77);
   border-radius: 20px;
   padding: 5px;
+}
+
+.profileMediaInput {
+  display: none;
 }

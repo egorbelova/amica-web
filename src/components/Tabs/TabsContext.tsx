@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from 'react';
 
 type TabValue = 'contacts' | 'chats' | 'profile';
 
@@ -9,8 +15,18 @@ interface TabsContextType {
 
 const TabsContext = createContext<TabsContextType | null>(null);
 
+const LOCAL_STORAGE_KEY = 'activeTab';
+
 export function TabsProvider({ children }: { children: ReactNode }) {
-  const [activeTab, setActiveTab] = useState<TabValue>('chats');
+  const [activeTab, setActiveTab] = useState<TabValue>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY) as TabValue | null;
+    return saved ?? 'chats';
+  });
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, activeTab);
+  }, [activeTab]);
+
   return (
     <TabsContext.Provider value={{ activeTab, setActiveTab }}>
       {children}

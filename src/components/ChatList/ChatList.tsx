@@ -195,6 +195,7 @@ const ChatList: React.FC = () => {
                   {user.username} {user.email}
                   <Avatar
                     displayName={user.username ?? user.display_name}
+                    //@ts-ignore
                     displayMedia={user.profile?.primary_avatar}
                     className={styles.avatar}
                     size='small'

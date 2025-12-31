@@ -18,7 +18,6 @@ const RoomPage: React.FC = () => {
       websocketManager.disconnect();
     };
   }, [userId]);
-  console.log('ROOMROOMROOMROOMROOMROOMROOMROOMROOMROOM');
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   useEffect(() => {
