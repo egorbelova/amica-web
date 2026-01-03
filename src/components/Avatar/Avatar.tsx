@@ -48,11 +48,19 @@ const Avatar: React.FC<AvatarProps> = ({
     displayMedia || null
   );
 
-  const getInitials = (name: string) => {
+  const getInitials = (name: string): string => {
+    if (!name) return '';
     const words = name.trim().split(/\s+/);
+
     if (words.length === 0) return '';
-    if (words.length === 1) return words[0][0].toUpperCase();
-    return words[0][0].toUpperCase() + words[words.length - 1][0].toUpperCase();
+
+    if (words.length === 1) {
+      return words[0].charAt(0).toUpperCase();
+    } else {
+      const firstLetter = words[0].charAt(0).toUpperCase();
+      const lastLetter = words[words.length - 1].charAt(0).toUpperCase();
+      return firstLetter + lastLetter;
+    }
   };
 
   const initials = getInitials(displayName);
