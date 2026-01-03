@@ -14,11 +14,15 @@ export interface VideoMedia {
   duration?: number | null;
 }
 
+interface MediaLayer {
+  id: number;
+  media: DisplayMedia | null;
+}
+
 export type DisplayMedia = PhotoMedia | VideoMedia;
 
 export interface AvatarProps {
   displayName: string;
-  //@ts-ignore
   displayMedia?: DisplayMedia | null;
   className?: string;
   size?: 'small' | 'medium';
@@ -35,59 +39,79 @@ const Avatar: React.FC<AvatarProps> = ({
   const avatarColor = stringToColor(displayName);
   const middleColor = pSBC(-0.6, avatarColor);
   const darkerColor = pSBC(-0.8, avatarColor);
+  const [layers, setLayers] = useState<MediaLayer[]>([]);
+  const fadeDuration = 1000;
 
-  const getInitials = (name: string): string => {
-    if (!name) return '';
+  const avatarRef = useRef<HTMLDivElement>(null);
+  const [fontSize, setFontSize] = useState(12);
+  const [currentMedia, setCurrentMedia] = useState<DisplayMedia | null>(
+    displayMedia || null
+  );
+
+  const getInitials = (name: string) => {
     const words = name.trim().split(/\s+/);
-
     if (words.length === 0) return '';
-
-    if (words.length === 1) {
-      return words[0].charAt(0).toUpperCase();
-    } else {
-      const firstLetter = words[0].charAt(0).toUpperCase();
-      const lastLetter = words[words.length - 1].charAt(0).toUpperCase();
-      return firstLetter + lastLetter;
-    }
+    if (words.length === 1) return words[0][0].toUpperCase();
+    return words[0][0].toUpperCase() + words[words.length - 1][0].toUpperCase();
   };
 
   const initials = getInitials(displayName);
 
   const avatarStyle = {
-    ...(displayMedia
-      ? {}
-      : {
-          background: `linear-gradient(0deg, ${darkerColor} 0%, ${middleColor} 35%, ${avatarColor} 100%)`,
-        }),
+    background: !displayMedia
+      ? `linear-gradient(0deg, ${darkerColor} 0%, ${middleColor} 35%, ${avatarColor} 100%)`
+      : undefined,
   };
-
-  const avatarRef = useRef<HTMLDivElement>(null);
-
-  const [fontSize, setFontSize] = useState<number>(12);
 
   useEffect(() => {
     const el = avatarRef.current;
     if (!el) return;
-
-    const updateFont = () => {
-      setFontSize(el.clientWidth * 0.45);
-    };
-
+    const updateFont = () => setFontSize(el.clientWidth * 0.45);
     updateFont();
+    const obs = new ResizeObserver(() => updateFont());
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
-    const observer = new ResizeObserver(() => updateFont());
-    observer.observe(el);
+  useEffect(() => {
+    if (!displayMedia) return;
 
-    return () => observer.disconnect();
-  }, [displayName, displayMedia]);
+    const id = Date.now();
+    const newLayer: MediaLayer = { id, media: displayMedia };
 
-  const isVideo = displayMedia?.type === 'video';
-  const mediaUrl =
-    displayMedia?.type === 'photo'
-      ? size === 'medium' && displayMedia.medium
-        ? displayMedia.medium
-        : displayMedia.small
-      : displayMedia?.url;
+    setLayers((prev) => [...prev, newLayer]);
+  }, [displayMedia]);
+
+  const renderMedia = (media: DisplayMedia | null) => {
+    if (!media) return null;
+    const isVideo = media.type === 'video';
+    const url =
+      media.type === 'photo'
+        ? size === 'medium' && (media as PhotoMedia).medium
+          ? (media as PhotoMedia).medium
+          : (media as PhotoMedia).small
+        : (media as VideoMedia).url;
+
+    if (isVideo)
+      return (
+        <video
+          className={styles.avatarImage}
+          src={url}
+          muted
+          autoPlay
+          loop
+          playsInline
+        />
+      );
+
+    return (
+      <img
+        className={styles.avatarImage}
+        src={url}
+        alt={`${displayName} avatar`}
+      />
+    );
+  };
 
   return (
     <div
@@ -97,29 +121,39 @@ const Avatar: React.FC<AvatarProps> = ({
       title={displayName}
       onClick={onClick}
     >
-      {displayMedia ? (
-        isVideo ? (
-          <video
-            className={styles.avatarImage}
-            src={mediaUrl}
-            muted
-            autoPlay
-            loop
-            playsInline
-          />
-        ) : (
-          <img
-            className={styles.avatarImage}
-            src={mediaUrl}
-            alt={`${displayName} avatar`}
-            loading='eager'
-          />
-        )
-      ) : (
-        <span className={styles.avatarInitials} style={{ fontSize }}>
-          {initials}
-        </span>
-      )}
+      <div className={styles.avatarLayer}>
+        {renderMedia(currentMedia) || (
+          <span className={styles.avatarInitials} style={{ fontSize }}>
+            {initials}
+          </span>
+        )}
+      </div>
+
+      {layers.map((layer) => (
+        <div
+          key={layer.id}
+          className={styles.avatarLayer}
+          style={{
+            opacity: 0,
+            animation: `fadeIn ${fadeDuration}ms ease forwards`,
+          }}
+          onAnimationEnd={() => {
+            setCurrentMedia(layer.media);
+            setLayers((prev) => {
+              if (prev.length > 1) {
+                return prev.slice(prev.length - 1);
+              }
+              return prev;
+            });
+          }}
+        >
+          {renderMedia(layer.media) || (
+            <span className={styles.avatarInitials} style={{ fontSize }}>
+              {initials}
+            </span>
+          )}
+        </div>
+      ))}
     </div>
   );
 };

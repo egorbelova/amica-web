@@ -1,35 +1,29 @@
+// api.ts
+import {
+  getAccessTokenOrThrow,
+  refreshTokenIfNeeded,
+  handleUnauthorized,
+} from './authStore';
+
 export interface ApiError extends Error {
   status?: number;
   data?: any;
 }
 
-let onUnauthorized: (() => void) | null = null;
-export const setApiFetchUnauthorizedHandler = (callback: () => void) => {
-  onUnauthorized = callback;
-};
-
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
-const HEARTBEAT_INTERVAL = 300_000;
 
-let accessToken: string | null = null;
-let accessTokenExp: number | null = null;
+let onUnauthorizedHandler: (() => void) | null = null;
 
-function decodeJwtExp(token: string): number | null {
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const payloadStr = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
-    const payload = JSON.parse(payloadStr);
-    return payload.exp ? payload.exp * 1000 : null;
-  } catch {
-    return null;
-  }
-}
-
-export const setAccessToken = (token: string | null) => {
-  accessToken = token;
-  accessTokenExp = token ? decodeJwtExp(token) : null;
+/**
+ * Позволяет UI подписаться на событие 401 из API
+ */
+export const setApiFetchUnauthorizedHandler = (callback: () => void) => {
+  onUnauthorizedHandler = callback;
 };
+
+// =======================
+// Utils
+// =======================
 
 async function retry<T>(
   fn: () => Promise<T>,
@@ -50,157 +44,97 @@ function logFetchError(err: any, url: string) {
   console.error('[apiFetch error]', url, err);
 }
 
-function isTokenExpired(): boolean {
-  return (
-    !accessToken || !accessTokenExp || Date.now() > accessTokenExp - 120_000
-  );
-}
-
-let refreshPromise: Promise<void> | null = null;
-
-async function refreshToken(): Promise<void> {
-  const res = await fetch('/api/refresh_token/', {
-    method: 'POST',
-    credentials: 'include',
-  });
-
-  if (res.status === 401) {
-    accessToken = null;
-    accessTokenExp = null;
-    onUnauthorized?.();
-    throw new Error('Unauthorized');
-  }
-
-  if (!res.ok) throw new Error('Server error');
-
-  const data = await res.json();
-  if (data.refresh) setAccessToken(data.refresh);
-  setAccessToken(data.access);
-}
-
-async function refreshTokenIfNeeded(): Promise<string> {
-  if (!isTokenExpired()) return accessToken!;
-
-  if (!refreshPromise) {
-    refreshPromise = retry(refreshToken).finally(() => {
-      refreshPromise = null;
-    });
-  }
-
-  await refreshPromise;
-  if (!accessToken) throw new Error('No valid token');
-
-  return accessToken;
-}
-
-let heartbeatId: number | null = null;
-export function startRefreshHeartbeat(intervalMs = HEARTBEAT_INTERVAL) {
-  if (heartbeatId !== null) return;
-
-  heartbeatId = window.setInterval(async () => {
-    if (!accessToken || !navigator.onLine) return;
-    try {
-      await refreshTokenIfNeeded();
-    } catch {}
-  }, intervalMs) as unknown as number;
-}
-
-export function stopRefreshHeartbeat() {
-  if (heartbeatId !== null) {
-    window.clearInterval(heartbeatId);
-    heartbeatId = null;
-  }
-}
-
-export async function getAccessTokenOrThrow(): Promise<string> {
-  return refreshTokenIfNeeded();
-}
-
 async function fetchWithRetry(
   url: string,
-  options: RequestInit,
-  retries = 2
+  options: RequestInit
 ): Promise<Response> {
-  return retry(async () => {
-    const res = await fetch(url, options);
-    if (!res.ok && res.status >= 500) throw res;
-    return res;
-  }, retries);
+  return retry(() => fetch(url, options), 3, 500);
 }
+
+// =======================
+// API Fetch
+// =======================
 
 export async function apiFetch(
   url: string,
   options: RequestInit = {},
   retried401 = false
 ): Promise<Response> {
-  const isFormData = options.body instanceof FormData;
   let token: string | null = null;
 
-  if (!isFormData) {
-    if (accessToken && !isTokenExpired()) {
-      token = accessToken;
-    } else {
-      try {
-        token = await refreshTokenIfNeeded();
-      } catch {
-        return new Response(null, { status: 401 });
-      }
-    }
+  try {
+    await refreshTokenIfNeeded();
+    token = await getAccessTokenOrThrow();
+  } catch {
+    token = null; // продолжаем без токена
   }
 
   const headers = new Headers(options.headers || {});
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
-  const response = await fetchWithRetry(url, {
+  const isFormData = options.body instanceof FormData;
+  if (isFormData) headers.delete('Content-Type');
+
+  const response = await fetchWithRetry(`${API_BASE_URL}${url}`, {
     ...options,
     credentials: 'include',
     headers,
   });
 
-  if (response.status === 401 && !retried401 && !isFormData) {
+  // Retry один раз при 401
+  if (response.status === 401 && !retried401) {
     try {
-      const newToken = await refreshTokenIfNeeded();
+      await refreshTokenIfNeeded();
+      const newToken = await getAccessTokenOrThrow();
       const newHeaders = new Headers(options.headers || {});
-      newHeaders.set('Authorization', `Bearer ${newToken}`);
+      if (newToken) newHeaders.set('Authorization', `Bearer ${newToken}`);
+      if (isFormData) newHeaders.delete('Content-Type');
 
-      return await apiFetch(
+      return apiFetch(
         url,
-        {
-          ...options,
-          credentials: 'include',
-          headers: newHeaders,
-        },
+        { ...options, credentials: 'include', headers: newHeaders },
         true
       );
-    } catch {
-      logFetchError('Retry failed', url);
+    } catch (err) {
+      logFetchError('Retry after 401 failed', url);
     }
   }
 
   if (response.status === 401) {
-    onUnauthorized?.();
+    onUnauthorizedHandler?.();
+    handleUnauthorized();
   }
 
   return response;
 }
 
+// =======================
+// JSON helper
+// =======================
+
 export async function apiJson<T>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const res = await apiFetch(url, {
-    ...options,
-    credentials: 'include',
-  });
+  const res = await apiFetch(url, { ...options, credentials: 'include' });
+
+  let data: any;
   const contentType = res.headers.get('content-type') || '';
 
-  const data = contentType.includes('application/json')
-    ? await res.json()
-    : await res.text();
+  try {
+    data = contentType.includes('application/json')
+      ? await res.json()
+      : await res.text();
+  } catch {
+    data = await res.text();
+  }
 
   if (!res.ok) {
     const err: ApiError = new Error(
-      (data as any)?.error || (data as any)?.detail || res.statusText
+      (data as any)?.error ||
+        (data as any)?.detail ||
+        (data as string) ||
+        res.statusText
     ) as ApiError;
     err.status = res.status;
     err.data = data;
@@ -210,48 +144,62 @@ export async function apiJson<T>(
   return data as T;
 }
 
-export async function initAuth(): Promise<void> {
-  startRefreshHeartbeat();
-}
-
-export function cleanupAuth() {
-  stopRefreshHeartbeat();
-}
+// =======================
+// File upload helper
+// =======================
 
 export async function apiUpload(
   url: string,
   formData: FormData,
   onProgress?: (percent: number) => void
 ): Promise<any> {
-  const token = await getAccessTokenOrThrow();
+  const token = await getCurrentToken();
+  if (!token) throw new Error('No access token');
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', url);
+    xhr.open('POST', `${API_BASE_URL}${url}`);
     xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.withCredentials = true;
 
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable && onProgress) {
-        onProgress(Math.round((event.loaded / event.total) * 100));
-      }
-    };
+    if (onProgress) {
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          onProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      };
+    }
 
     xhr.onload = () => {
       if (xhr.status === 401) {
-        onUnauthorized?.();
+        onUnauthorizedHandler?.();
+        reject(new Error('Unauthorized'));
         return;
       }
 
       if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(JSON.parse(xhr.responseText));
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch {
+          resolve(xhr.responseText);
+        }
       } else {
-        reject(xhr.responseText);
+        reject(xhr.responseText || 'Upload failed');
       }
     };
 
-    xhr.onerror = () => reject('Network error');
+    xhr.onerror = () => reject(new Error('Network error'));
+    xhr.ontimeout = () => reject(new Error('Timeout'));
 
     xhr.send(formData);
   });
+}
+
+async function getCurrentToken(): Promise<string | null> {
+  try {
+    await refreshTokenIfNeeded();
+    return await getAccessTokenOrThrow();
+  } catch {
+    return null;
+  }
 }

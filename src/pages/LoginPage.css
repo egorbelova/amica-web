@@ -99,7 +99,7 @@ body {
   text-decoration: none;
 }
 
-#offset {
+.offset {
   margin-top: 100px;
   position: relative;
   color: white;
@@ -108,7 +108,7 @@ body {
   padding: 20px;
 }
 
-#registration_form {
+.registration_form {
   text-align: center;
   font-size: 35px;
   padding: 30px;
@@ -185,20 +185,20 @@ input:-webkit-autofill:active {
   }
 }
 
-#OR_div {
+.OR_div {
   border-bottom: 1px solid grey;
   text-align: center;
   color: grey;
   height: 12px;
 }
 
-#OR {
+.OR {
   font-size: 13px;
   background: rgb(30, 30, 30);
   padding: 0 3px;
 }
 
-#google_icon {
+.google_icon {
   opacity: 0.9;
   width: 20px;
 }

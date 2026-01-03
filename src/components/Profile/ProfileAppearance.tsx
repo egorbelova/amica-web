@@ -1,7 +1,7 @@
 import { useTranslation } from '@/contexts/LanguageContext';
 import styles from './Profile.module.scss';
 import { useSettings } from '@/contexts/settings/useSettings';
-import Toggle from '@/components/ui/Toggle';
+import Toggle from '@/components/ui/toggle/Toggle';
 
 export default function ProfileAppearance() {
   const { t } = useTranslation();

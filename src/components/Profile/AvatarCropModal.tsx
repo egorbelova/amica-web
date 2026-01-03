@@ -11,9 +11,10 @@ import { apiUpload } from '@/utils/apiFetch';
 
 interface AvatarCropModalProps {
   file: File;
+  type: 'photo' | 'video';
   isOpen: boolean;
   onClose: () => void;
-  onUploadSuccess: () => void;
+  onUploadSuccess: (file: File) => void;
   profileId: number;
 }
 
@@ -27,6 +28,7 @@ type Edge =
 
 export default function AvatarCropModal({
   file,
+  type,
   isOpen,
   onClose,
   onUploadSuccess,
@@ -65,6 +67,36 @@ export default function AvatarCropModal({
 
   const ratioRef = useRef<number>(window.devicePixelRatio || 1);
   const getRatio = useCallback(() => ratioRef.current, []);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (!isOpen || type !== 'video' || !file) return;
+
+    const url = URL.createObjectURL(file);
+    if (videoRef.current) {
+      videoRef.current.src = url;
+      videoRef.current.currentTime = 0;
+    }
+
+    return () => URL.revokeObjectURL(url);
+  }, [file, isOpen, type]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     selectionRef.current = selection;
@@ -521,7 +553,12 @@ export default function AvatarCropModal({
         formData
       );
       console.log('Upload success:', data);
-      onUploadSuccess();
+
+      if (data) {
+        onUploadSuccess(data);
+      } else {
+        onUploadSuccess(null);
+      }
       onClose();
     } catch (e) {
       console.error('Upload failed:', e);

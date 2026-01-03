@@ -30,6 +30,7 @@
   text-wrap: nowrap;
   max-height: 240px;
   overflow-y: auto;
+  backdrop-filter: blur(12px);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: 6px;

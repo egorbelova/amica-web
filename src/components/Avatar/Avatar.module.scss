@@ -1,25 +1,39 @@
-.avatarInitials {
+.profilePicture {
+  position: relative;
+  border-radius: 50%;
+  overflow: hidden;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  user-select: none;
+  aspect-ratio: 1/1;
+}
+@keyframes fadeOut {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.avatarLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  animation-fill-mode: forwards;
+}
+
+.avatarInitials {
   color: #fff;
   font-family: 'SFProRounded';
   font-weight: 500;
 }
 
-.profilePicture {
-  border-radius: 50%;
-  user-select: none;
-  flex-shrink: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  aspect-ratio: 1 / 1;
-}
-
 .avatarImage {
-  height: 100%;
   width: 100%;
+  height: 100%;
   object-fit: cover;
 }

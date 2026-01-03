@@ -7,7 +7,6 @@ import { AuthProvider } from '../contexts/AuthContext';
 import { MediaModalProvider } from '../contexts/MediaModalContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
 import { SettingsProvider } from '../contexts/settings/SettingsProvider';
-import { UserSearchProvider } from '@/contexts/userSearch/UserSearchProvider';
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -30,8 +29,7 @@ const AppProvidersComponent = composeProviders(
   MessagesProvider,
   AudioProvider,
   LanguageProvider,
-  SettingsProvider,
-  UserSearchProvider
+  SettingsProvider
 );
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {

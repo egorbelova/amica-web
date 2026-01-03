@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback, act } from 'react';
-import { ThemeManager } from '../../utils';
 import SendArea from '../SendArea/SendArea';
 import MessageList from '../MessageList/MessageList';
 import ChatHeader from '../ChatHeader/ChatHeader';
@@ -42,9 +41,6 @@ const MainChatWindow: React.FC = () => {
   const { selectedChat } = useChat();
 
   const [sideBarVisible, setSideBarVisible] = useState(false);
-
-  const themeManager = ThemeManager.getInstance();
-  themeManager.setTheme('L');
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 

@@ -12,16 +12,16 @@ import ChatListItem from './ChatListItem';
 import { useChat } from '../../contexts/ChatContext';
 import { useUser } from '../../contexts/UserContext';
 import type { Chat } from '../../types';
-import UserSearchInput from '@/components/LeftSideBar/UserSearchInput';
-import { UserSearchContext } from '@/contexts/userSearch/UserSearchContext';
-import Avatar from '../Avatar/Avatar';
 import styles from './ChatList.module.scss';
+import { useSearchContext } from '@/contexts/search/SearchContext';
 
 const ChatList: React.FC = () => {
   const { user } = useUser();
   const { chats, selectedChat, loading, error, fetchChats, handleChatClick } =
     useChat();
   const currentUserId = user?.id;
+
+  const { term } = useSearchContext();
 
   const loadingContainerRef = useRef<HTMLDivElement>(null);
   const chatListRef = useRef<HTMLDivElement>(null);
@@ -37,21 +37,6 @@ const ChatList: React.FC = () => {
     },
     []
   );
-
-  const context = useContext(UserSearchContext);
-
-  if (!context) {
-    throw new Error('UserSearchInput must be used within a UserSearchProvider');
-  }
-
-  const {
-    searchTerm,
-    results,
-    loading: searchLoading,
-    error: searchError,
-    onChange,
-    clear,
-  } = context;
 
   const sortedChats = useMemo(() => {
     if (!chats.length) return [];
@@ -130,12 +115,7 @@ const ChatList: React.FC = () => {
     });
   }, [sortedChats]);
 
-  useEffect(() => {
-    if (!loading && chats.length > 0) {
-      chatListRef.current?.classList.add('active');
-      loadingContainerRef.current?.classList.add('hidden');
-    }
-  }, [loading, chats.length]);
+  const isActive = !loading && chats.length > 0 && !term;
 
   useEffect(() => {
     fetchChats();
@@ -157,54 +137,35 @@ const ChatList: React.FC = () => {
       </div>
     );
   return (
-    <div id='users_search' className='users_search' ref={chatListRef}>
-      <UserSearchInput />
-      {searchTerm.length === 0 ? (
-        animatedChats.length === 0 ? (
-          <div className='no-chats'>
-            <div className='no-chats-text'>No chats found</div>
-            <button onClick={fetchChats} className='retry-button'>
-              Refresh
-            </button>
-          </div>
-        ) : (
-          animatedChats.map((chat) => (
-            <MemoizedChatListItem
-              key={chat.id}
-              chatId={chat.id}
-              //@ts-ignore
-              displayPrimaryMedia={chat.primary_media}
-              displayName={chat.name}
-              lastMessage={chat.last_message}
-              unread_count={chat.unread_count}
-              isActive={selectedChat?.id === chat.id}
-              onChatClick={handleChatClick}
-              ref={(el) => setChatItemRef(chat.id, el)}
-            />
-          ))
-        )
+    <div
+      ref={chatListRef}
+      className={`${styles['chat-list-view']} ${
+        isActive ? styles['chat-list-view--active'] : ''
+      }`}
+    >
+      {animatedChats.length === 0 ? (
+        <div className='no-chats'>
+          <div className='no-chats-text'>No chats found</div>
+          <button onClick={fetchChats} className='retry-button'>
+            Refresh
+          </button>
+        </div>
       ) : (
-        <>
-          {searchLoading && <div className='search_loading'>Loading...</div>}
-          {searchError && <div className='search_error'>{searchError}</div>}
-
-          {results.length > 0 && (
-            <ul className='search_results'>
-              {results.map((user) => (
-                <li key={user.id}>
-                  {user.username} {user.email}
-                  <Avatar
-                    displayName={user.username ?? user.display_name}
-                    //@ts-ignore
-                    displayMedia={user.profile?.primary_avatar}
-                    className={styles.avatar}
-                    size='small'
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
+        animatedChats.map((chat, index) => (
+          <MemoizedChatListItem
+            key={chat.id}
+            chatId={chat.id}
+            //@ts-ignore
+            displayPrimaryMedia={chat.primary_media}
+            displayName={chat.name}
+            lastMessage={chat.last_message}
+            unread_count={chat.unread_count}
+            isActive={selectedChat?.id === chat.id}
+            onChatClick={handleChatClick}
+            ref={(el) => setChatItemRef(chat.id, el)}
+            index={index}
+          />
+        ))
       )}
     </div>
   );

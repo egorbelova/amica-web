@@ -1,3 +1,9 @@
+import {
+  onAccessTokenChange,
+  refreshTokenIfNeeded,
+  getAccessTokenOrThrow,
+} from './authStore';
+
 interface WebSocketMessage {
   type: string;
   chat_id?: number;
@@ -17,8 +23,6 @@ interface WebSocketEventMap {
   message_reaction: (data: WebSocketMessage) => void;
   message_viewed: (data: WebSocketMessage) => void;
   connection_established: (data: any) => void;
-  authentication_failed: (data: any) => void;
-  authentication_success: (data: any) => void;
 }
 
 class WebSocketManager {
@@ -31,9 +35,29 @@ class WebSocketManager {
   private reconnectTimeout: number | null = null;
   private isManualDisconnect = false;
   private eventHandlers: Map<keyof WebSocketEventMap, Function[]> = new Map();
-  private currentUserId: number | null = null;
 
-  private constructor() {}
+  private unsubscribeTokenListener: (() => void) | null = null;
+
+  constructor() {
+    this.unsubscribeTokenListener = onAccessTokenChange((token) => {
+      if (!token) {
+        this.disconnect();
+        return;
+      }
+      if (this.isConnected()) {
+        this.sendMessage({ type: 'auth', token });
+      }
+    });
+  }
+
+  public shutdown() {
+    this.disconnect();
+    if (this.unsubscribeTokenListener) {
+      this.unsubscribeTokenListener();
+      this.unsubscribeTokenListener = null;
+    }
+    this.eventHandlers.clear();
+  }
 
   public static getInstance(): WebSocketManager {
     if (!WebSocketManager.instance) {
@@ -59,9 +83,7 @@ class WebSocketManager {
     const handlers = this.eventHandlers.get(event);
     if (handlers) {
       const index = handlers.indexOf(handler);
-      if (index > -1) {
-        handlers.splice(index, 1);
-      }
+      if (index > -1) handlers.splice(index, 1);
     }
   }
 
@@ -78,48 +100,44 @@ class WebSocketManager {
     }
   }
 
-  public connect(userId?: number): void {
-    this.cleanupTimers();
+  public async connect(): Promise<void> {
+    if (
+      this.socket?.readyState === WebSocket.CONNECTING ||
+      this.socket?.readyState === WebSocket.OPEN
+    ) {
+      return;
+    }
+    this.cleanupPing();
+    this.cleanupReconnect();
     this.isManualDisconnect = false;
-    if (userId !== undefined) {
-      this.currentUserId = userId;
-    }
-
-    if (this.currentUserId === null) {
-      const storedUserId = localStorage.getItem('userId');
-      if (storedUserId) {
-        this.currentUserId = parseInt(storedUserId, 10);
-      } else {
-        console.error('User ID is not available for WebSocket connection');
-        this.emit('error', new Error('User ID is not available'));
-        return;
-      }
-    }
 
     if (this.socket) {
       this.socket.close();
       this.socket = null;
     }
 
+    try {
+      await refreshTokenIfNeeded();
+    } catch (err) {
+      console.error('Cannot get valid token for WS:', err);
+      return;
+    }
+
     const ws_protocol =
       window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const ws_host = window.location.hostname;
+    let ws_port: number | null = null;
 
-    let ws_host = window.location.host;
-    let ws_port = null;
-
-    if (
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1' ||
-      window.location.port === '8000'
-    ) {
+    if (ws_host === 'localhost' || ws_host === '127.0.0.1') {
       ws_port = 8000;
     }
 
-    let url;
+    let url: string;
+    const token = await getAccessTokenOrThrow();
     if (ws_port) {
-      url = `${ws_protocol}${window.location.hostname}:${ws_port}/socket-server/${this.currentUserId}/`;
+      url = `${ws_protocol}${ws_host}:${ws_port}/ws/socket-server/?token=${token}`;
     } else {
-      url = `${ws_protocol}${ws_host}/socket-server/${this.currentUserId}/`;
+      url = `${ws_protocol}${window.location.host}/ws/socket-server/`;
     }
 
     console.log('Connecting to WebSocket:', url);
@@ -127,131 +145,99 @@ class WebSocketManager {
     try {
       this.socket = new WebSocket(url);
 
-      this.socket.onopen = (e: Event): void => {
-        console.log('WebSocket connection established successfully');
+      this.socket.onopen = async () => {
         this.reconnectAttempts = 0;
-        // this.startPingInterval();
-        this.emit('connected', {});
+        this.emit('connected', null);
+
+        try {
+          const token = await getAccessTokenOrThrow();
+          this.sendMessage({ type: 'auth', token });
+        } catch (e) {
+          this.disconnect();
+        }
       };
 
-      this.socket.onmessage = (e: MessageEvent): void => {
-        this.handleMessage(e);
-      };
+      this.socket.onmessage = (e: MessageEvent) => this.handleMessage(e);
 
-      this.socket.onclose = (e: CloseEvent): void => {
-        console.log(
-          `WebSocket connection closed. Code: ${e.code}, Reason: ${e.reason}`
-        );
-
-        this.cleanupTimers();
+      this.socket.onclose = (e: CloseEvent) => {
+        console.log(`WebSocket closed. Code: ${e.code}, Reason: ${e.reason}`);
         this.emit('disconnected', { code: e.code, reason: e.reason });
 
-        if (this.isManualDisconnect) {
-          console.log('Manual disconnect, no reconnection');
-          return;
-        }
-
-        if (e.code === 1000 || e.code === 1001) {
-          console.log('WebSocket closed normally, no reconnection needed');
-          return;
-        }
+        if (this.isManualDisconnect) return;
+        if (e.code === 1000 || e.code === 1001) return;
 
         this.attemptReconnection();
       };
 
-      this.socket.onerror = (err: Event): void => {
+      this.socket.onerror = (err: Event) => {
         console.error('WebSocket error:', err);
         this.emit('error', err);
       };
-    } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
-      this.emit('error', error);
+    } catch (err) {
+      console.error('Failed to create WebSocket connection:', err);
+      this.emit('error', err);
     }
   }
 
-  private handleMessage(e: MessageEvent): void {
+  private cleanupPing() {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+    }
+  }
+
+  private cleanupReconnect() {
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+  }
+
+  private handleMessage(e: MessageEvent) {
     try {
       const data: WebSocketMessage = JSON.parse(e.data);
-
       this.emit('message', data);
 
-      if (data.type === 'connection_established') {
-        console.log('WebSocket connection confirmed', data);
-        this.emit('connection_established', data);
-        return;
+      switch (data.type) {
+        case 'connection_established':
+          this.emit('connection_established', data);
+          this.startPingInterval();
+          break;
+        case 'pong':
+          break;
+        case 'error':
+          console.error('WS error:', data.message);
+          this.emit('error', data);
+          break;
+        case 'chat_message':
+          if (data.data && data.chat_id !== undefined)
+            this.emit('chat_message', data);
+          break;
+        case 'message_reaction':
+          if (data.message_id) this.emit('message_reaction', data);
+          break;
+        case 'message_viewed':
+          if (data.message_id) this.emit('message_viewed', data);
+          break;
       }
-
-      if (data.type === 'pong') {
-        console.log('WebSocket ping-pong successful');
-        return;
-      }
-
-      if (data.type === 'error') {
-        console.error('WebSocket error:', data.message);
-        this.emit('error', data);
-        return;
-      }
-
-      if (data.type === 'authentication_failed') {
-        console.error('WebSocket authentication failed');
-        this.emit('authentication_failed', data);
-        return;
-      }
-
-      if (data.type === 'authentication_success') {
-        console.log('WebSocket authentication successful');
-        this.emit('authentication_success', data);
-        return;
-      }
-
-      if (
-        data.type === 'chat_message' &&
-        data.data &&
-        data.chat_id !== undefined
-      ) {
-        console.log('WebSocket message received:', data);
-
-        this.emit('chat_message', data);
-      }
-
-      if (data.type === 'message_reaction' && data.message_id) {
-        this.emit('message_reaction', data);
-      }
-
-      if (data.type === 'message_viewed' && data.message_id) {
-        this.emit('message_viewed', data);
-      }
-    } catch (error) {
-      console.error('Error parsing WebSocket message:', error);
-      this.emit('error', error);
+    } catch (err) {
+      console.error('Error parsing WS message:', err);
+      this.emit('error', err);
     }
-  }
-
-  private handleChatMessage(data: WebSocketMessage): void {
-    if (!data.chat_id || !data.data) return;
-
-    console.log('New chat message:', data);
-
-    const event = new CustomEvent('newChatMessage', {
-      detail: {
-        roomId: data.chat_id,
-        message: data.data,
-      },
-    });
-    window.dispatchEvent(event);
   }
 
   private attemptReconnection(): void {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
+      this.reconnectAttempts++;
+
+      const delay =
+        this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
+
       console.log(
-        `Reconnecting in ${delay}ms... (Attempt ${this.reconnectAttempts + 1}/${
-          this.maxReconnectAttempts
-        })`
+        `Reconnecting in ${delay}ms (Attempt ${this.reconnectAttempts})`
       );
 
       this.reconnectTimeout = window.setTimeout(() => {
-        this.reconnectAttempts++;
         this.connect();
       }, delay);
     } else {
@@ -260,32 +246,15 @@ class WebSocketManager {
     }
   }
 
-  private cleanupTimers(): void {
-    if (this.pingInterval) {
-      clearInterval(this.pingInterval);
-      this.pingInterval = null;
-    }
-
-    if (this.reconnectTimeout) {
-      clearTimeout(this.reconnectTimeout);
-      this.reconnectTimeout = null;
-    }
-  }
-
-  private startPingInterval(): void {
-    this.cleanupTimers();
-
+  private startPingInterval() {
+    this.cleanupPing();
     this.sendPing();
-
-    this.pingInterval = window.setInterval(() => {
-      this.sendPing();
-    }, 30000);
+    this.pingInterval = window.setInterval(() => this.sendPing(), 30_000);
   }
 
-  private sendPing(): void {
+  private sendPing() {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify({ type: 'ping' }));
-      console.log('Ping sent');
     }
   }
 
@@ -293,26 +262,20 @@ class WebSocketManager {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(message));
       return true;
-    } else {
-      console.error(
-        'WebSocket is not connected. Current state:',
-        this.socket?.readyState
-      );
-      return false;
     }
+    console.error('WebSocket not open', this.socket?.readyState);
+    return false;
   }
 
-  public sendChatMessage(chatId: number, message: string): boolean {
+  public sendChatMessage(chatId: number, message: string) {
     return this.sendMessage({
       type: 'chat_message',
       chat_id: chatId,
-      data: {
-        value: message,
-      },
+      data: { value: message },
     });
   }
 
-  public sendMessageReaction(messageId: number, reaction: any): boolean {
+  public sendMessageReaction(messageId: number, reaction: any) {
     return this.sendMessage({
       type: 'message_reaction',
       message_id: messageId,
@@ -320,92 +283,20 @@ class WebSocketManager {
     });
   }
 
-  public sendMessageViewed(messageId: number): boolean {
-    return this.sendMessage({
-      type: 'message_viewed',
-      message_id: messageId,
-    });
+  public sendMessageViewed(messageId: number) {
+    return this.sendMessage({ type: 'message_viewed', message_id: messageId });
   }
 
-  public authenticate(token: string): boolean {
-    return this.sendMessage({
-      type: 'authenticate',
-      token: token,
-    });
-  }
-
-  public disconnect(): void {
-    console.log('Manually disconnecting WebSocket');
+  public disconnect() {
     this.isManualDisconnect = true;
-    this.cleanupTimers();
-
-    if (this.socket) {
-      this.socket.close(1000, 'Manual disconnect');
-      this.socket = null;
-    }
-
-    this.emit('disconnected', { code: 1000, reason: 'Manual disconnect' });
-  }
-
-  public getConnectionState(): string {
-    if (!this.socket) return 'CLOSED';
-
-    switch (this.socket.readyState) {
-      case WebSocket.CONNECTING:
-        return 'CONNECTING';
-      case WebSocket.OPEN:
-        return 'OPEN';
-      case WebSocket.CLOSING:
-        return 'CLOSING';
-      case WebSocket.CLOSED:
-        return 'CLOSED';
-      default:
-        return 'UNKNOWN';
-    }
+    this.reconnectAttempts = 0;
+    this.cleanupPing();
+    this.cleanupReconnect();
+    if (this.socket) this.socket.close(1000, 'Manual disconnect');
   }
 
   public isConnected(): boolean {
     return this.socket?.readyState === WebSocket.OPEN;
-  }
-
-  public getCurrentToken(): string | null {
-    return localStorage.getItem('authToken');
-  }
-
-  public getCurrentUserId(): number | null {
-    return this.currentUserId;
-  }
-
-  public setUserId(userId: number): void {
-    if (this.currentUserId !== userId) {
-      this.currentUserId = userId;
-      localStorage.setItem('userId', userId.toString());
-
-      if (this.isConnected()) {
-        this.disconnect();
-      } else {
-        this.connect();
-      }
-    }
-  }
-
-  public updateToken(newToken: string): void {
-    localStorage.setItem('authToken', newToken);
-    if (this.isConnected()) {
-      this.disconnect();
-    }
-    this.connect();
-  }
-
-  public updateAuthData(userId: number, token: string): void {
-    this.currentUserId = userId;
-    localStorage.setItem('userId', userId.toString());
-    localStorage.setItem('authToken', token);
-
-    if (this.isConnected()) {
-      this.disconnect();
-    }
-    this.connect();
   }
 }
 

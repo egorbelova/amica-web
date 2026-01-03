@@ -67,8 +67,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
   const handleSignUp = useCallback(() => onShowSignup(), [onShowSignup]);
 
   return (
-    <form className='login-form' id='offset' onSubmit={handleSubmit} noValidate>
-      <h4 id='registration_form'>Log In</h4>
+    <form className='login-form offset' onSubmit={handleSubmit} noValidate>
+      <h4 className='registration_form'>Log In</h4>
       <fieldset className='form'>
         <legend className='form-label'>Username</legend>
         <input
@@ -104,8 +104,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
       >
         {loading ? 'Logging in...' : 'Next'}
       </button>
-      <div id='OR_div'>
-        <span id='OR'>OR</span>
+      <div className='OR_div'>
+        <span className='OR'>OR</span>
       </div>
       <GoogleLoginButton />
       <PasskeyLoginButton />

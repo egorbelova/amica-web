@@ -10,7 +10,7 @@
   align-items: center;
   gap: 8px;
   border-bottom: 1px solid var(--color-border);
-  padding: 0 20px;
+  padding: 0 10px;
 }
 
 .tab {
@@ -44,13 +44,18 @@
 }
 
 .content {
-  padding: 0 20px;
+  padding: 0 10px;
 }
 
 .section {
   display: flex;
   flex-direction: column;
+  // align-items: center;
   gap: 12px;
+}
+
+.sessionsList {
+  width: 100%;
 }
 
 .section h3 {
@@ -60,6 +65,7 @@
 }
 
 .logoutBtn {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -81,6 +87,10 @@
   width: 70px;
   height: 70px;
   cursor: pointer;
+}
+
+.editAvatar {
+  filter: brightness(0.7);
 }
 
 .optionRow {
@@ -155,4 +165,64 @@
 
 .profileMediaInput {
   display: none;
+}
+
+.avatarDropZone {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  // overflow: hidden;
+
+  &:hover .uploadIcon {
+    scale: 1.2;
+  }
+}
+
+.avatarDropZone::before {
+  content: '';
+  position: absolute;
+  height: 70px;
+  width: 70px;
+  border-radius: 50%;
+  pointer-events: none;
+  scale: 1;
+
+  background: repeating-conic-gradient(
+    transparent 0deg 4deg,
+    rgb(0, 166, 255) 4deg 12deg,
+    transparent 12deg 26deg
+  );
+
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 3px),
+    #000 calc(100% - 1px)
+  );
+
+  background-color: rgb(255, 66, 66);
+
+  opacity: 0;
+  transition: opacity 0.2s ease, scale 0.2s ease;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.dragOver::before {
+  opacity: 1;
+  scale: 1.2;
+  animation: spin 1.5s ease-in-out infinite;
+}
+
+.uploadIcon {
+  position: absolute;
+  height: 33%;
+  scale: 1;
+  transition: scale 0.2s ease;
 }

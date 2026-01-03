@@ -1,5 +1,6 @@
 import { useTabs } from './TabsContext';
 import { type ReactNode } from 'react';
+import styles from './Tabs.module.scss';
 
 interface TabProps {
   id: 'contacts' | 'chats' | 'profile';
@@ -8,5 +9,14 @@ interface TabProps {
 
 export function Tab({ id, children }: TabProps) {
   const { activeTab } = useTabs();
-  return activeTab === id ? <>{children}</> : null;
+
+  return (
+    <div
+      className={`${styles['tab-view']} ${
+        activeTab === id ? styles['tab-view--active'] : ''
+      }`}
+    >
+      {children}
+    </div>
+  );
 }

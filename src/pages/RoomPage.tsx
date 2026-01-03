@@ -7,17 +7,12 @@ import { useUser } from '../contexts/UserContext';
 // import BackgroundComponent from '../components/BackgroundComponent/BackgroundComponent';
 
 const RoomPage: React.FC = () => {
-  const { user } = useUser();
-  const userId = user!.id;
-
   useEffect(() => {
-    console.log('WS: connecting', userId);
-    websocketManager.connect(userId);
-
+    websocketManager.connect();
     return () => {
       websocketManager.disconnect();
     };
-  }, [userId]);
+  }, []);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   useEffect(() => {

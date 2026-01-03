@@ -214,6 +214,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         '--swipe-margin-inactive',
         `0%`
       );
+
       if (selectedChat?.id === chatId) return;
 
       const chat = chats.find((c) => c.id === chatId);
@@ -221,21 +222,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 
       selectChat(chat);
 
-      const cached = getCachedMessages(chatId);
-      if (cached?.length) {
-        updateMessages(cached, chatId);
-      } else {
-        await fetchMessages(chatId);
-      }
+      await fetchMessages(chatId);
     },
-    [
-      chats,
-      selectedChat,
-      getCachedMessages,
-      updateMessages,
-      fetchMessages,
-      selectChat,
-    ]
+    [chats, selectedChat, selectChat, fetchMessages]
   );
 
   const value: ChatContextType = {

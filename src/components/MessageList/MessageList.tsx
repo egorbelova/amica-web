@@ -384,7 +384,7 @@ const MessageList: React.FC = () => {
   }, [messages]);
 
   return (
-    <div className='offset room_div room_body' id='display' ref={containerRef}>
+    <div className='room_div room_body' id='display' ref={containerRef}>
       {menuVisible && (
         <ContextMenu
           items={menuItems}

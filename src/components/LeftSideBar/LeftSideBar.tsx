@@ -4,8 +4,9 @@ import { TabsProvider } from '../Tabs/TabsContext';
 import { Tabs } from '../Tabs/Tabs';
 import { Tab } from '../Tabs/Tab';
 import Contacts from '@/components/Contacts/Contacts';
-import ChatList from '@/components/ChatList/ChatList';
 import Profile from '@/components/Profile/Profile';
+import ChatsTabView from './ChatsTabView';
+import styles from './LeftSideBar.module.scss';
 
 interface ChooseListProps {
   userInfo?: {
@@ -20,18 +21,21 @@ interface ChooseListProps {
 const LeftSideBar: React.FC<ChooseListProps> = () => {
   return (
     <div className='choose_list'>
-      <div className='chat-list-title'>Messages</div>
       <TabsProvider>
         <div className='left-menu'>
-          <div className='shadow-header'></div>
           <Tab id='contacts'>
-            <Contacts />
+            <div className={styles['tab-content']}>
+              <Contacts />
+            </div>
           </Tab>
           <Tab id='chats'>
-            <ChatList />
+            {/* <div className='chat-list-title'>Messages</div> */}
+            <ChatsTabView />
           </Tab>
           <Tab id='profile'>
-            <Profile />
+            <div className={styles['tab-content']}>
+              <Profile />
+            </div>
           </Tab>
         </div>
         <Tabs />

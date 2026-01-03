@@ -2,6 +2,9 @@ import styles from './Profile.module.scss';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { useEffect, useState, useCallback } from 'react';
 import { apiFetch } from '@/utils/apiFetch';
+import { useUser } from '@/contexts/UserContext';
+import { Dropdown } from '../Dropdown/Dropdown';
+import { websocketManager } from '@/utils';
 
 interface Session {
   jti: string;
@@ -14,6 +17,19 @@ interface Session {
   is_current: boolean;
 }
 
+const SESSION_LIFETIME_OPTIONS = [
+  { value: 500, label: '5s' },
+  { value: 1000, label: '10s' },
+  { value: 3000, label: '30s' },
+  { value: 6000, label: '1m' },
+  { value: 7, label: '1 week' },
+  { value: 14, label: '2 weeks' },
+  { value: 30, label: '1 month' },
+  { value: 60, label: '2 months' },
+  { value: 90, label: '3 months' },
+  { value: 180, label: '6 months' },
+];
+
 const formatDate = (value: string) =>
   new Date(value).toLocaleString(undefined, {
     dateStyle: 'medium',
@@ -22,25 +38,22 @@ const formatDate = (value: string) =>
 
 export default function ProfileSessions() {
   const { t } = useTranslation();
+  const { user, setUser } = useUser();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sessionLifetime, setSessionLifetime] = useState<number>(
+    user.preferred_session_lifetime_days
+  );
+  const [savingLifetime, setSavingLifetime] = useState(false);
 
   const loadSessions = useCallback(async () => {
     try {
       setLoading(true);
       const res = await apiFetch('/api/active-sessions/');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
       const data: Session[] = await res.json();
-
-      const sorted = [...data].sort((a, b) => {
-        if (a.is_current === b.is_current) return 0;
-        return a.is_current ? -1 : 1;
-      });
-
-      setSessions(sorted);
-
+      setSessions(data.sort((a, b) => (a.is_current ? -1 : 1)));
       setError(null);
     } catch (err) {
       console.error(err);
@@ -51,20 +64,68 @@ export default function ProfileSessions() {
     }
   }, []);
 
+  const handleWSMessage = useCallback(
+    (data: any) => {
+      if (!data.type) return;
+      switch (data.type) {
+        case 'session_created':
+          setSessions((prev) => [
+            ...prev.filter((s) => s.jti !== data.session.jti),
+            data.session,
+          ]);
+          break;
+        case 'session_updated':
+          setSessions((prev) =>
+            prev.map((s) => (s.jti === data.session.jti ? data.session : s))
+          );
+          break;
+        case 'session_deleted':
+          setSessions((prev) => prev.filter((s) => s.jti !== data.session.jti));
+          break;
+        case 'session_lifetime_updated':
+          setSessionLifetime(data.days);
+          if (user)
+            setUser({ ...user, preferred_session_lifetime_days: data.days });
+          break;
+      }
+    },
+    [user, setUser]
+  );
+
+  useEffect(() => {
+    websocketManager.on('message', handleWSMessage);
+    if (!websocketManager.isConnected() && user?.id) {
+      websocketManager.connect(user.id);
+    }
+    return () => websocketManager.off('message', handleWSMessage);
+  }, [handleWSMessage, user?.id]);
+
   useEffect(() => {
     loadSessions();
     const interval = setInterval(loadSessions, 30_000);
     return () => clearInterval(interval);
   }, [loadSessions]);
 
+  const updateSessionLifetime = async (value: number) => {
+    setSavingLifetime(true);
+    setSessionLifetime(value);
+    if (user) setUser({ ...user, preferred_session_lifetime_days: value });
+
+    // Отправка через WebSocket
+    websocketManager.sendMessage({
+      type: 'set_session_lifetime',
+      days: value,
+    });
+
+    setSavingLifetime(false);
+  };
+
   const revokeSession = async (jti: string) => {
     try {
       const res = await apiFetch(`/api/active-sessions/${jti}/`, {
         method: 'DELETE',
       });
-      if (res.ok) {
-        setSessions((prev) => prev.filter((s) => s.jti !== jti));
-      }
+      if (res.ok) setSessions((prev) => prev.filter((s) => s.jti !== jti));
     } catch (err) {
       console.error('Failed to revoke session', err);
     }
@@ -78,7 +139,6 @@ export default function ProfileSessions() {
       console.error('Failed to revoke other sessions', err);
     }
   };
-
   if (loading) {
     return (
       <div className={styles.section}>
@@ -93,6 +153,21 @@ export default function ProfileSessions() {
       <h3>Active sessions</h3>
 
       {error && <div className={styles.error}>⚠️ {error}</div>}
+      <div className={styles.sessionLifetime}>
+        <label>Session lifetime: </label>
+        {user && (
+          <Dropdown
+            items={SESSION_LIFETIME_OPTIONS.map((opt) => ({
+              label: opt.label,
+              value: opt.value,
+            }))}
+            value={sessionLifetime}
+            onChange={updateSessionLifetime}
+            placeholder='Select session lifetime'
+          />
+        )}
+        {savingLifetime && <span>Saving…</span>}
+      </div>
 
       {sessions.length === 0 ? (
         <p>No active sessions</p>

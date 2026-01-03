@@ -5,10 +5,11 @@ import {
   unreadCountFormat,
 } from '../../utils/index';
 import Avatar from '../Avatar/Avatar';
-import type { User } from '../../types';
 import styles from './ChatListItem.module.scss';
+import { SquircleContainer } from '../SquircleContainer/SquircleContainer';
 
 export interface ChatListItemProps {
+  index?: number;
   chatId: number;
   displayPrimaryMedia?: string;
   displayName: string;
@@ -18,9 +19,10 @@ export interface ChatListItemProps {
   onChatClick: (chatId: number) => void;
 }
 
-const ChatListItem = forwardRef<HTMLFormElement, ChatListItemProps>(
+const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
   (
     {
+      index,
       chatId,
       displayPrimaryMedia,
       displayName,
@@ -47,43 +49,41 @@ const ChatListItem = forwardRef<HTMLFormElement, ChatListItemProps>(
       onChatClick(chatId);
     };
     console.log('Rendering ChatListItem:', lastMessage);
+
     return (
-      // <SquircleContainer
-      //   style={{
-      //     width: '100%',
-      //     height: '100%',
-      //   }}
-      //   cornerRadiusPx={20}
-      //   smoothness={1}
-      // >
       <a
         href={`#${chatId}`}
-        className={`users_full_form ${isActive ? 'active' : ''}`}
+        className={`${styles['chat-list-item']} ${
+          isActive ? styles['chat-list-item--active'] : ''
+        }`}
         onMouseDown={goToChat}
+        style={{ '--index': `${index}` } as React.CSSProperties}
       >
         <Avatar
           displayName={displayName}
           //@ts-ignore
           displayMedia={displayPrimaryMedia}
-          className={styles.avatar}
+          className={styles['chat-list-item__avatar']}
         />
 
-        <div className='username_and_last_message'>
-          <div className='users'>
-            <div className='chat_name'>{displayName}</div>
-            <div className='room_last_message_date'>{lastMessageDate}</div>
+        <div className={styles['chat-list-item__content']}>
+          <div className={styles['chat-list-item__header']}>
+            <div className={styles['chat-list-item__name']}>{displayName}</div>
+            <div className={styles['chat-list-item__date']}>
+              {lastMessageDate}
+            </div>
           </div>
-          <div className='room_last_message'>
-            <div className='last_message_text'>
+          <div className={styles['chat-list-item__message-row']}>
+            <div className={styles['chat-list-item__message-text']}>
               {lastMessageFiles.length > 0 && (
-                <div className='last_message_files'>
+                <div className={styles['chat-list-item__attachments']}>
                   {lastMessageFiles.map((file: any, index: number) => {
                     switch (file.category) {
                       case 'image':
                         return (
                           <img
                             key={index}
-                            className='last_message_file'
+                            className={styles['chat-list-item__attachment']}
                             src={file.thumbnail_small_url}
                             alt={
                               file.original_name || `Attachment ${index + 1}`
@@ -94,7 +94,7 @@ const ChatListItem = forwardRef<HTMLFormElement, ChatListItemProps>(
                         return (
                           <video
                             key={index}
-                            className='last_message_file'
+                            className={styles['chat-list-item__attachment']}
                             src={file.thumbnail_small_url}
                             loop
                             muted
@@ -109,7 +109,7 @@ const ChatListItem = forwardRef<HTMLFormElement, ChatListItemProps>(
                             href={file.file_url}
                             target='_blank'
                             rel='noopener noreferrer'
-                            className='last_message_file'
+                            className={styles['chat-list-item__attachment']}
                           >
                             {file.original_name || `Attachment ${index + 1}`}
                           </a>
@@ -125,12 +125,13 @@ const ChatListItem = forwardRef<HTMLFormElement, ChatListItemProps>(
                   : `${lastMessageFiles.length} Photos`)}
             </div>
             {unread_count > 0 && (
-              <span className='unread_messages_count'>{unread_counter}</span>
+              <span className={styles['chat-list-item__unread']}>
+                {unread_counter}
+              </span>
             )}
           </div>
         </div>
       </a>
-      // </SquircleContainer>
     );
   }
 );
