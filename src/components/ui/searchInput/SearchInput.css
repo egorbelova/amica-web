@@ -1,12 +1,14 @@
 .search_div {
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* justify-content: center; */
   width: 100vw;
   position: fixed;
   min-height: 50px;
   z-index: 2;
+  height: 50px;
   max-height: 50px;
+  padding: 0 10px;
   /* background: linear-gradient(180deg, rgba(0, 0, 0, 1) 0%, transparent 100%); */
   /* backdrop-filter: blur(3px); */
   transition: background 1s, bottom 400ms cubic-bezier(0.075, 0.82, 0.165, 1),
@@ -115,7 +117,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: calc(100% - 30px);
+  width: 100%;
+  margin-right: 7px;
   background: rgba(30, 30, 30, 0.7);
   border-radius: 20px;
   /* border-radius: ; */

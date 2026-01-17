@@ -115,7 +115,7 @@ const ChatList: React.FC = () => {
     });
   }, [sortedChats]);
 
-  const isActive = !loading && chats.length > 0 && !term;
+  const isActive = !loading && chats.length > 0 && term.length === 0;
 
   useEffect(() => {
     fetchChats();
@@ -162,6 +162,7 @@ const ChatList: React.FC = () => {
             unread_count={chat.unread_count}
             isActive={selectedChat?.id === chat.id}
             onChatClick={handleChatClick}
+            //@ts-ignore
             ref={(el) => setChatItemRef(chat.id, el)}
             index={index}
           />

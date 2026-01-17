@@ -59,5 +59,14 @@ export function useSearch<T>({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, []);
 
-  return { term, results, loading, error, onChange, clear };
+  return {
+    term,
+    setTerm,
+    results,
+    setResults,
+    loading,
+    error,
+    onChange,
+    clear,
+  };
 }

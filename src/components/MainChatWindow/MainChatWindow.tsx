@@ -7,6 +7,7 @@ import { useChat } from '../../contexts/ChatContext';
 import SideBarMedia from '../SideBarMedia/SideBarMedia';
 import styles from './MainChatWindow.module.scss';
 import { useTranslation, type Locale } from '@/contexts/LanguageContext';
+import { useSettings } from '@/contexts/settings/Settings';
 
 interface MainChatWindowProps {
   staticUrl?: string;
@@ -35,6 +36,9 @@ const MainChatWindow: React.FC = () => {
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { settings } = useSettings();
+  const { activeWallpaper } = settings;
 
   const { t, locale } = useTranslation();
 
@@ -73,34 +77,46 @@ const MainChatWindow: React.FC = () => {
 
   return (
     <div className='main_chat_window'>
-      {windowWidth <= 768 && (
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          // @ts-ignore
-          fetchPriority='high'
-          preload='metadata'
-          style={{
-            position: 'absolute',
-            right: 0,
-            bottom: 0,
-            minWidth: '100%',
-            minHeight: '100%',
-            maxWidth: '100%',
-            maxHeight: '100%',
-            objectFit: 'cover',
-            zIndex: -1,
-          }}
-        >
-          <source
-            src='Videos/blue-sky-seen-directly-with-some-clouds_480p_infinity.webm'
-            type='video/webm'
-          />
-          <track kind='captions' label='English' />
-          Your browser does not support the video tag.
-        </video>
+      {windowWidth <= 768 && !settings.useBackgroundThroughoutTheApp && (
+        <>
+          {activeWallpaper?.url && (
+            <img
+              src={activeWallpaper.url}
+              alt='Wallpaper'
+              className={styles.wallpaper}
+              style={{
+                filter: `blur(${activeWallpaper.blur}px)`,
+              }}
+            />
+          )}
+          {/* <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            // @ts-ignore
+            fetchPriority='high'
+            preload='metadata'
+            style={{
+              position: 'absolute',
+              right: 0,
+              bottom: 0,
+              minWidth: '100%',
+              minHeight: '100%',
+              maxWidth: '100%',
+              maxHeight: '100%',
+              objectFit: 'cover',
+              zIndex: -1,
+            }}
+          >
+            <source
+              src='Videos/blue-sky-seen-directly-with-some-clouds_480p_infinity.webm'
+              type='video/webm'
+            />
+            <track kind='captions' label='English' />
+            Your browser does not support the video tag.
+          </video> */}
+        </>
       )}
       {/* {windowWidth <= 768 && <BackgroundComponent />} */}
       {selectedChat && (
@@ -111,8 +127,10 @@ const MainChatWindow: React.FC = () => {
             <SendArea />
           </div>
           <SideBarMedia
+            // @ts-ignore
             {...(selectedChat.room_type === 'G'
-              ? { members: selectedChat.users }
+              ? // @ts-ignore
+                { members: selectedChat.users }
               : {})}
             files={[]}
             visible={sideBarVisible}

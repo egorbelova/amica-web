@@ -1,6 +1,6 @@
-// contexts/search/searchSettings.ts
 import { apiFetch } from '@/utils/apiFetch';
-import type { Setting } from '@/types'; // Тип для настроек
+//@ts-ignore
+import type { Setting } from '@/types';
 
 export const searchSettings = async (query: string): Promise<Setting[]> => {
   if (!query || query.length < 1) return [];

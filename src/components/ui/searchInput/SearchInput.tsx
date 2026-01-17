@@ -8,7 +8,6 @@ import { useSearchContext } from '@/contexts/search/SearchContext';
 const UserSearchInput = ({ placeholder = 'Search' }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { term, onChange, clear } = useSearchContext();
-
   return (
     <div className='search_div' id='search'>
       <div className='liquidGlass-effect'></div>
@@ -36,6 +35,9 @@ const UserSearchInput = ({ placeholder = 'Search' }) => {
           </span>
         </div>
       </div>
+      <button className={styles['chat-actions-button']} type='button'>
+        <Icon name='AddPlus' className={styles['chat-actions-icon']} />
+      </button>
 
       <div className='search_cross_div' onClick={clear}>
         <svg className='search_cross'>

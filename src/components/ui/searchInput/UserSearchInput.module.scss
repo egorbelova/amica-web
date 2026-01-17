@@ -408,3 +408,19 @@
     transform: translateX(0);
   }
 }
+
+.chat-actions-button {
+  height: 35px;
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: rgba(30, 30, 30, 0.7);
+  padding: 5px;
+}
+
+.chat-actions-icon {
+  height: 100%;
+  color: #999;
+}

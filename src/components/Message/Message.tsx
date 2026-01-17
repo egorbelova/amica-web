@@ -1,7 +1,6 @@
 // components/Message/Message.tsx
 import React, { useState, useEffect } from 'react';
 import MessageTime from '../Message/MessageTime';
-import { txtdecode } from '../../utils/index';
 import { useUser } from '../../contexts/UserContext';
 import { useMessages } from '../../contexts/MessagesContext';
 import type { Message as MessageType } from '../../types';

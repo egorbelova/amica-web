@@ -6,10 +6,9 @@ import type { Contact } from './useContacts';
 export function useContactSearch() {
   const { contacts, loading, error, searchContacts } = useContacts();
 
-  // Используем useSearch, но передаем локальную функцию
   const search = useSearch<Contact>({
     searchFn: async (query: string) => searchContacts(query),
-    minLength: 1, // Поиск даже при 1 символе
+    minLength: 1,
   });
 
   return { ...search, contacts, loading, error };

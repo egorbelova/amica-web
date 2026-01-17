@@ -1,41 +1,41 @@
-const CACHE_NAME = 'video-chunks-cache-v1';
+// const CACHE_NAME = 'video-chunks-cache-v1';
 
-self.addEventListener('fetch', (event) => {
-  const url = event.request.url;
+// self.addEventListener('fetch', (event) => {
+//   const url = event.request.url;
 
-  if (!url.includes('/videos/')) return;
+//   if (!url.includes('/videos/')) return;
 
-  event.respondWith(handleVideoRequest(event.request));
-});
+//   event.respondWith(handleVideoRequest(event.request));
+// });
 
-async function handleVideoRequest(request) {
-  const cache = await caches.open(CACHE_NAME);
+// async function handleVideoRequest(request) {
+//   const cache = await caches.open(CACHE_NAME);
 
-  const range = request.headers.get('Range');
+//   const range = request.headers.get('Range');
 
-  if (!range) {
-    const cached = await cache.match(request);
-    if (cached) return cached;
+//   if (!range) {
+//     const cached = await cache.match(request);
+//     if (cached) return cached;
 
-    const response = await fetch(request);
-    cache.put(request, response.clone());
-    return response;
-  }
+//     const response = await fetch(request);
+//     cache.put(request, response.clone());
+//     return response;
+//   }
 
-  let response = await fetch(request);
+//   let response = await fetch(request);
 
-  const size = parseInt(response.headers.get('Content-Length') || '0', 10);
-  if (size > 50_000) {
-    cache.put(request, response.clone());
-  }
+//   const size = parseInt(response.headers.get('Content-Length') || '0', 10);
+//   if (size > 50_000) {
+//     cache.put(request, response.clone());
+//   }
 
-  return response;
-}
+//   return response;
+// }
 
-self.addEventListener('install', () => {
-  self.skipWaiting();
-});
+// self.addEventListener('install', () => {
+//   self.skipWaiting();
+// });
 
-self.addEventListener('activate', () => {
-  clients.claim();
-});
+// self.addEventListener('activate', () => {
+//   clients.claim();
+// });

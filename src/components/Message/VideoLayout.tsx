@@ -1,29 +1,13 @@
-import { apiFetch } from '@/utils/apiFetch';
-import { useEffect, useState } from 'react';
+import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 
 export default function VideoLayout({ full }) {
-  const [fullUrl, setFullUrl] = useState(null);
+  const { objectUrl } = usePrivateMedia(full);
 
-  useEffect(() => {
-    const controller = new AbortController();
-
-    apiFetch(full, {
-      signal: controller.signal,
-    })
-      .then((res) => res.blob())
-      .then((blob) => {
-        const url = URL.createObjectURL(blob);
-        console.log('Loaded full video', url);
-        setFullUrl(url);
-      })
-      .catch((err) => console.warn('Failed to load protected video', err));
-
-    return () => controller.abort();
-  }, [full]);
+  if (!objectUrl) return null;
 
   return (
     <video
-      src={fullUrl}
+      src={objectUrl}
       muted
       autoPlay
       loop
@@ -34,7 +18,6 @@ export default function VideoLayout({ full }) {
         display: 'block',
         objectFit: 'cover',
       }}
-      //   className={styles.media}
     />
   );
 }

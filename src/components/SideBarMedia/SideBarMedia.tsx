@@ -8,6 +8,8 @@ import { Icon } from '../Icons/AutoIcons';
 import { useChat } from '../../contexts/ChatContext';
 import { useUser } from '../../contexts/UserContext';
 import { useTranslation, type Locale } from '@/contexts/LanguageContext';
+import EditableAvatar from '@/components/Avatar/EditableAvatar';
+import MorphingIcon from '@/utils/morphSVG';
 
 interface MediaProfileItem {
   id: string | number;
@@ -101,7 +103,8 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
   const [rollPosition, setRollPosition] = useState(0);
 
   const handleRollPositionChange = () => {
-    if (interlocutorEditVisible || !isAvatarRollerOpen) return;
+    if (interlocutorEditVisible || !isAvatarRollerOpen || !selectedChat.media)
+      return;
     setRollPosition((prev) =>
       prev === selectedChat.media!.length ? 0 : prev + 1
     );
@@ -188,8 +191,28 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
     }
   }, [selectedChat, user]);
 
-  console.log(selectedChat);
+  const getPathD = (iconName: string) => {
+    const symbol = document.getElementById(`icon-${iconName}`);
+    if (!symbol) return '';
+    const path = symbol.querySelector('path');
 
+    return path?.getAttribute('d') || '';
+  };
+
+  const [iconPaths, setIconPaths] = useState<{
+    cross: string;
+    arrow: string;
+  }>({ cross: '', arrow: '' });
+
+  useEffect(() => {
+    setIconPaths({
+      cross: getPathD('Cross'),
+      arrow: getPathD('Arrow'),
+    });
+  }, []);
+
+  const interlocutor = selectedChat?.users?.[0];
+  const contactId = interlocutor?.contact_id;
   return (
     <div
       className={`${styles.sidebar} ${visible ? styles.visible : ''}`}
@@ -205,16 +228,27 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
           ) : (
             <Icon name='Cross' />
           )}
+
+          {/* <MorphingIcon
+            shape1={iconPaths.cross}
+            shape2={iconPaths.arrow}
+            active={interlocutorEditVisible}
+          /> */}
         </div>
 
-        <div
-          className={`${styles.button} ${
-            interlocutorEditVisible ? styles.hidden : ''
-          }`}
-          onClick={onInterlocutorEdit}
-        >
-          Edit
-        </div>
+        {selectedChat &&
+          selectedChat.chat_type === 'D' &&
+          selectedChat.users &&
+          selectedChat.users[0].is_contact && (
+            <div
+              className={`${styles.button} ${
+                interlocutorEditVisible ? styles.hidden : ''
+              }`}
+              onClick={onInterlocutorEdit}
+            >
+              Edit
+            </div>
+          )}
       </div>
 
       <div
@@ -237,7 +271,33 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
           style={{ transform: `translateX(${rollPosition * -100}%)` }}
           onClick={handleRollPositionChange}
         >
-          <Avatar
+          <EditableAvatar
+            key={selectedChat.id}
+            displayName={selectedChat.name}
+            avatar={selectedChat.primary_media}
+            objectId={contactId}
+            contentType='contact'
+            className={styles['sidebar__avatar']}
+            classNameAvatar={styles['sidebar__editable-avatar']}
+            isAvatarRollerOpen={isAvatarRollerOpen}
+            onClick={
+              selectedChat.primary_media && !interlocutorEditVisible
+                ? () => setIsAvatarRollerOpen(true)
+                : undefined
+            }
+            onAvatarChange={(primary_avatar) => {
+              // setUser({
+              //   ...user,
+              //   profile: {
+              //     ...user.profile,
+              //     primary_avatar,
+              //   },
+              // });
+            }}
+            isEditable={interlocutorEditVisible}
+          />
+          {/* <Avatar
+            key={selectedChat.id}
             displayName={selectedChat.name}
             //@ts-ignore
             displayMedia={selectedChat.primary_media}
@@ -249,7 +309,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
                 ? () => setIsAvatarRollerOpen(true)
                 : undefined
             }
-          />
+          /> */}
           {selectedChat.media && selectedChat.media.length > 0 && (
             <>
               {selectedChat.media.map((media) => (

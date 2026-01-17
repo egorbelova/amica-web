@@ -5,9 +5,12 @@
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-
-  animation: chatListItemAnimation 0.3s ease-in-out forwards;
-  animation-delay: calc(var(--index, 0) * 0.03s);
+  --animation-duration: 0.4s;
+  animation-duration: var(--animation-duration);
+  animation-timing-function: ease;
+  animation-fill-mode: forwards;
+  animation-name: chatListItemAnimation;
+  animation-delay: calc(var(--index, 0) * 0.02s);
   opacity: 0;
 
   cursor: pointer;
@@ -237,5 +240,33 @@
   100% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+.ripple {
+  position: absolute;
+  pointer-events: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.4) 35%,
+    rgba(255, 255, 255, 0.15) 55%,
+    rgba(255, 255, 255, 0.05) 65%,
+    transparent 100%
+  );
+
+  filter: blur(2px);
+  animation: ripple 700ms ease-out forwards;
+}
+
+@keyframes ripple {
+  to {
+    transform: translate(-50%, -50%) scale(12);
+    opacity: 0;
   }
 }

@@ -5,6 +5,7 @@ import { useUser } from '../../contexts/UserContext';
 import Avatar from '../Avatar/Avatar';
 import { formatLastSeen } from '../../utils/activityFormatter';
 import styles from './ChatHeader.module.scss';
+import './ChatHeader.css';
 
 interface ChatHeaderProps {
   onGoHome?: () => void;
@@ -15,7 +16,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   onGoHome,
   onChatInfoClick,
 }) => {
-  const { selectedChat, messages } = useChat();
+  const { selectedChat } = useChat();
   const { user } = useUser();
 
   const handleGoHome = (e: React.MouseEvent) => {
@@ -66,8 +67,9 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
 
       <div className='opponent_photo_div'>
         <Avatar
+          key={selectedChat.id}
           // @ts-ignore
-          displayName={selectedChat.display_name}
+          displayName={selectedChat.name}
           // @ts-ignore
           displayMedia={selectedChat.primary_media}
           className={styles.avatar}

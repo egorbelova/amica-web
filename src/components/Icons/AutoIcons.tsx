@@ -1,12 +1,13 @@
 import React from "react";
 
-export type IconName = "Appearance" | "Arrow" | "Attachment" | "Chats" | "ContactHeart" | "CopyMedia" | "CopyText" | "Cross" | "Delete" | "Edit" | "Forward" | "Language" | "Logout" | "Notification" | "Passkey copy" | "Passkey" | "Privacy" | "Read" | "Reply" | "SaveAs" | "Search" | "Select" | "Selfie" | "SendDestkop" | "SendMobile" | "Sessions" | "Unread";
+export type IconName = "AddPlus" | "Appearance" | "Arrow" | "Attachment" | "Chats" | "ContactHeart" | "CopyMedia" | "CopyText" | "Cross" | "Delete" | "Edit" | "Forward" | "Language" | "Logout" | "Notification" | "Passkey copy" | "Passkey" | "Privacy" | "Read" | "Reply" | "SaveAs" | "Search" | "Select" | "Selfie" | "SendDestkop" | "SendMobile" | "Sessions" | "Unread";
 export type IconProps = React.SVGProps<SVGSVGElement> & {
   name: IconName;
 };
 
 export const IconsSprite = () => (
   <svg style={{ display: "none" }} xmlns="http://www.w3.org/2000/svg">
+    <symbol id="icon-AddPlus" viewBox="0 0 24 24"><title>Add-plus SVG Icon</title><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 12h6m0 0h6m-6 0v6m0-6V6"/></symbol>
     <symbol id="icon-Appearance" viewBox="0 0 16 16"><title>Appearance SVG Icon</title><path fill="currentColor" fillRule="evenodd" d="m14.489 8.388l-.001.006a.1.1 0 0 1-.027.028a.43.43 0 0 1-.264.082h-3.186c-3.118 0-4.68 3.77-2.476 5.974a6.5 6.5 0 1 1 5.953-6.09Zm-.292 1.616c.913 0 1.736-.618 1.79-1.529a8 8 0 1 0-7.032 7.468c1.243-.147 1.527-1.639.641-2.525c-1.26-1.26-.367-3.414 1.415-3.414zM10 5a1 1 0 1 1-2 0a1 1 0 0 1 2 0M6 7a1 1 0 1 0 0-2a1 1 0 0 0 0 2m0 2a1 1 0 1 1-2 0a1 1 0 0 1 2 0" clipRule="evenodd"/></symbol>
     <symbol id="icon-Arrow" viewBox="0 0 24 24"><title>Arrow-ios-forward-outline SVG Icon</title><path fill="currentColor" d="M10 19a1 1 0 0 1-.64-.23a1 1 0 0 1-.13-1.41L13.71 12L9.39 6.63a1 1 0 0 1 .15-1.41a1 1 0 0 1 1.46.15l4.83 6a1 1 0 0 1 0 1.27l-5 6A1 1 0 0 1 10 19"/></symbol>
     <symbol id="icon-Attachment" viewBox="0 0 24 24">
@@ -62,6 +63,7 @@ export const IconsSprite = () => (
 );
 
 const iconViewBoxes: Record<IconName, string> = {
+  "AddPlus": "0 0 24 24",
   "Appearance": "0 0 16 16",
   "Arrow": "0 0 24 24",
   "Attachment": "0 0 24 24",
@@ -98,6 +100,7 @@ export const Icon: React.FC<IconProps> = ({ name, ...props }) => (
 );
 
 export const iconsList = {
+  "AddPlus": "icon-AddPlus",
   "Appearance": "icon-Appearance",
   "Arrow": "icon-Arrow",
   "Attachment": "icon-Attachment",

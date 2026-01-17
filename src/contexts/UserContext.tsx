@@ -12,24 +12,8 @@ import {
   initAuth,
 } from '../utils/authStore';
 import { websocketManager } from '@/utils/websocket-manager';
-
-export interface UserProfile {
-  last_seen: string | null;
-  bio: string | null;
-  phone: string | null;
-  date_of_birth: string | null;
-  location: string | null;
-  primary_avatar: any | null;
-  media: any[];
-}
-
-export interface User {
-  id: number;
-  email: string;
-  username: string;
-  profile: UserProfile;
-  preferred_session_lifetime_days: number;
-}
+import type { User } from '@/types';
+import { useSettings } from './settings/Settings';
 
 interface UserState {
   user: User | null;
@@ -76,12 +60,23 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     loading: true,
     error: null,
   });
+  const { setActiveWallpaper } = useSettings();
 
   const fetchUser = async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       const data = await apiJson<{ user: User }>('/api/get_general_info/');
       setState({ user: data.user, loading: false, error: null });
+      //@ts-ignore
+      if (!data.active_wallpaper) return;
+      setActiveWallpaper({
+        //@ts-ignore
+        id: data.active_wallpaper.id,
+        //@ts-ignore
+        url: data.active_wallpaper.file_url,
+        type: 'photo',
+        blur: 0,
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setState({ user: null, loading: false, error: message });

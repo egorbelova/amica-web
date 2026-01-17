@@ -1,13 +1,3 @@
-export interface User {
-  id: number;
-  email: string;
-  username: string;
-  image: string | null;
-  thumbnail_small: string | null;
-  thumbnail_medium: string | null;
-  last_seen: string | null;
-}
-
 export interface File {
   id: number;
   file_url: string;
@@ -29,9 +19,28 @@ export interface Message {
 export interface Chat {
   id: number;
   name: string | null;
-  users: User[];
-  room_type: 'D' | 'G';
-  image: string | null;
+  members: User[];
+  type: 'D' | 'G' | 'C';
+  primary_media: string | null;
   last_message: Message | null;
   unread_count: number;
+}
+
+export interface UserProfile {
+  id: number;
+  last_seen: string | null;
+  bio: string | null;
+  phone: string | null;
+  date_of_birth: string | null;
+  location: string | null;
+  primary_avatar: any | null;
+  media: any[];
+}
+
+export interface User {
+  id: number;
+  email: string;
+  username: string;
+  profile: UserProfile;
+  preferred_session_lifetime_days: number;
 }

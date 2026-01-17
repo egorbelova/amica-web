@@ -2,10 +2,12 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { websocketManager } from '../../utils/websocket-manager';
 import { useChat } from '../../contexts/ChatContext';
 import { useUser } from '../../contexts/UserContext';
-import { apiFetch } from '../../utils/apiFetch';
 import { apiUpload } from '../../utils/apiFetch';
 import DropZone from '../DropZone/DropZone';
 import { Icon } from '../Icons/AutoIcons';
+import { useSearchContext } from '@/contexts/search/SearchContext';
+import styles from './SendArea.module.scss';
+import './SendArea.css';
 
 const MessageInput: React.FC = () => {
   const [message, setMessage] = useState('');
@@ -19,6 +21,7 @@ const MessageInput: React.FC = () => {
 
   const { selectedChat } = useChat();
   const { user } = useUser();
+  const { setTerm, setResults } = useSearchContext();
 
   const roomId = selectedChat?.id;
   useEffect(() => {
@@ -156,6 +159,8 @@ const MessageInput: React.FC = () => {
       e.preventDefault();
 
       if (!message.trim() && files.length === 0) return;
+      setTerm('');
+      setResults([]);
 
       try {
         if (files.length > 0) {
@@ -169,7 +174,16 @@ const MessageInput: React.FC = () => {
             }
           }
         } else {
-          websocketManager.sendChatMessage(roomId, message.trim());
+          websocketManager.sendMessage({
+            type: 'chat_message',
+            chat_id: roomId,
+            data: {
+              value: message.trim(),
+              //@ts-ignore
+              user_id: roomId < 0 ? selectedChat.users[0].id : undefined,
+            },
+          });
+
           setMessage('');
           if (editableRef.current) {
             editableRef.current.innerText = '';

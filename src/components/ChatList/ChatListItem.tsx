@@ -1,12 +1,9 @@
-import React, { forwardRef } from 'react';
-import {
-  txtdecode,
-  lastMessageDateFormat,
-  unreadCountFormat,
-} from '../../utils/index';
+import React, { forwardRef, useRef } from 'react';
+import { lastMessageDateFormat, unreadCountFormat } from '../../utils/index';
 import Avatar from '../Avatar/Avatar';
 import styles from './ChatListItem.module.scss';
 import { SquircleContainer } from '../SquircleContainer/SquircleContainer';
+import AttachmentPreview from './AttachmentPreview';
 
 export interface ChatListItemProps {
   index?: number;
@@ -35,6 +32,7 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
   ) => {
     const lastMessageDate =
       lastMessage && lastMessageDateFormat(lastMessage.date);
+    const container = useRef<HTMLAnchorElement>(null);
 
     const lastMessageText = lastMessage && lastMessage.value;
 
@@ -47,8 +45,20 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
       e.preventDefault();
       e.stopPropagation();
       onChatClick(chatId);
+
+      const ripple = document.createElement('span');
+      ripple.className = styles.ripple;
+
+      const rect = container.current!.getBoundingClientRect();
+      ripple.style.left = e.clientX - rect.left + 'px';
+      ripple.style.top = e.clientY - rect.top + 'px';
+
+      container.current!.appendChild(ripple);
+
+      ripple.addEventListener('animationend', () => {
+        ripple.remove();
+      });
     };
-    console.log('Rendering ChatListItem:', lastMessage);
 
     return (
       <a
@@ -58,6 +68,7 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
         }`}
         onMouseDown={goToChat}
         style={{ '--index': `${index}` } as React.CSSProperties}
+        ref={container}
       >
         <Avatar
           displayName={displayName}
@@ -77,45 +88,9 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
             <div className={styles['chat-list-item__message-text']}>
               {lastMessageFiles.length > 0 && (
                 <div className={styles['chat-list-item__attachments']}>
-                  {lastMessageFiles.map((file: any, index: number) => {
-                    switch (file.category) {
-                      case 'image':
-                        return (
-                          <img
-                            key={index}
-                            className={styles['chat-list-item__attachment']}
-                            src={file.thumbnail_small_url}
-                            alt={
-                              file.original_name || `Attachment ${index + 1}`
-                            }
-                          />
-                        );
-                      case 'video':
-                        return (
-                          <video
-                            key={index}
-                            className={styles['chat-list-item__attachment']}
-                            src={file.thumbnail_small_url}
-                            loop
-                            muted
-                            playsInline
-                            autoPlay
-                          />
-                        );
-                      default:
-                        return (
-                          <a
-                            key={index}
-                            href={file.file_url}
-                            target='_blank'
-                            rel='noopener noreferrer'
-                            className={styles['chat-list-item__attachment']}
-                          >
-                            {file.original_name || `Attachment ${index + 1}`}
-                          </a>
-                        );
-                    }
-                  })}
+                  {lastMessageFiles.map((file, index) => (
+                    <AttachmentPreview key={file.id || index} file={file} />
+                  ))}
                 </div>
               )}
 

@@ -6,30 +6,49 @@ import { AudioProvider } from '../contexts/AudioContext';
 import { AuthProvider } from '../contexts/AuthContext';
 import { MediaModalProvider } from '../contexts/MediaModalContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
-import { SettingsProvider } from '../contexts/settings/SettingsProvider';
+import { SettingsProvider } from '@/contexts/settings/Settings';
+import { SearchProvider } from '@/contexts/search/SearchContext';
+import { apiFetch } from '@/utils/apiFetch';
+import type { User } from '../types';
 
 interface AppProvidersProps {
   children: React.ReactNode;
 }
 
+type ProviderProps = { children: React.ReactNode };
+
 const composeProviders = (
-  ...providers: Array<
-    React.JSXElementConstructor<{ children: React.ReactNode }>
-  >
+  ...providers: React.ComponentType<ProviderProps>[]
 ) => {
-  return ({ children }: { children: React.ReactNode }) =>
-    providers.reduce((acc, Provider) => <Provider>{acc}</Provider>, children);
+  return ({ children }: ProviderProps) =>
+    providers.reduceRight(
+      (acc, Provider) => <Provider>{acc}</Provider>,
+      children
+    );
 };
+
+export const searchGlobal = async (query: string): Promise<User[]> => {
+  const res = await apiFetch(
+    `/api/users/search/?email=${encodeURIComponent(query)}`
+  );
+  if (!res.ok) throw new Error('Search failed');
+  return res.json();
+};
+
+const GlobalSearchProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => <SearchProvider searchFn={searchGlobal}>{children}</SearchProvider>;
 
 const AppProvidersComponent = composeProviders(
   MediaModalProvider,
   AuthProvider,
+  SettingsProvider,
   UserProvider,
+  GlobalSearchProvider,
   ChatProvider,
   MessagesProvider,
   AudioProvider,
-  LanguageProvider,
-  SettingsProvider
+  LanguageProvider
 );
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {

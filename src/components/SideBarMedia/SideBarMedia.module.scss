@@ -252,6 +252,27 @@
     }
   }
 
+  &__editable-avatar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    overflow: hidden;
+    font-family: 'SFProRounded';
+    font-weight: 600;
+    font-size: 1.5rem;
+    transition-property: opacity;
+    transition-duration: var(--avatar-scaling-duration);
+    -webkit-user-drag: none;
+    aspect-ratio: 1 / 1;
+  }
+
   &__avatar {
     width: 100%;
     border-radius: inherit;

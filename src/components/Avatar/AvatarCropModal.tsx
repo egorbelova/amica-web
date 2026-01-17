@@ -15,7 +15,8 @@ interface AvatarCropModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUploadSuccess: (file: File) => void;
-  profileId: number;
+  objectId: number;
+  contentType: string;
 }
 
 type Edge =
@@ -32,7 +33,8 @@ export default function AvatarCropModal({
   isOpen,
   onClose,
   onUploadSuccess,
-  profileId,
+  objectId,
+  contentType,
 }: AvatarCropModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(new Image());
@@ -549,7 +551,7 @@ export default function AvatarCropModal({
 
     try {
       const data = await apiUpload(
-        `/api/media_files/primary-media/?content_type=profile&object_id=${profileId}`,
+        `/api/media_files/primary-media/?content_type=${contentType}&object_id=${objectId}`,
         formData
       );
       console.log('Upload success:', data);
@@ -563,7 +565,7 @@ export default function AvatarCropModal({
     } catch (e) {
       console.error('Upload failed:', e);
     }
-  }, [file.name, profileId, onUploadSuccess, onClose]);
+  }, [file.name, contentType, objectId, onUploadSuccess, onClose]);
 
   if (!isOpen) return null;
 

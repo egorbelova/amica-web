@@ -14,16 +14,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 let onUnauthorizedHandler: (() => void) | null = null;
 
-/**
- * Позволяет UI подписаться на событие 401 из API
- */
 export const setApiFetchUnauthorizedHandler = (callback: () => void) => {
   onUnauthorizedHandler = callback;
 };
-
-// =======================
-// Utils
-// =======================
 
 async function retry<T>(
   fn: () => Promise<T>,
@@ -66,7 +59,7 @@ export async function apiFetch(
     await refreshTokenIfNeeded();
     token = await getAccessTokenOrThrow();
   } catch {
-    token = null; // продолжаем без токена
+    token = null;
   }
 
   const headers = new Headers(options.headers || {});
@@ -81,7 +74,6 @@ export async function apiFetch(
     headers,
   });
 
-  // Retry один раз при 401
   if (response.status === 401 && !retried401) {
     try {
       await refreshTokenIfNeeded();

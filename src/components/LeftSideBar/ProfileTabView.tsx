@@ -3,6 +3,7 @@ import React from 'react';
 import { SearchProvider } from '@/contexts/search/SearchContext';
 import SearchInput from '@/components/ui/searchInput/SearchInput';
 import GlobalSearchList from '@/components/GlobalSearchList/GlobalSearchList';
+//@ts-ignore
 import { searchUsers } from '@/contexts/search/searchUsers';
 import ChatList from '@/components/ChatList/ChatList';
 

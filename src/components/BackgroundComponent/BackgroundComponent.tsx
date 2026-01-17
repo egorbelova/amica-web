@@ -6,7 +6,6 @@ const BackgroundComponent: React.FC = () => {
   const gradientCanvasRef = useRef<HTMLCanvasElement>(null);
   const patternCanvasRef = useRef<HTMLCanvasElement>(null);
   const backgroundInstance = useRef<StaticBackgroundFixedZoom | null>(null);
-
   useEffect(() => {
     if (
       !containerRef.current ||

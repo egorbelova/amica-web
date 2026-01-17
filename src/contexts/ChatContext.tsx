@@ -4,12 +4,13 @@ import React, {
   useContext,
   useState,
   useEffect,
-  useRef,
+  useMemo,
 } from 'react';
 import type { ReactNode } from 'react';
-import type { Message, Chat } from '../types';
-import { websocketManager } from '../utils/websocket-manager';
-import { apiFetch } from '../utils/apiFetch';
+import type { Message, Chat } from '@/types';
+import { websocketManager } from '@/utils/websocket-manager';
+import { apiFetch } from '@/utils/apiFetch';
+import type { User } from '@/types';
 
 interface ChatContextType {
   selectedChat: Chat | null;
@@ -19,7 +20,7 @@ interface ChatContextType {
   messagesCache: { [roomId: number]: Message[] };
   error: string | null;
 
-  selectChat: (chat: Chat | null) => void;
+  selectChat: (chatId: number | null) => void;
   updateMessages: (messages: Message[], chatId: number) => void;
   setChats: (chats: Chat[]) => void;
   setLoading: (loading: boolean) => void;
@@ -30,6 +31,7 @@ interface ChatContextType {
   fetchChats: () => Promise<void>;
   fetchMessages: (chatId: number) => Promise<void>;
   handleChatClick: (chatId: number) => Promise<void>;
+  handleCreateTemporaryChat: (user: User) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -37,8 +39,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,16 +47,15 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     [roomId: number]: Message[];
   }>({});
 
-  const selectedChatRef = useRef(selectedChat);
-  const chatsRef = useRef(chats);
+  const messages = selectedChatId ? messagesCache[selectedChatId] ?? [] : [];
 
-  useEffect(() => {
-    selectedChatRef.current = selectedChat;
-    chatsRef.current = chats;
-  }, [selectedChat, chats]);
+  const selectedChat = useMemo(
+    () => chats.find((c) => c.id === selectedChatId) ?? null,
+    [chats, selectedChatId]
+  );
 
-  const selectChat = useCallback((chat: Chat | null) => {
-    setSelectedChat(chat);
+  const selectChat = useCallback((chatId: number | null) => {
+    setSelectedChatId(chatId);
   }, []);
 
   useEffect(() => {
@@ -90,15 +90,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
             [roomId]: [newMessage, ...existingMessages],
           };
         });
-
-        if (selectedChatRef.current?.id === roomId) {
-          setMessages((prevMessages) => {
-            const isDuplicate = prevMessages.some(
-              (msg) => msg.id === newMessage.id
-            );
-            return isDuplicate ? prevMessages : [...prevMessages, newMessage];
-          });
-        }
       }
     };
 
@@ -110,7 +101,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 
   const updateMessages = useCallback(
     (newMessages: Message[], chatId: number) => {
-      setMessages(newMessages);
       setMessagesCache((prev) => ({
         ...prev,
         [chatId]: newMessages,
@@ -193,12 +183,21 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const fetchMessages = useCallback(
     async (chatId: number) => {
       try {
-        const res = await apiFetch(`/api/get_messages/${chatId}/`);
+        const res = await apiFetch(`/api/get_chat/${chatId}/`);
         if (!res.ok) throw new Error(`Failed: ${res.status}`);
         const data = await res.json();
-        console.log(data);
-
-        updateMessages(data.messages || [], chatId);
+        console.log('Fetched chat:', data.chat);
+        if (data.chat.media) {
+          setChats((prevChats) => {
+            const updatedChats = prevChats.map((chat) =>
+              chat.id === chatId
+                ? { ...chat, media: data.chat.media, users: data.chat.users }
+                : chat
+            );
+            return updatedChats;
+          });
+        }
+        updateMessages(data.chat.messages || [], chatId);
       } catch (err) {
         console.error(err);
         updateMessages([], chatId);
@@ -207,24 +206,33 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     [updateMessages]
   );
 
+  const handleCreateTemporaryChat = useCallback(
+    (user: User) => {
+      const tempId = Math.min(...chats.map((c) => c.id), 0) - 1;
+      const tempChat: Chat = {
+        id: tempId,
+        name: user.username,
+        members: [user],
+        last_message: null,
+        unread_count: 0,
+        type: 'D',
+        primary_media: user.profile?.primary_avatar || null,
+      };
+
+      setChats((prev) => [tempChat, ...prev]);
+
+      selectChat(tempId);
+    },
+    [chats, selectChat]
+  );
+
   const handleChatClick = useCallback(
     async (chatId: number) => {
-      document.querySelector('.main_chat_window')?.classList.add('swiped');
-      document.documentElement.style.setProperty(
-        '--swipe-margin-inactive',
-        `0%`
-      );
-
-      if (selectedChat?.id === chatId) return;
-
-      const chat = chats.find((c) => c.id === chatId);
-      if (!chat) return;
-
-      selectChat(chat);
-
+      if (chatId === selectedChatId) return;
+      setSelectedChatId(chatId);
       await fetchMessages(chatId);
     },
-    [chats, selectedChat, selectChat, fetchMessages]
+    [selectedChatId, fetchMessages]
   );
 
   const value: ChatContextType = {
@@ -244,6 +252,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     fetchChats,
     fetchMessages,
     handleChatClick,
+    handleCreateTemporaryChat,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

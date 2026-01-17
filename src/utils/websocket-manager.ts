@@ -267,6 +267,13 @@ class WebSocketManager {
     return false;
   }
 
+  sendCreateChat(payload: { user_id: number; first_message: string }) {
+    this.sendMessage({
+      type: 'create_chat',
+      data: payload,
+    });
+  }
+
   public sendChatMessage(chatId: number, message: string) {
     return this.sendMessage({
       type: 'chat_message',

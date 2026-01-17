@@ -1,4 +1,5 @@
 import { apiFetch } from '@/utils/apiFetch';
+//@ts-ignore
 import type { Contact } from '@/types';
 
 export const searchContacts = async (query: string): Promise<Contact[]> => {

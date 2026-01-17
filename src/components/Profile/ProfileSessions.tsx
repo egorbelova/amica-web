@@ -94,11 +94,11 @@ export default function ProfileSessions() {
 
   useEffect(() => {
     websocketManager.on('message', handleWSMessage);
-    if (!websocketManager.isConnected() && user?.id) {
-      websocketManager.connect(user.id);
+    if (!websocketManager.isConnected()) {
+      websocketManager.connect();
     }
     return () => websocketManager.off('message', handleWSMessage);
-  }, [handleWSMessage, user?.id]);
+  }, [handleWSMessage]);
 
   useEffect(() => {
     loadSessions();
@@ -111,9 +111,9 @@ export default function ProfileSessions() {
     setSessionLifetime(value);
     if (user) setUser({ ...user, preferred_session_lifetime_days: value });
 
-    // Отправка через WebSocket
     websocketManager.sendMessage({
       type: 'set_session_lifetime',
+      // @ts-ignore
       days: value,
     });
 

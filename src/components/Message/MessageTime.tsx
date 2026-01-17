@@ -1,7 +1,7 @@
 // components/Message/MessageTime.tsx
 import React from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
-import { useSettings } from '@/contexts/settings/useSettings';
+import { useSettings } from '@/contexts/settings/Settings';
 
 interface MessageTimeProps {
   date: string;

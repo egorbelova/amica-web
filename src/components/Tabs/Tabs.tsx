@@ -44,7 +44,7 @@ export function Tabs() {
             <div className={styles.icon}>{tab.icon}</div>
           )}
 
-          {tab.avatar && user?.profile?.primary_avatar && (
+          {tab.avatar && (
             <div className={styles.avatar}>
               <Avatar
                 displayName={user.username}
