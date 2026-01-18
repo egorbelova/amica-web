@@ -107,8 +107,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
       <div className='OR_div'>
         <span className='OR'>OR</span>
       </div>
-      {/* <GoogleLoginButton />
-      <PasskeyLoginButton /> */}
+      <GoogleLoginButton />
+      <PasskeyLoginButton />
       Need an account?{' '}
       <a className='controls' onClick={handleSignUp}>
         Sign Up

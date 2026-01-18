@@ -137,7 +137,8 @@ class WebSocketManager {
     if (ws_port) {
       url = `${ws_protocol}${ws_host}:${ws_port}/ws/socket-server/?token=${token}`;
     } else {
-      url = `${ws_protocol}${window.location.host}/ws/socket-server/`;
+      url = `${ws_protocol}${ws_host}:${ws_port}/ws/socket-server/?token=${token}`;
+      // url = `${ws_protocol}${window.location.host}/ws/socket-server/`;
     }
 
     console.log('Connecting to WebSocket:', url);
