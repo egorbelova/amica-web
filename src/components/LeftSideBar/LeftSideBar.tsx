@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import Icon from '../Icon/Icon';
+// import Icon from '../Icon/Icon';
 import { TabsProvider } from '../Tabs/TabsContext';
 import { Tabs } from '../Tabs/Tabs';
 import { Tab } from '../Tabs/Tab';
