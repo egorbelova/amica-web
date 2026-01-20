@@ -13,11 +13,13 @@ export function usePrivateMedia(url) {
     setLoading(true);
     setError(null);
 
+    let localUrl: string | null = null;
+
     apiFetch(url, { signal: controller.signal })
       .then((res) => res.blob())
       .then((blob) => {
-        const objUrl = URL.createObjectURL(blob);
-        setObjectUrl(objUrl);
+        localUrl = URL.createObjectURL(blob);
+        setObjectUrl(localUrl);
       })
       .catch((err) => {
         if (err.name !== 'AbortError') {
@@ -28,8 +30,8 @@ export function usePrivateMedia(url) {
 
     return () => {
       controller.abort();
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
+      if (localUrl) {
+        URL.revokeObjectURL(localUrl);
       }
     };
   }, [url]);

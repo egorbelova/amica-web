@@ -97,15 +97,22 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
                 handleItemClick(item.file, rect!);
               }}
             >
-              {item.file.category === 'video' ? (
-                <VideoLayout full={item.file.file_url} />
-              ) : (
-                <ProgressiveImage
-                  small={item.file.thumbnail_small_url}
-                  full={item.file.thumbnail_medium_url}
-                  dominant_color={item.file.dominant_color}
-                />
-              )}
+              {(() => {
+                switch (item.file.category) {
+                  case 'video':
+                    return <VideoLayout full={item.file.file_url} />;
+                  case 'image':
+                    return (
+                      <ProgressiveImage
+                        small={item.file.thumbnail_small_url}
+                        full={item.file.thumbnail_medium_url}
+                        dominant_color={item.file.dominant_color}
+                      />
+                    );
+                  default:
+                    return null;
+                }
+              })()}
             </div>
           );
         })}

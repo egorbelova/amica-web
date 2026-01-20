@@ -1,73 +1,72 @@
-import { apiFetch } from '@/utils/apiFetch';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import styles from './SmartMediaLayout.module.scss';
 import { Icon } from '../Icons/AutoIcons';
+
+interface ProgressiveImageProps {
+  small: string;
+  full: string;
+  dominant_color?: string;
+  onClick?: () => void;
+}
 
 export default function ProgressiveImage({
   small,
   full,
   onClick = () => {},
   dominant_color,
-}) {
-  const imgRef = useRef(null);
-  const [smallUrl, setSmallUrl] = useState(small);
-  const [fullUrl, setFullUrl] = useState(null);
-  const [isValid, setIsValid] = useState(true);
+}: ProgressiveImageProps) {
+  const [loaded, setLoaded] = useState(false);
+
+  const {
+    objectUrl: smallUrl,
+    loading: smallLoading,
+    error: smallError,
+  } = usePrivateMedia(small);
+  const {
+    objectUrl: fullUrl,
+    loading: fullLoading,
+    error: fullError,
+  } = usePrivateMedia(full);
+
+  const isValid = !smallError && !fullError;
 
   useEffect(() => {
-    const controller = new AbortController();
+    if (!fullUrl || !isValid) return;
 
-    apiFetch(full, {
-      signal: controller.signal,
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('File not found');
-        return res.blob();
-      })
-      .then((blob) => {
-        const url = URL.createObjectURL(blob);
-        setFullUrl(url);
-      })
-      .catch((err) => {
-        console.warn('Failed to load protected image', err);
-        setIsValid(false);
-      });
-
-    return () => controller.abort();
-  }, [full]);
-
-  useEffect(() => {
-    const img = imgRef.current;
-    if (!img || !fullUrl) return;
-
-    img.onload = () => img.classList.add('loaded');
+    const img = new Image();
     img.src = fullUrl;
-  }, [fullUrl]);
+    img.onload = () => setLoaded(true);
+    // убираем img.onerror для object URL
+  }, [fullUrl, isValid]);
 
   return (
-    <div
-      style={{
-        background: dominant_color,
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-      }}
-    >
-      {isValid && (
+    <div style={{ background: dominant_color }} className={styles.wrapper}>
+      {/* маленькое изображение как placeholder */}
+      {isValid && smallUrl && !loaded && (
         <img
-          ref={imgRef}
           src={smallUrl}
-          className='mes_img progressive-image'
+          className='mes_img progressive-image placeholder blurred'
+          alt='Attachment placeholder'
+          decoding='async'
+        />
+      )}
+
+      {/* большое изображение */}
+      {isValid && fullUrl && (
+        <img
+          src={fullUrl}
+          className={`mes_img progressive-image ${loaded ? 'loaded' : ''}`}
           onClick={onClick}
           alt='Attachment'
           decoding='async'
         />
       )}
-      {(!isValid || !fullUrl) && (
+
+      {(smallLoading || fullLoading || !loaded) && (
         <div className={styles.loading}>
           <div className={styles['loading__background']} />
           <Icon name='Spinner' className={styles.spinner} />
-          {/* <Icon name='Cross' className={styles.cross} /> */}
         </div>
       )}
     </div>
