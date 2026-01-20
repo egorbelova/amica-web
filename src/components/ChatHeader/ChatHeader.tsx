@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Icon from '../Icon/Icon';
+// import Icon from '../Icon/Icon';
 import { useChat } from '../../contexts/ChatContext';
 import { useUser } from '../../contexts/UserContext';
 import Avatar from '../Avatar/Avatar';
@@ -57,7 +57,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
         // onKeyDown={(e) => e.key === 'Enter' && handleGoHome()}
         aria-label='Go back to home'
       >
-        <Icon name='arrow' className='arrow-left' />
+        {/* <Icon name='arrow' className='arrow-left' /> */}
       </div>
 
       <div id='name'>

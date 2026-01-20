@@ -524,7 +524,7 @@ class StaticBackgroundFixedZoom {
   }
 
   private async init(): Promise<void> {
-    this.patternImage.src = '/SVG/PATTERNS/pattern-13.svg';
+    this.patternImage.src = '/SVG/PATTERNS/pattern-12.svg';
     this.patternImage.setAttribute('preserveAspectRatio', 'none');
 
     await new Promise<void>((resolve) => {

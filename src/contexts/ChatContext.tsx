@@ -186,7 +186,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         const res = await apiFetch(`/api/get_chat/${chatId}/`);
         if (!res.ok) throw new Error(`Failed: ${res.status}`);
         const data = await res.json();
-        console.log('Fetched chat:', data.chat);
+        // console.log('Fetched chat:', data.chat);
         if (data.chat.media) {
           setChats((prevChats) => {
             const updatedChats = prevChats.map((chat) =>

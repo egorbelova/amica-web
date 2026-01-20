@@ -46,8 +46,8 @@ export default function ProfileAppearance() {
     setActiveWallpaper({
       id: wall.id,
       //@ts-ignore
-      url: wall.file_url,
-      type: 'photo',
+      url: wall.url,
+      type: wall.type,
       blur: blur ?? 0,
     });
   };
@@ -100,13 +100,24 @@ export default function ProfileAppearance() {
                     : ''
                 }`}
               >
-                <img
-                  //@ts-ignore
-                  src={wall.file_url}
-                  alt={`Wallpaper ${wall.id}`}
-                  className={`${styles.wallpaperThumbnail}`}
-                  onClick={() => handleSelectWallpaper(wall)}
-                />
+                {wall.type === 'video' ? (
+                  <video
+                    //@ts-ignore
+                    src={wall.url}
+                    className={`${styles.wallpaperThumbnail}`}
+                    onClick={() => handleSelectWallpaper(wall)}
+                    autoPlay
+                    muted
+                  />
+                ) : (
+                  <img
+                    //@ts-ignore
+                    src={wall.url}
+                    alt={`Wallpaper ${wall.id}`}
+                    className={`${styles.wallpaperThumbnail}`}
+                    onClick={() => handleSelectWallpaper(wall)}
+                  />
+                )}
                 <div
                   className={styles.removeWallpaper}
                   onClick={removeWallpaper.bind(null, wall.id)}
@@ -128,7 +139,7 @@ export default function ProfileAppearance() {
             )}
             <input
               type='file'
-              accept='image/*'
+              accept='image/*,video/*'
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;

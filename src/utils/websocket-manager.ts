@@ -141,7 +141,7 @@ class WebSocketManager {
       // url = `${ws_protocol}${window.location.host}/ws/socket-server/`;
     }
 
-    console.log('Connecting to WebSocket:', url);
+    // console.log('Connecting to WebSocket:', url);
 
     try {
       this.socket = new WebSocket(url);

@@ -1,0 +1,115 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const iconsDir = path.join(__dirname, '../src/icons');
+const outFile = path.join(__dirname, '../src/components/Icons/AutoIcons.tsx');
+
+function pascalCase(name: string) {
+  return name.replace(/(^\w|-\w)/g, (c) => c.replace('-', '').toUpperCase());
+}
+
+function fixSvgAttributes(svg: string) {
+  return svg.replace(/([a-zA-Z0-9:-]+)="([^"]*)"/g, (full, attr, value) => {
+    if (!attr.includes('-')) return `${attr}="${value}"`;
+    return `${attr.replace(/-([a-z])/g, (_: string, c: string) =>
+      c.toUpperCase()
+    )}="${value}"`;
+  });
+}
+
+const files = fs.readdirSync(iconsDir).filter((f) => f.endsWith('.svg'));
+
+const symbols: any[] = [];
+const animatedComponents: Record<string, { inner: string; viewBox: string }> =
+  {};
+
+files.forEach((file) => {
+  const name = file.replace('.svg', '');
+  let svgContent = fs.readFileSync(path.join(iconsDir, file), 'utf8');
+
+  svgContent = svgContent
+    .replace(/<\?xml.*?\?>/g, '')
+    .replace(/<!DOCTYPE.*?>/g, '');
+
+  const viewBoxMatch = svgContent.match(/<svg[^>]*viewBox=['"]([^'"]+)['"]/i);
+  const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';
+  const inner =
+    svgContent.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i)?.[1] || svgContent;
+
+  const isAnimated = /<animate|<animateTransform/.test(svgContent);
+
+  if (isAnimated) {
+    animatedComponents[name] = { inner: svgContent, viewBox };
+  } else {
+    symbols.push({ name, inner, viewBox });
+  }
+});
+
+const iconNamesType = [
+  ...symbols.map((s) => `"${s.name}"`),
+  ...Object.keys(animatedComponents).map((n) => `"${n}"`),
+].join(' | ');
+
+let output = `import React from "react";
+
+export type IconName = ${iconNamesType};
+export type IconProps = React.SVGProps<SVGSVGElement> & { name: IconName };
+
+
+export const IconsSprite = () => (
+  <svg style={{ display: "none" }} xmlns="http://www.w3.org/2000/svg">
+${symbols
+  .map(
+    (s) =>
+      `    <symbol id="icon-${s.name}" viewBox="${
+        s.viewBox
+      }">${fixSvgAttributes(s.inner)}</symbol>`
+  )
+  .join('\n')}
+  </svg>
+);
+
+const staticViewBoxes: Record<string, string> = {
+${symbols.map((s) => `  "${s.name}": "${s.viewBox}"`).join(',\n')}
+};
+
+
+export const Icon: React.FC<IconProps> = ({ name, ...props }) => {
+  const animated = ${JSON.stringify(animatedComponents)}[name];
+  if (animated) {
+
+    return (${Object.keys(animatedComponents)
+      .map(
+        (n) =>
+          `name === "${n}" ? ${animatedComponents[n].inner.replace(
+            '<svg',
+            '<svg {...props}'
+          )} : null`
+      )
+      .join(' : ')}
+    );
+  }
+
+  return <svg viewBox={staticViewBoxes[name]} {...props}><use href={\`#icon-\${name}\`} /></svg>;
+};
+
+export const iconsList = {
+${symbols.map((s) => `  "${s.name}": "icon-${s.name}"`).join(',\n')},
+${Object.keys(animatedComponents)
+  .map((n) => `  "${n}": "icon-${n}"`)
+  .join(',\n')}
+};
+`;
+
+fs.writeFileSync(outFile, output, 'utf8');
+console.log(
+  'Generated icons:',
+  symbols.length,
+  'static,',
+  Object.keys(animatedComponents).length,
+  'animated'
+);

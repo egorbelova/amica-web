@@ -9,12 +9,39 @@ import type { Settings, SettingsContextValue, WallpaperSetting } from './types';
 import { websocketManager } from '@/utils';
 import { apiUpload, apiFetch } from '@/utils/apiFetch';
 
+const defaultWallpapers: WallpaperSetting[] = [
+  {
+    id: 0,
+    url: '../DefaultWallpapers/abdelhamid-azoui-Zhl3nrozkG0-unsplash.jpg',
+    type: 'photo',
+    blur: 0,
+  },
+  {
+    id: 1,
+    url: '../DefaultWallpapers/syuhei-inoue-fvgv3i4_uvI-unsplash.jpg',
+    type: 'photo',
+    blur: 2,
+  },
+  {
+    id: 2,
+    url: '../DefaultWallpapers/dave-hoefler-PEkfSAxeplg-unsplash.jpg',
+    type: 'photo',
+    blur: 5,
+  },
+  {
+    id: 3,
+    url: '../DefaultWallpapers/video/blue-sky-seen-directly-with-some-clouds_480p_infinity.webm',
+    type: 'video',
+    blur: 0,
+  },
+];
+
 const defaultSettings: Settings = {
   language: navigator.language || 'en-US',
   theme: 'system',
   timeFormat: 'auto',
-  wallpapers: [],
-  activeWallpaper: null,
+  wallpapers: defaultWallpapers,
+  activeWallpaper: defaultWallpapers[0],
   useBackgroundThroughoutTheApp: false,
 };
 
@@ -22,9 +49,31 @@ export const SettingsContext = createContext<SettingsContextValue | null>(null);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<Settings>(() => {
-    const saved = localStorage.getItem('app-settings');
-    return saved ? JSON.parse(saved) : defaultSettings;
+    // const saved = localStorage.getItem('app-settings');
+    // if (saved) {
+    //   try {
+    //     const parsed = JSON.parse(saved);
+
+    //     const combinedWallpapers = [
+    //       ...defaultWallpapers.filter(
+    //         (df) => !parsed.wallpapers?.some((w: any) => w.id === df.id)
+    //       ),
+    //       ...(parsed.wallpapers || []),
+    //     ];
+
+    //     return {
+    //       ...defaultSettings,
+    //       ...parsed,
+    //       wallpapers: combinedWallpapers,
+    //       activeWallpaper: parsed.activeWallpaper || defaultWallpapers[0],
+    //     };
+    //   } catch {
+    //     return defaultSettings;
+    //   }
+    // }
+    return defaultSettings;
   });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -67,10 +116,16 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await apiFetch('/api/wallpapers/');
       const data = await res.json();
-
+      const apiWallpapers = Array.isArray(data) ? data : data.wallpapers || [];
+      const combinedWallpapers = [
+        ...defaultWallpapers.filter(
+          (df) => !apiWallpapers.some((w) => w.id === df.id)
+        ),
+        ...apiWallpapers,
+      ];
       setSettings((prev) => ({
         ...prev,
-        wallpapers: Array.isArray(data) ? data : data.wallpapers || [],
+        wallpapers: combinedWallpapers,
       }));
     } catch (err) {
       console.error('Failed to fetch wallpapers', err);
@@ -97,10 +152,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const handleWSMessage = useCallback((data: any) => {
     if (!data.type) return;
-    console.log('data', data);
+    // console.log('data', data);
 
     if (data.type === 'active_wallpaper_updated') {
-      const wallpaperData = { ...data.data, url: data.data.file_url };
+      const wallpaperData = { ...data.data, url: data.data.url };
       setSettings((prev) => ({
         ...prev,
         wallpapers: prev.wallpapers?.some((w) => w.id === wallpaperData.id)
@@ -117,12 +172,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         wallpapers: (prev.wallpapers || []).filter((w) => w.id !== wallpaperId),
         activeWallpaper:
           prev.activeWallpaper?.id === wallpaperId
-            ? null
+            ? defaultSettings.activeWallpaper
             : prev.activeWallpaper,
       }));
     }
     if (data.type === 'user_wallpaper_added') {
-      const wallpaperData = { ...data.data, url: data.data.file_url };
+      const wallpaperData = { ...data.data, url: data.data.url };
       setSettings((prev) => ({
         ...prev,
         wallpapers: prev.wallpapers?.some((w) => w.id === wallpaperData.id)
