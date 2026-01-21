@@ -107,6 +107,7 @@ const Message: React.FC<MessageProps> = ({
   //   };
   // }, []);
   // console.log(message);
+  console.log('message', message);
   const handleDoubleClick = () => {};
   return (
     <div

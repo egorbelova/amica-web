@@ -37,12 +37,10 @@ export default function ProgressiveImage({
     const img = new Image();
     img.src = fullUrl;
     img.onload = () => setLoaded(true);
-    // убираем img.onerror для object URL
   }, [fullUrl, isValid]);
 
   return (
     <div style={{ background: dominant_color }} className={styles.wrapper}>
-      {/* маленькое изображение как placeholder */}
       {isValid && smallUrl && !loaded && (
         <img
           src={smallUrl}
@@ -52,7 +50,6 @@ export default function ProgressiveImage({
         />
       )}
 
-      {/* большое изображение */}
       {isValid && fullUrl && (
         <img
           src={fullUrl}

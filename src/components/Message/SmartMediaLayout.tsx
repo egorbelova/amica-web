@@ -4,6 +4,7 @@ import { generateLayout } from './SmartMediaLayout';
 import ProgressiveImage from './ProgressiveImage';
 import { useMediaModal } from '../../contexts/MediaModalContext';
 import VideoLayout from './VideoLayout';
+import AudioLayout from './AudioLayout';
 
 interface File {
   id: number;
@@ -24,64 +25,43 @@ interface Props {
 }
 
 const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const mediaFiles = useMemo(
+    () => files.filter((f) => f.category !== 'audio'),
+    [files],
+  );
 
-  const { openMediaModal } = useMediaModal();
+  const audioFiles = useMemo(
+    () => files.filter((f) => f.category === 'audio'),
+    [files],
+  );
+
+  const layout = useMemo(() => generateLayout(mediaFiles), [mediaFiles]);
+
+  if (!files.length) return null;
 
   const MAX_W = 420;
   const MAX_H = 560;
-  const MIN_W = 200;
-  const MIN_H = 200;
-
-  const singleFile = files.length === 1 ? files[0] : null;
-  const layout = useMemo(() => generateLayout(files), [files]);
 
   const containerWidth = Math.min(
     layout.reduce((max, item) => Math.max(max, item.left + item.width), 0),
-    MAX_W
+    MAX_W,
   );
 
   const containerHeight = Math.min(
     layout.reduce((max, item) => Math.max(max, item.top + item.height), 0),
-    MAX_H
+    MAX_H,
   );
-
-  const handleItemClick = (file: File, rect: DOMRect) => {
-    setSelectedFile(file);
-    setIsModalOpen(true);
-    onClick?.(file);
-  };
-
-  const closeModal = () => setIsModalOpen(false);
-
-  const getItemRect = (fileId: number) => {
-    const element = document.querySelector(
-      `[data-file-id="${fileId}"]`
-    ) as HTMLElement;
-    return element?.getBoundingClientRect();
-  };
-
-  useEffect(() => {
-    if (selectedFile) {
-      const rect = getItemRect(selectedFile.id);
-    }
-  }, [selectedFile]);
-
-  if (!files.length) return null;
 
   return (
     <>
-      <div
-        className={styles.wrapper}
-        style={{ width: containerWidth, height: containerHeight }}
-      >
-        {layout.map((item) => {
-          const itemRef = React.useRef<HTMLDivElement>(null);
-
-          return (
+      {/* MEDIA GRID */}
+      {!!mediaFiles.length && (
+        <div
+          className={styles.wrapper}
+          style={{ width: containerWidth, height: containerHeight }}
+        >
+          {layout.map((item) => (
             <div
-              ref={itemRef}
               key={item.file.id}
               data-file-id={item.file.id}
               className={styles.item}
@@ -91,32 +71,38 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
                 width: item.width,
                 height: item.height,
               }}
-              onClick={() => {
-                const rect = itemRef.current?.getBoundingClientRect();
-                openMediaModal(item.file, rect);
-                handleItemClick(item.file, rect!);
-              }}
             >
-              {(() => {
-                switch (item.file.category) {
-                  case 'video':
-                    return <VideoLayout full={item.file.file_url} />;
-                  case 'image':
-                    return (
-                      <ProgressiveImage
-                        small={item.file.thumbnail_small_url}
-                        full={item.file.thumbnail_medium_url}
-                        dominant_color={item.file.dominant_color}
-                      />
-                    );
-                  default:
-                    return null;
-                }
-              })()}
+              {item.file.category === 'video' && (
+                <VideoLayout full={item.file.file_url} />
+              )}
+
+              {item.file.category === 'image' && (
+                <ProgressiveImage
+                  small={item.file.thumbnail_small_url}
+                  full={item.file.thumbnail_medium_url}
+                  dominant_color={item.file.dominant_color}
+                />
+              )}
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {!!audioFiles.length && (
+        <div className={styles.audioList}>
+          {audioFiles.map((file) => (
+            <AudioLayout
+              key={file.id}
+              id={file.id}
+              full={file.file_url}
+              //@ts-ignore
+              waveform={file.waveform}
+              //@ts-ignore
+              duration={file.duration}
+            />
+          ))}
+        </div>
+      )}
     </>
   );
 };
