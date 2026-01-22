@@ -119,7 +119,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       const apiWallpapers = Array.isArray(data) ? data : data.wallpapers || [];
       const combinedWallpapers = [
         ...defaultWallpapers.filter(
-          (df) => !apiWallpapers.some((w) => w.id === df.id)
+          (df) => !apiWallpapers.some((w) => w.id === df.id),
         ),
         ...apiWallpapers,
       ];

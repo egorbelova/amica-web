@@ -5,8 +5,15 @@ import { Icon } from '../Icons/AutoIcons';
 
 const SPEEDS = [0.5, 1, 1.5, 2];
 
-export default function AudioLayout({ full, waveform, duration, id }) {
+export default function AudioLayout({
+  full,
+  waveform,
+  duration,
+  id,
+  cover_url,
+}) {
   const { objectUrl } = usePrivateMedia(full);
+  const { objectUrl: cover } = usePrivateMedia(cover_url);
   const audioRef = useRef(null);
 
   const progressRef = useRef(null);
@@ -19,11 +26,13 @@ export default function AudioLayout({ full, waveform, duration, id }) {
   const [speed, setSpeed] = useState(1);
 
   const [isControlsOpen, setIsControlsOpen] = useState(false);
-  const volumeWrapperRef = useRef(null);
 
   const [durationState, setDurationState] = useState(duration ?? 0);
 
   const [visualTime, setVisualTime] = useState(0);
+  const safeDuration = durationState || 1;
+
+  const getClientX = (e) => (e.touches ? e.touches[0].clientX : e.clientX);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -39,7 +48,26 @@ export default function AudioLayout({ full, waveform, duration, id }) {
     animate();
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [audioRef.current, objectUrl]);
+  }, [objectUrl]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    const onEnded = () => setIsPlaying(false);
+
+    audio.addEventListener('play', onPlay);
+    audio.addEventListener('pause', onPause);
+    audio.addEventListener('ended', onEnded);
+
+    return () => {
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+      audio.removeEventListener('ended', onEnded);
+    };
+  }, [objectUrl]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -85,7 +113,7 @@ export default function AudioLayout({ full, waveform, duration, id }) {
       audio.removeEventListener('pause', onPause);
       audio.removeEventListener('seeked', onSeeked);
     };
-  }, [objectUrl, audioRef.current]);
+  }, [objectUrl]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -102,20 +130,9 @@ export default function AudioLayout({ full, waveform, duration, id }) {
 
     if (audio.paused) {
       audio.play();
-      setIsPlaying(true);
     } else {
       audio.pause();
-      setIsPlaying(false);
     }
-  };
-
-  const seek = (e) => {
-    const rect = progressRef.current.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    const time = Math.max(0, Math.min(1, percent)) * durationState;
-
-    audioRef.current.currentTime = time;
-    setCurrentTime(time);
   };
 
   const cycleSpeed = () => {
@@ -138,7 +155,7 @@ export default function AudioLayout({ full, waveform, duration, id }) {
       setCurrentTime(time);
     };
 
-    updateTime(e.clientX);
+    updateTime(getClientX(e));
     const onMouseMove = (moveEvent) => {
       updateTime(moveEvent.clientX);
     };
@@ -146,10 +163,14 @@ export default function AudioLayout({ full, waveform, duration, id }) {
     const onMouseUp = () => {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('touchmove', onMouseMove);
+      document.removeEventListener('touchend', onMouseUp);
     };
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('touchmove', onMouseMove);
+    document.addEventListener('touchend', onMouseUp);
   };
 
   const formatTime = (time = 0) => {
@@ -160,9 +181,6 @@ export default function AudioLayout({ full, waveform, duration, id }) {
     return `${minutes}:${seconds}`;
   };
 
-  const progressPercent = durationState
-    ? (currentTime / durationState) * 100
-    : 0;
   const volumePercent = volume * 100;
 
   const getVolumeIcon = () => {
@@ -182,7 +200,7 @@ export default function AudioLayout({ full, waveform, duration, id }) {
 
   const startVolumeDrag = (e) => {
     e.preventDefault();
-    setVolumeByClientX(e.clientX);
+    setVolumeByClientX(getClientX(e));
 
     const onMouseMove = (moveEvent) => {
       setVolumeByClientX(moveEvent.clientX);
@@ -191,10 +209,14 @@ export default function AudioLayout({ full, waveform, duration, id }) {
     const onMouseUp = () => {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('touchmove', onMouseMove);
+      document.removeEventListener('touchend', onMouseUp);
     };
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('touchmove', onMouseMove);
+    document.addEventListener('touchend', onMouseUp);
   };
 
   const barWidth = 3;
@@ -215,6 +237,7 @@ export default function AudioLayout({ full, waveform, duration, id }) {
       onMouseOver={() => setIsControlsOpen(true)}
       onMouseOut={() => setIsControlsOpen(false)}
     >
+      {cover && <img src={cover} alt='' className={styles.cover} />}
       <audio ref={audioRef} src={objectUrl} preload='metadata' />
 
       <button onClick={togglePlay} className={styles.play}>
@@ -225,7 +248,6 @@ export default function AudioLayout({ full, waveform, duration, id }) {
         <div
           ref={progressRef}
           className={styles.progress}
-          // onClick={seek}
           onMouseDown={startSeek}
           onTouchMove={startSeek}
         >
@@ -233,7 +255,9 @@ export default function AudioLayout({ full, waveform, duration, id }) {
             <div className={styles.progressFillWrapper}>
               <div
                 className={styles.progressFill}
-                style={{ width: `${progressPercent}%` }}
+                style={{
+                  width: `${(visualTime / safeDuration) * svgWidth}px`,
+                }}
               />
             </div>
           )}
@@ -289,7 +313,7 @@ export default function AudioLayout({ full, waveform, duration, id }) {
               <rect
                 x={0}
                 y={0}
-                width={(visualTime / durationState) * svgWidth}
+                width={(visualTime / safeDuration) * svgWidth}
                 height={height}
                 fill='#ffffffff'
                 mask={`url(#${id})`}
@@ -307,7 +331,7 @@ export default function AudioLayout({ full, waveform, duration, id }) {
             {speed}×
           </button>
 
-          <div ref={volumeWrapperRef} className={styles.volumeWrapper}>
+          <div className={styles.volumeWrapper}>
             <button className={styles.volumeButton}>
               <Icon name={getVolumeIcon()} />
             </button>

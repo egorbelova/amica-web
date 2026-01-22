@@ -28,7 +28,7 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
       isActive,
       onChatClick,
     },
-    ref
+    ref,
   ) => {
     const lastMessageDate =
       lastMessage && lastMessageDateFormat(lastMessage.date);
@@ -36,11 +36,13 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
 
     const lastMessageText = lastMessage && lastMessage.value;
 
-    const lastMessageFiles = lastMessage?.files?.slice(0, 3) || [];
+    const lastMessageFiles = (lastMessage?.files || [])
+      .filter((file) => file.category === 'video' || file.category === 'image')
+      .slice(0, 3);
 
     const unread_counter = unreadCountFormat(unread_count);
     const goToChat = (
-      e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
+      e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
     ): void => {
       e.preventDefault();
       e.stopPropagation();
@@ -108,7 +110,7 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
         </div>
       </a>
     );
-  }
+  },
 );
 
 ChatListItem.displayName = 'ChatListItem';

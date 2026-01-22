@@ -45,7 +45,7 @@ const Avatar: React.FC<AvatarProps> = ({
   const avatarRef = useRef<HTMLDivElement>(null);
   const [fontSize, setFontSize] = useState(12);
   const [currentMedia, setCurrentMedia] = useState<DisplayMedia | null>(
-    displayMedia || null
+    displayMedia || null,
   );
 
   const getInitials = (name: string): string => {
@@ -109,6 +109,7 @@ const Avatar: React.FC<AvatarProps> = ({
           autoPlay
           loop
           playsInline
+          preload='metadata'
         />
       );
 

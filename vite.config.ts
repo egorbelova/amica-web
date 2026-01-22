@@ -13,7 +13,6 @@ export default defineConfig({
     host: '0.0.0.0',
     // host: '192.168.1.68',
     port: 5173,
-    // allowedHosts: ['victoria-kay-capital-provide.trycloudflare.com'],
     proxy: {
       '/api': {
         // target: 'http://10.192.220.182:8000',

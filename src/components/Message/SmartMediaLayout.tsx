@@ -99,6 +99,8 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
               waveform={file.waveform}
               //@ts-ignore
               duration={file.duration}
+              //@ts-ignore
+              cover_url={file.cover_url}
             />
           ))}
         </div>

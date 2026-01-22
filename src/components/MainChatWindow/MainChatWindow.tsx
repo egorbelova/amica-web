@@ -8,6 +8,7 @@ import SideBarMedia from '../SideBarMedia/SideBarMedia';
 import styles from './MainChatWindow.module.scss';
 import { useTranslation, type Locale } from '@/contexts/LanguageContext';
 import { useSettings } from '@/contexts/settings/Settings';
+import wallpaperStyles from '@/pages/RoomPage.module.scss';
 
 interface MainChatWindowProps {
   staticUrl?: string;
@@ -48,6 +49,20 @@ const MainChatWindow: React.FC = () => {
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
+  const [isSwiped, setIsSwiped] = useState(false);
+  useEffect(() => {
+    if (!selectedChat) {
+      setIsSwiped(false);
+      document.documentElement.style.setProperty(
+        '--swipe-margin-inactive',
+        '100%',
+      );
+      return;
+    }
+    setIsSwiped(true);
+    document.documentElement.style.setProperty('--swipe-margin-inactive', '0%');
+  }, [selectedChat]);
+
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
@@ -60,7 +75,7 @@ const MainChatWindow: React.FC = () => {
   const [appearanceMenuVisible, setAppearanceMenuVisible] = useState(true);
   const tabs: Array<'chats' | 'appearance'> = ['chats', 'appearance'];
   const [activeTab, setActiveTab] = useState<'chats' | 'appearance'>(
-    'appearance'
+    'appearance',
   );
 
   const handleNextTab = () => {
@@ -76,14 +91,14 @@ const MainChatWindow: React.FC = () => {
   };
 
   return (
-    <div className='main_chat_window'>
+    <div className={`main_chat_window ${isSwiped ? 'swiped' : ''}`}>
       {windowWidth <= 768 && !settings.useBackgroundThroughoutTheApp && (
         <>
           {activeWallpaper?.url && (
             <img
               src={activeWallpaper.url}
               alt='Wallpaper'
-              className={styles.wallpaper}
+              className={wallpaperStyles.wallpaper}
               style={{
                 filter: `blur(${activeWallpaper.blur}px)`,
               }}
