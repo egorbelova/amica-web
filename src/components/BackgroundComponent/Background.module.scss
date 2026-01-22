@@ -1,0 +1,33 @@
+.background-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  // z-index: -1;
+  opacity: 0.5;
+}
+
+// #gradient-canvas,
+// #pattern-canvas {
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   width: 100%;
+//   min-height: 100%;
+// }
+
+// #gradient-canvas {
+//   opacity: 1;
+//   transition: opacity 0.35s;
+// }
+
+// #pattern-canvas {
+//   opacity: 0.4;
+//   mix-blend-mode: overlay;
+//   transition: opacity 0.35s;
+// }
+
+// #pattern-canvas {
+//   mix-blend-mode: overlay;
+// }

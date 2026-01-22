@@ -47,11 +47,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     [roomId: number]: Message[];
   }>({});
 
-  const messages = selectedChatId ? messagesCache[selectedChatId] ?? [] : [];
+  const messages = selectedChatId ? (messagesCache[selectedChatId] ?? []) : [];
 
   const selectedChat = useMemo(
     () => chats.find((c) => c.id === selectedChatId) ?? null,
-    [chats, selectedChatId]
+    [chats, selectedChatId],
   );
 
   const selectChat = useCallback((chatId: number | null) => {
@@ -73,7 +73,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
                   ...chat,
                   last_message: newMessage,
                 }
-              : chat
+              : chat,
           );
         });
 
@@ -81,13 +81,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           const existingMessages = prevCache[roomId] || [];
 
           const isDuplicate = existingMessages.some(
-            (msg) => msg.id === newMessage.id
+            (msg) => msg.id === newMessage.id,
           );
           if (isDuplicate) return prevCache;
 
           return {
             ...prevCache,
-            [roomId]: [newMessage, ...existingMessages],
+            [roomId]: [...existingMessages, newMessage],
           };
         });
       }
@@ -125,41 +125,41 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
                   ...chat,
                   last_message: lastMessage,
                 }
-              : chat
+              : chat,
           );
         });
       }
     },
-    []
+    [],
   );
 
   const getCachedMessages = useCallback(
     (roomId: number) => {
       return messagesCache[roomId] || null;
     },
-    [messagesCache]
+    [messagesCache],
   );
 
   const updateChatLastMessage = useCallback(
     (chatId: number, lastMessage: Message | null) => {
       setChats((prevChats) =>
         prevChats.map((chat) =>
-          chat.id === chatId ? { ...chat, last_message: lastMessage } : chat
-        )
+          chat.id === chatId ? { ...chat, last_message: lastMessage } : chat,
+        ),
       );
     },
-    []
+    [],
   );
 
   const updateChatUnreadCount = useCallback(
     (chatId: number, unreadCount: number) => {
       setChats((prevChats) =>
         prevChats.map((chat) =>
-          chat.id === chatId ? { ...chat, unread_count: unreadCount } : chat
-        )
+          chat.id === chatId ? { ...chat, unread_count: unreadCount } : chat,
+        ),
       );
     },
-    []
+    [],
   );
 
   const fetchChats = useCallback(async () => {
@@ -192,7 +192,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
             const updatedChats = prevChats.map((chat) =>
               chat.id === chatId
                 ? { ...chat, media: data.chat.media, users: data.chat.users }
-                : chat
+                : chat,
             );
             return updatedChats;
           });
@@ -203,7 +203,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         updateMessages([], chatId);
       }
     },
-    [updateMessages]
+    [updateMessages],
   );
 
   const handleCreateTemporaryChat = useCallback(
@@ -223,7 +223,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 
       selectChat(tempId);
     },
-    [chats, selectChat]
+    [chats, selectChat],
   );
 
   const handleChatClick = useCallback(
@@ -232,7 +232,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       setSelectedChatId(chatId);
       await fetchMessages(chatId);
     },
-    [selectedChatId, fetchMessages]
+    [selectedChatId, fetchMessages],
   );
 
   const value: ChatContextType = {

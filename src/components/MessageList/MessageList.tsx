@@ -25,14 +25,14 @@ const MessageList: React.FC = () => {
         return;
 
       const isDuplicate = currentMessages.some(
-        (msg) => msg.id === data.data.id
+        (msg) => msg.id === data.data.id,
       );
       if (isDuplicate) return;
 
       const newMessages = [data.data, ...currentMessages];
       updateMessages(newMessages, currentSelectedChat.id);
     },
-    [updateMessages]
+    [updateMessages],
   );
 
   const [viewersVisible, setViewersVisible] = useState(false);
@@ -104,7 +104,7 @@ const MessageList: React.FC = () => {
   const handleCopyMedia = async (msg: any) => {
     if (!msg?.files?.length) return;
     const firstFile = msg.files.find((file: any) =>
-      ['image'].includes(file.category)
+      ['image'].includes(file.category),
     );
     if (!firstFile) return;
 
@@ -132,7 +132,7 @@ const MessageList: React.FC = () => {
           ctx?.drawImage(img, 0, 0);
 
           const pngBlob = await new Promise<Blob | null>((resolve) =>
-            canvas.toBlob(resolve, 'image/png')
+            canvas.toBlob(resolve, 'image/png'),
           );
           if (!pngBlob) throw new Error('Failed to convert to PNG');
 
@@ -193,7 +193,7 @@ const MessageList: React.FC = () => {
     if (!msg?.files?.length) return;
 
     const firstFile = msg.files.find((file: any) =>
-      ['image', 'video', 'audio', 'pdf', 'document'].includes(file.category)
+      ['image', 'video', 'audio', 'pdf', 'document'].includes(file.category),
     );
     if (!firstFile) return;
 
@@ -244,7 +244,7 @@ const MessageList: React.FC = () => {
         ]
       : []),
     ...(menuMessage?.files?.some((f: any) =>
-      ['image', 'video', 'audio', 'pdf', 'document'].includes(f.category)
+      ['image', 'video', 'audio', 'pdf', 'document'].includes(f.category),
     )
       ? [
           {
@@ -373,7 +373,7 @@ const MessageList: React.FC = () => {
       {
         root: containerRef.current,
         threshold: 0.5,
-      }
+      },
     );
 
     messageRefs.current.forEach((el) => {
@@ -400,7 +400,7 @@ const MessageList: React.FC = () => {
           onClose={() => setViewersVisible(false)}
         />
       )}
-      {messages.map((message) =>
+      {[...messages].reverse().map((message) =>
         message.value || message.files?.length ? (
           <Message
             key={message.id}
@@ -409,7 +409,7 @@ const MessageList: React.FC = () => {
             // isLastMessage={message.id === lastMessageWithImage?.id}
             isLastMessage={false}
           />
-        ) : null
+        ) : null,
       )}
     </div>
   );
@@ -449,6 +449,6 @@ const ViewersList: React.FC<{ viewers: any[]; onClose: () => void }> = ({
         ))}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

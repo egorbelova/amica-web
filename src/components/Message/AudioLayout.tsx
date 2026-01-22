@@ -122,7 +122,7 @@ export default function AudioLayout({
     audio.playbackRate = speed;
   }, [speed]);
 
-  if (!objectUrl) return null;
+  // if (!objectUrl) return null;
 
   const togglePlay = () => {
     const audio = audioRef.current;

@@ -89,10 +89,7 @@ const MainChatWindow: React.FC = () => {
     const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
     setActiveTab(tabs[prevIndex]);
   };
-  console.log(
-    'useBackgroundThroughoutTheApp',
-    settings.useBackgroundThroughoutTheApp,
-  );
+
   return (
     <div className={`main_chat_window ${isSwiped ? 'swiped' : ''}`}>
       {windowWidth <= 768 && (
