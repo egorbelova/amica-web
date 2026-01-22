@@ -89,20 +89,43 @@ const MainChatWindow: React.FC = () => {
     const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
     setActiveTab(tabs[prevIndex]);
   };
-
+  console.log(
+    'useBackgroundThroughoutTheApp',
+    settings.useBackgroundThroughoutTheApp,
+  );
   return (
     <div className={`main_chat_window ${isSwiped ? 'swiped' : ''}`}>
-      {windowWidth <= 768 && !settings.useBackgroundThroughoutTheApp && (
+      {windowWidth <= 768 && (
         <>
           {activeWallpaper?.url && (
-            <img
-              src={activeWallpaper.url}
-              alt='Wallpaper'
-              className={wallpaperStyles.wallpaper}
-              style={{
-                filter: `blur(${activeWallpaper.blur}px)`,
-              }}
-            />
+            <>
+              {activeWallpaper?.type === 'photo' && (
+                <img
+                  src={activeWallpaper.url}
+                  alt='Wallpaper'
+                  className={wallpaperStyles.wallpaper}
+                  style={{
+                    filter: `blur(${activeWallpaper.blur}px)`,
+                  }}
+                />
+              )}
+              {activeWallpaper?.type === 'video' && (
+                <video
+                  src={activeWallpaper.url}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  // @ts-ignore
+                  fetchPriority='high'
+                  preload='metadata'
+                  className={wallpaperStyles.wallpaper}
+                  style={{
+                    filter: `blur(${activeWallpaper.blur}px)`,
+                  }}
+                />
+              )}
+            </>
           )}
           {/* <video
             autoPlay
