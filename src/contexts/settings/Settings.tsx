@@ -11,25 +11,25 @@ import { apiUpload, apiFetch } from '@/utils/apiFetch';
 
 const defaultWallpapers: WallpaperSetting[] = [
   {
-    id: 0,
+    id: 'default-0',
     url: '../DefaultWallpapers/abdelhamid-azoui-Zhl3nrozkG0-unsplash.jpg',
     type: 'photo',
     blur: 0,
   },
   {
-    id: 1,
+    id: 'default-1',
     url: '../DefaultWallpapers/syuhei-inoue-fvgv3i4_uvI-unsplash.jpg',
     type: 'photo',
     blur: 2,
   },
   {
-    id: 2,
+    id: 'default-2',
     url: '../DefaultWallpapers/dave-hoefler-PEkfSAxeplg-unsplash.jpg',
     type: 'photo',
     blur: 5,
   },
   {
-    id: 3,
+    id: 'default-3',
     url: '../DefaultWallpapers/video/blue-sky-seen-directly-with-some-clouds_480p_infinity.webm',
     type: 'video',
     blur: 0,
@@ -49,35 +49,38 @@ export const SettingsContext = createContext<SettingsContextValue | null>(null);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<Settings>(() => {
-    // const saved = localStorage.getItem('app-settings');
-    // if (saved) {
-    //   try {
-    //     const parsed = JSON.parse(saved);
+    const saved = localStorage.getItem('app-settings');
+    let parsed: Partial<Settings> = {};
+    if (saved) {
+      try {
+        parsed = JSON.parse(saved);
+      } catch {
+        parsed = {};
+      }
+    }
 
-    //     const combinedWallpapers = [
-    //       ...defaultWallpapers.filter(
-    //         (df) => !parsed.wallpapers?.some((w: any) => w.id === df.id)
-    //       ),
-    //       ...(parsed.wallpapers || []),
-    //     ];
+    const combinedWallpapers = [
+      ...defaultWallpapers.filter(
+        (df) => !parsed.wallpapers?.some((w: any) => w.id === df.id),
+      ),
+      ...(parsed.wallpapers || []),
+    ];
 
-    //     return {
-    //       ...defaultSettings,
-    //       ...parsed,
-    //       wallpapers: combinedWallpapers,
-    //       activeWallpaper: parsed.activeWallpaper || defaultWallpapers[0],
-    //     };
-    //   } catch {
-    //     return defaultSettings;
-    //   }
-    // }
-    return defaultSettings;
+    const activeWallpaper = defaultWallpapers[0];
+
+    return {
+      ...defaultSettings,
+      ...parsed,
+      wallpapers: combinedWallpapers,
+      activeWallpaper,
+    };
   });
 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem('app-settings', JSON.stringify(settings));
+    const { activeWallpaper, ...rest } = settings;
+    localStorage.setItem('app-settings', JSON.stringify(rest));
   }, [settings]);
 
   const setSetting = <K extends keyof Settings>(key: K, value: Settings[K]) =>
@@ -85,34 +88,47 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const setActiveWallpaper = (wallpaper: WallpaperSetting) => {
     setSettings((prev) => {
-      const exists =
-        prev.wallpapers?.some((w) => w.id === wallpaper.id) ?? false;
+      let wallpaperData: WallpaperSetting;
 
-      if (prev.activeWallpaper?.id !== wallpaper.id) {
-        websocketManager.sendMessage({
-          type: 'set_active_wallpaper',
-          data: { id: wallpaper.id },
-        });
+      if (!('url' in wallpaper) || !wallpaper.url) {
+        const defaultWall = defaultWallpapers.find(
+          (w) => w.id === wallpaper.id,
+        );
+        if (!defaultWall) return prev;
+        wallpaperData = { ...defaultWall };
+      } else {
+        wallpaperData = { ...wallpaper };
       }
+
+      if (prev.activeWallpaper?.id === wallpaperData.id) {
+        return prev;
+      }
+
+      websocketManager.sendMessage({
+        type: 'set_active_wallpaper',
+        data: { id: wallpaperData.id },
+      });
+
+      const wallpapers = prev.wallpapers?.some((w) => w.id === wallpaperData.id)
+        ? prev.wallpapers
+        : [...(prev.wallpapers || []), wallpaperData];
 
       return {
         ...prev,
-        wallpapers: exists
-          ? prev.wallpapers
-          : [...(prev.wallpapers || []), wallpaper],
-        activeWallpaper: wallpaper,
+        wallpapers,
+        activeWallpaper: wallpaperData,
       };
     });
   };
 
-  const removeWallpaper = (id: number) => {
+  const removeWallpaper = (id: string) => {
     websocketManager.sendMessage({
       type: 'delete_user_wallpaper',
       data: { id },
     });
   };
 
-  async function fetchWallpapers() {
+  const fetchWallpapers = async () => {
     try {
       const res = await apiFetch('/api/wallpapers/');
       const data = await res.json();
@@ -123,27 +139,31 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         ),
         ...apiWallpapers,
       ];
+
       setSettings((prev) => ({
         ...prev,
         wallpapers: combinedWallpapers,
       }));
     } catch (err) {
       console.error('Failed to fetch wallpapers', err);
-      setSettings((prev) => ({ ...prev, wallpapers: [] }));
+      setSettings((prev) => ({ ...prev, wallpapers: defaultWallpapers }));
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   const addUserWallpaper = async (wallpaper: WallpaperSetting) => {
     try {
       const formData = new FormData();
       Object.entries(wallpaper).forEach(([key, value]) => {
         if (!value) return;
-        //@ts-ignore
-        formData.append(key, value instanceof File ? value : String(value));
+        // @ts-ignore
+        if (value instanceof File) {
+          formData.append(key, value);
+        } else {
+          formData.append(key, String(value));
+        }
       });
-
       await apiUpload('/api/wallpapers/', formData);
     } catch (error) {
       console.error('addUserWallpaper error:', error);
@@ -152,17 +172,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const handleWSMessage = useCallback((data: any) => {
     if (!data.type) return;
-    // console.log('data', data);
 
     if (data.type === 'active_wallpaper_updated') {
-      const wallpaperData = { ...data.data, url: data.data.url };
-      setSettings((prev) => ({
-        ...prev,
-        wallpapers: prev.wallpapers?.some((w) => w.id === wallpaperData.id)
-          ? prev.wallpapers
-          : [...(prev.wallpapers || []), wallpaperData],
-        activeWallpaper: wallpaperData,
-      }));
+      const wallpaperData: WallpaperSetting = {
+        ...data.data,
+        url: data.data.url,
+      };
+      setActiveWallpaper(wallpaperData);
     }
 
     if (data.type === 'user_wallpaper_deleted') {
@@ -176,8 +192,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             : prev.activeWallpaper,
       }));
     }
+
     if (data.type === 'user_wallpaper_added') {
-      const wallpaperData = { ...data.data, url: data.data.url };
+      const wallpaperData: WallpaperSetting = {
+        ...data.data,
+        url: data.data.url,
+      };
       setSettings((prev) => ({
         ...prev,
         wallpapers: prev.wallpapers?.some((w) => w.id === wallpaperData.id)

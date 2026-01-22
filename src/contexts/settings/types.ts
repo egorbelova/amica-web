@@ -1,7 +1,7 @@
 export type WallpaperType = 'photo' | 'video';
 
 export type WallpaperSetting = {
-  id: number | null;
+  id: number | string | null;
   url: string | null;
   type?: WallpaperType;
   blur?: number;

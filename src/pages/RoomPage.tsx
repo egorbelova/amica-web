@@ -30,35 +30,39 @@ const RoomPage: React.FC = () => {
   //   console.log('Service Worker registration');
   //   navigator.serviceWorker.register('/sw.js');
   // }
-  console.log(activeWallpaper);
+
   return (
     <>
       {(windowWidth > 768 || settings.useBackgroundThroughoutTheApp) && (
         <>
           {activeWallpaper?.url && (
             <>
-              <img
-                src={activeWallpaper.url}
-                alt='Wallpaper'
-                className={styles.wallpaper}
-                style={{
-                  filter: `blur(${activeWallpaper.blur}px)`,
-                }}
-              />
-              <video
-                src={activeWallpaper.url}
-                autoPlay
-                muted
-                loop
-                playsInline
-                // @ts-ignore
-                fetchPriority='high'
-                preload='metadata'
-                className={styles.wallpaper}
-                style={{
-                  filter: `blur(${activeWallpaper.blur}px)`,
-                }}
-              />
+              {activeWallpaper?.type === 'photo' && (
+                <img
+                  src={activeWallpaper.url}
+                  alt='Wallpaper'
+                  className={styles.wallpaper}
+                  style={{
+                    filter: `blur(${activeWallpaper.blur}px)`,
+                  }}
+                />
+              )}
+              {activeWallpaper?.type === 'video' && (
+                <video
+                  src={activeWallpaper.url}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  // @ts-ignore
+                  fetchPriority='high'
+                  preload='metadata'
+                  className={styles.wallpaper}
+                  style={{
+                    filter: `blur(${activeWallpaper.blur}px)`,
+                  }}
+                />
+              )}
             </>
           )}
           {/* <video

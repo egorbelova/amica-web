@@ -73,8 +73,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         //@ts-ignore
         id: data.active_wallpaper.id,
         //@ts-ignore
-        url: data.active_wallpaper.file_url,
-        type: 'photo',
+        url: data.active_wallpaper.url,
+        //@ts-ignore
+        type: data.active_wallpaper.type,
         blur: 0,
       });
     } catch (err) {
@@ -85,7 +86,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     setApiFetchUnauthorizedHandler(() =>
-      setState({ user: null, loading: false, error: null })
+      setState({ user: null, loading: false, error: null }),
     );
 
     (async () => {
@@ -113,7 +114,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
           }
 
           const updatedMedia = prev.user.profile.media.map((m) =>
-            m.id === userId ? { ...m, small: newUrl } : m
+            m.id === userId ? { ...m, small: newUrl } : m,
           );
 
           return {
@@ -142,17 +143,17 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const loginWithPassword = (username: string, password: string) =>
     postJson<ApiResponse>('/api/login/', { username, password }).then(
-      handleLoginSuccess
+      handleLoginSuccess,
     );
 
   const loginWithGoogle = (idToken: string) =>
     postJson<ApiResponse>('/api/google/', { id_token: idToken }).then(
-      handleLoginSuccess
+      handleLoginSuccess,
     );
 
   const loginWithPasskey = (passkeyData: any) =>
     postJson<ApiResponse>('/api/passkey_auth_finish/', passkeyData).then(
-      handleLoginSuccess
+      handleLoginSuccess,
     );
 
   const logout = async () => {
@@ -172,7 +173,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         refreshUser: fetchUser,
         setUser: useCallback(
           (user: User | null) => setState((prev) => ({ ...prev, user })),
-          []
+          [],
         ),
         loginWithPassword,
         loginWithGoogle,

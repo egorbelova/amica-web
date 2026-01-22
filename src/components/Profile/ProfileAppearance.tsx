@@ -91,7 +91,7 @@ export default function ProfileAppearance() {
           <div>Loading wallpapers...</div>
         ) : (
           <div className={styles.wallpaperList}>
-            {settings.wallpapers.map((wall) => (
+            {[...settings.wallpapers].reverse().map((wall) => (
               <div
                 key={wall.id}
                 className={`${styles.wallpaperItem}  ${
