@@ -194,9 +194,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (data.type === 'user_wallpaper_added') {
+      console.log(data);
       const wallpaperData: WallpaperSetting = {
-        ...data.data,
+        id: data.data.id,
+        type: data.data.type,
         url: data.data.url,
+        blur: 0,
       };
       setSettings((prev) => ({
         ...prev,

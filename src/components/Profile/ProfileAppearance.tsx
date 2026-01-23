@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { act, useEffect, useState } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import styles from './Profile.module.scss';
 import { useSettings } from '@/contexts/settings/Settings';
@@ -62,7 +62,7 @@ export default function ProfileAppearance() {
       blur: value,
     });
   };
-
+  console.log('settings', settings.wallpapers);
   return (
     <div className={styles.section}>
       <h3>{t('profileTabs.appearance')}</h3>
