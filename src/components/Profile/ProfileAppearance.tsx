@@ -108,6 +108,8 @@ export default function ProfileAppearance() {
                     onClick={() => handleSelectWallpaper(wall)}
                     autoPlay
                     muted
+                    loop
+                    playsInline
                   />
                 ) : (
                   <img

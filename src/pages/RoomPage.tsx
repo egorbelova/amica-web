@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import LeftSideBar from '../components/LeftSideBar/LeftSideBar';
 import MainChatWindow from '../components/MainChatWindow/MainChatWindow';
 import { websocketManager } from '../utils/websocket-manager';
@@ -31,6 +31,48 @@ const RoomPage: React.FC = () => {
   //   navigator.serviceWorker.register('/sw.js');
   // }
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.pause();
+    video.currentTime = 0;
+
+    const playVideo = async () => {
+      try {
+        video.muted = true;
+        await video.play();
+        setIsPlaying(true);
+      } catch (e) {
+        setIsPlaying(false);
+      }
+    };
+
+    if (video.readyState >= 2) {
+      playVideo();
+    } else {
+      video.addEventListener('canplay', playVideo, { once: true });
+    }
+
+    const unlock = () => {
+      video
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {});
+      document.removeEventListener('touchstart', unlock);
+    };
+    document.addEventListener('touchstart', unlock, { once: true });
+
+    return () => {
+      video.removeEventListener('canplay', playVideo);
+      document.removeEventListener('touchstart', unlock);
+    };
+  }, [activeWallpaper.url]);
+
   return (
     <>
       {(windowWidth > 768 || settings.useBackgroundThroughoutTheApp) && (
@@ -48,20 +90,18 @@ const RoomPage: React.FC = () => {
                 />
               )}
               {activeWallpaper?.type === 'video' && (
-                <video
-                  src={activeWallpaper.url}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  // @ts-ignore
-                  fetchPriority='high'
-                  preload='metadata'
-                  className={styles.wallpaper}
-                  style={{
-                    filter: `blur(${activeWallpaper.blur}px)`,
-                  }}
-                />
+                <>
+                  <video
+                    ref={videoRef}
+                    src={activeWallpaper.url + '#t=0.001'}
+                    playsInline
+                    muted
+                    loop
+                    preload='metadata'
+                    className={styles.wallpaper}
+                    style={{ filter: `blur(${activeWallpaper.blur}px)` }}
+                  />
+                </>
               )}
             </>
           )}
