@@ -188,9 +188,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) =>
-      e.key === 'Escape' && setSelectedChatId(null);
-
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedChatId(null);
+        location.hash = '';
+      }
+    };
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import styles from './SmartMediaLayout.module.scss';
 import { Icon } from '../Icons/AutoIcons';
@@ -18,9 +18,10 @@ export default function AudioLayout({
 
   const progressRef = useRef(null);
   const volumeRef = useRef(null);
+  const currentTimeRef = useRef(0);
+  const [visualTime, setVisualTime] = useState(0);
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
 
   const [volume, setVolume] = useState(1);
   const [speed, setSpeed] = useState(1);
@@ -29,7 +30,6 @@ export default function AudioLayout({
 
   const [durationState, setDurationState] = useState(duration ?? 0);
 
-  const [visualTime, setVisualTime] = useState(0);
   const safeDuration = durationState || 1;
 
   const getClientX = (e) => (e.touches ? e.touches[0].clientX : e.clientX);
@@ -40,107 +40,57 @@ export default function AudioLayout({
 
     let animationFrameId;
 
+    const onPlay = () => {
+      setIsPlaying(true);
+    };
+
+    const onPause = () => {
+      setIsPlaying(false);
+    };
+
+    const onEnded = () => setIsPlaying(false);
+
+    const onLoaded = () => setDurationState(audio.duration);
+
     const animate = () => {
       setVisualTime((prev) => prev + (audio.currentTime - prev) * 0.2);
+
       animationFrameId = requestAnimationFrame(animate);
     };
 
     animate();
 
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [objectUrl]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
-    const onEnded = () => setIsPlaying(false);
-
     audio.addEventListener('play', onPlay);
     audio.addEventListener('pause', onPause);
     audio.addEventListener('ended', onEnded);
-
-    return () => {
-      audio.removeEventListener('play', onPlay);
-      audio.removeEventListener('pause', onPause);
-      audio.removeEventListener('ended', onEnded);
-    };
-  }, [objectUrl]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const onLoaded = () => setDurationState(audio.duration);
     audio.addEventListener('loadedmetadata', onLoaded);
 
     return () => {
+      cancelAnimationFrame(animationFrameId);
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+      audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('loadedmetadata', onLoaded);
     };
   }, [objectUrl]);
 
-  useEffect(() => {
+  const togglePlay = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.paused ? audio.play() : audio.pause();
+  }, []);
+
+  const cycleSpeed = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    let animationFrameId;
+    const currentIndex = SPEEDS.indexOf(speed);
+    const nextIndex = (currentIndex + 1) % SPEEDS.length;
+    const nextSpeed = SPEEDS[nextIndex];
 
-    const update = () => {
-      setCurrentTime(audio.currentTime);
-      animationFrameId = requestAnimationFrame(update);
-    };
-
-    const start = () => {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = requestAnimationFrame(update);
-    };
-
-    const onPlay = () => start();
-    const onPause = () => cancelAnimationFrame(animationFrameId);
-    const onSeeked = () => start();
-
-    audio.addEventListener('play', onPlay);
-    audio.addEventListener('pause', onPause);
-    audio.addEventListener('seeked', onSeeked);
-
-    if (!audio.paused) start();
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      audio.removeEventListener('play', onPlay);
-      audio.removeEventListener('pause', onPause);
-      audio.removeEventListener('seeked', onSeeked);
-    };
-  }, [objectUrl]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.playbackRate = speed;
+    setSpeed(nextSpeed);
+    audio.playbackRate = nextSpeed;
   }, [speed]);
-
-  // if (!objectUrl) return null;
-
-  const togglePlay = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (audio.paused) {
-      audio.play();
-    } else {
-      audio.pause();
-    }
-  };
-
-  const cycleSpeed = () => {
-    setSpeed((prev) => {
-      const index = SPEEDS.indexOf(prev);
-      return SPEEDS[(index + 1) % SPEEDS.length];
-    });
-  };
 
   const startSeek = (e) => {
     e.preventDefault();
@@ -152,7 +102,7 @@ export default function AudioLayout({
       const time = clampedPercent * durationState;
 
       audioRef.current.currentTime = time;
-      setCurrentTime(time);
+      currentTimeRef.current = time;
     };
 
     updateTime(getClientX(e));
@@ -324,7 +274,7 @@ export default function AudioLayout({
       </div>
       <div className={styles.controlsWrapper}>
         <div className={styles.time}>
-          {formatTime(currentTime)} / {formatTime(durationState)}
+          {formatTime(visualTime)} / {formatTime(durationState)}
         </div>
         <div className={`${styles.controls} ${isControlsOpen && styles.open} `}>
           <button className={styles.speed} onClick={cycleSpeed}>
