@@ -238,13 +238,6 @@ svg {
   margin: 10px 0px 10px 10px;
 }
 
-.title_name_subtitle {
-  font-weight: 400;
-  font-size: 0.75rem;
-  color: #d5eaff;
-  max-width: 100%;
-}
-
 .room_div {
   overscroll-behavior: contain;
   padding-top: calc(env(safe-area-inset-top) + 50px);
@@ -460,15 +453,6 @@ svg {
   user-select: none;
   margin-left: 40px;
   transition: margin-left 0.4s;
-}
-
-#choose {
-  position: absolute;
-  margin-right: 3px;
-  border-radius: 100%;
-  width: 50px;
-  height: 50px;
-  z-index: 999;
 }
 
 .left-menu {
@@ -919,18 +903,6 @@ svg {
     z-index: 1001;
   }
 
-  #name {
-    align-items: center;
-  }
-  .opponent_photo_div {
-    order: 3 !important;
-  }
-
-  #opponent_title_name {
-    margin-top: 0;
-    border-radius: 0 0 20px 20px;
-    justify-content: space-between;
-  }
   html,
   body {
     margin: 0 auto;
@@ -1052,13 +1024,6 @@ svg {
     width: 100%;
   }
 
-  #opponent_title_name.active {
-    width: 0;
-    opacity: 0;
-    transition:
-      opacity 0.2s ease-in,
-      width 0.2s ease-in;
-  }
   .room_body.active {
     width: 0;
     opacity: 0;

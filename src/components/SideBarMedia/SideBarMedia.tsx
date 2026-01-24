@@ -57,10 +57,10 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
   const initialTab = hasImages
     ? 'images'
     : hasVideos
-    ? 'videos'
-    : members?.length
-    ? 'members'
-    : null;
+      ? 'videos'
+      : members?.length
+        ? 'members'
+        : null;
   const [activeTab, setActiveTab] = useState<
     'images' | 'videos' | 'members' | null
   >(initialTab);
@@ -106,7 +106,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
     if (interlocutorEditVisible || !isAvatarRollerOpen || !selectedChat.media)
       return;
     setRollPosition((prev) =>
-      prev === selectedChat.media!.length ? 0 : prev + 1
+      prev === selectedChat.media!.length ? 0 : prev + 1,
     );
   };
 

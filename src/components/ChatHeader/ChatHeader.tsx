@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-// import Icon from '../Icon/Icon';
 import { useChat } from '../../contexts/ChatContext';
 import { useUser } from '../../contexts/UserContext';
 import Avatar from '../Avatar/Avatar';
 import { formatLastSeen } from '../../utils/activityFormatter';
 import styles from './ChatHeader.module.scss';
-import './ChatHeader.css';
+import { Icon } from '../Icons/AutoIcons';
 
 interface ChatHeaderProps {
   onGoHome?: () => void;
@@ -18,74 +17,55 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
 }) => {
   const { selectedChat } = useChat();
   const { user } = useUser();
+  const [subtitle, setSubtitle] = useState('');
+  const [avatarModalVisible, setAvatarModalVisible] = useState(false);
+
+  useEffect(() => {
+    if (selectedChat.type === 'G') {
+      setSubtitle(`${selectedChat.info} members`);
+    } else {
+      setSubtitle(formatLastSeen(selectedChat.info));
+    }
+  }, [selectedChat, user]);
+
+  if (!selectedChat) return;
 
   const handleGoHome = (e: React.MouseEvent) => {
     e.stopPropagation();
     onGoHome?.();
   };
 
-  if (!selectedChat) {
-    return;
-  }
-
-  const [avatarModalVisible, setAvatarModalVisible] = useState(false);
   const avatarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setAvatarModalVisible(true);
   };
 
-  const [subtitle, setSubtitle] = useState('');
-
-  useEffect(() => {
-    //@ts-ignore
-    if (selectedChat.chat_type === 'G') {
-      // @ts-ignore
-      setSubtitle(`${selectedChat.info} members`);
-    } else {
-      // @ts-ignore
-      setSubtitle(formatLastSeen(selectedChat.info));
-    }
-  }, [selectedChat, user]);
-
   return (
-    <div id='opponent_title_name' onClick={onChatInfoClick}>
-      <div
-        className='go_home_page'
+    <div className={styles['chat-header']} onClick={onChatInfoClick}>
+      <button
         onClick={handleGoHome}
-        role='button'
-        tabIndex={0}
-        // onKeyDown={(e) => e.key === 'Enter' && handleGoHome()}
-        aria-label='Go back to home'
+        type='button'
+        className={styles['chat-header__back-button']}
       >
-        {/* <Icon name='arrow' className='arrow-left' /> */}
-      </div>
+        <Icon name='Arrow' />
+      </button>
 
-      <div id='name'>
-        <span className='title_name'>{selectedChat.name}</span>
-        {subtitle && <span className='title_name_subtitle'>{subtitle}</span>}
-      </div>
-
-      <div className='opponent_photo_div'>
-        <Avatar
-          key={selectedChat.id}
-          // @ts-ignore
-          displayName={selectedChat.name}
-          // @ts-ignore
-          displayMedia={selectedChat.primary_media}
-          className={styles.avatar}
-          onClick={avatarClick}
-        />
-
-        {avatarModalVisible && (
-          <Avatar
-            // @ts-ignore
-            displayName={selectedChat.display_name}
-            // @ts-ignore
-            displayMedia={selectedChat.primary_media}
-            className='user-info-avatar big'
-          />
+      <div className={styles['chat-header__title']}>
+        <span className={styles['chat-header__title-name']}>
+          {selectedChat.name}
+        </span>
+        {subtitle && (
+          <span className={styles['chat-header__title-sub']}>{subtitle}</span>
         )}
       </div>
+
+      <Avatar
+        key={selectedChat.id}
+        displayName={selectedChat.name}
+        displayMedia={selectedChat.primary_media}
+        className={styles['chat-header__avatar']}
+        onClick={avatarClick}
+      />
     </div>
   );
 };

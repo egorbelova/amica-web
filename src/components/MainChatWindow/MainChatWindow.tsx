@@ -33,17 +33,12 @@ interface AttachmentTab {
 }
 
 const MainChatWindow: React.FC = () => {
-  const [message, setMessage] = useState('');
-
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
   const { settings } = useSettings();
   const { activeWallpaper } = settings;
 
   const { t, locale } = useTranslation();
 
-  const { selectedChat } = useChat();
+  const { selectedChat, setSelectedChatId } = useChat();
 
   const [sideBarVisible, setSideBarVisible] = useState(false);
 
@@ -156,7 +151,10 @@ const MainChatWindow: React.FC = () => {
       {/* {windowWidth <= 768 && <BackgroundComponent />} */}
       {selectedChat && (
         <>
-          <ChatHeader onChatInfoClick={handleHeaderClick} />
+          <ChatHeader
+            onChatInfoClick={handleHeaderClick}
+            onGoHome={() => setSelectedChatId(null)}
+          />
           <div className={`room_wrapper ${sideBarVisible ? 'shifted' : ''}`}>
             <MessageList />
             <SendArea />

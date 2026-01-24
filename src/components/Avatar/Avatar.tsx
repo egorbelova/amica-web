@@ -1,25 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { stringToColor, pSBC } from '../../utils/index';
 import styles from './Avatar.module.scss';
-
-export interface PhotoMedia {
-  type: 'photo';
-  small: string;
-  medium?: string;
-}
-
-export interface VideoMedia {
-  type: 'video';
-  url: string;
-  duration?: number | null;
-}
-
-interface MediaLayer {
-  id: number;
-  media: DisplayMedia | null;
-}
-
-export type DisplayMedia = PhotoMedia | VideoMedia;
+import type { DisplayMedia, PhotoMedia, VideoMedia, MediaLayer } from '@/types';
 
 export interface AvatarProps {
   displayName: string;

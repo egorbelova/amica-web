@@ -21,10 +21,30 @@ export interface Chat {
   name: string | null;
   members: User[];
   type: 'D' | 'G' | 'C';
-  primary_media: string | null;
+  primary_media: DisplayMedia | null;
   last_message: Message | null;
   unread_count: number;
+  info: string;
 }
+
+export interface PhotoMedia {
+  type: 'photo';
+  small: string;
+  medium?: string;
+}
+
+export interface VideoMedia {
+  type: 'video';
+  url: string;
+  duration?: number | null;
+}
+
+export interface MediaLayer {
+  id: number;
+  media: DisplayMedia | null;
+}
+
+export type DisplayMedia = PhotoMedia | VideoMedia;
 
 export interface UserProfile {
   id: number;

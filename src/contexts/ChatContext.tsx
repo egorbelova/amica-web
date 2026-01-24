@@ -7,10 +7,9 @@ import React, {
   useMemo,
 } from 'react';
 import type { ReactNode } from 'react';
-import type { Message, Chat } from '@/types';
+import type { Message, Chat, User } from '@/types';
 import { websocketManager } from '@/utils/websocket-manager';
 import { apiFetch } from '@/utils/apiFetch';
-import type { User } from '@/types';
 
 interface ChatContextType {
   selectedChat: Chat | null;
@@ -32,6 +31,7 @@ interface ChatContextType {
   fetchMessages: (chatId: number) => Promise<void>;
   handleChatClick: (chatId: number) => Promise<void>;
   handleCreateTemporaryChat: (user: User) => void;
+  setSelectedChatId: (chatId: number | null) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -209,6 +209,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const handleCreateTemporaryChat = useCallback(
     (user: User) => {
       const tempId = Math.min(...chats.map((c) => c.id), 0) - 1;
+      // @ts-ignore
       const tempChat: Chat = {
         id: tempId,
         name: user.username,
@@ -253,6 +254,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     fetchMessages,
     handleChatClick,
     handleCreateTemporaryChat,
+    setSelectedChatId,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
