@@ -86,6 +86,16 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const setSetting = <K extends keyof Settings>(key: K, value: Settings[K]) =>
     setSettings((prev) => ({ ...prev, [key]: value }));
 
+  const setBlur = (value: number) => {
+    setSettings((prev) => ({
+      ...prev,
+      activeWallpaper: {
+        ...prev.activeWallpaper,
+        blur: value,
+      },
+    }));
+  };
+
   const setActiveWallpaper = (wallpaper: WallpaperSetting) => {
     setSettings((prev) => {
       let wallpaperData: WallpaperSetting;
@@ -225,6 +235,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         setSetting,
         setActiveWallpaper,
         addUserWallpaper,
+        //@ts-ignore
+        setBlur,
         //@ts-ignore
         removeWallpaper,
         fetchWallpapers,

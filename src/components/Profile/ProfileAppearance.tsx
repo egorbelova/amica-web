@@ -13,6 +13,8 @@ export default function ProfileAppearance() {
     settings,
     setSetting,
     setActiveWallpaper,
+    //@ts-ignore
+    setBlur,
     addUserWallpaper,
     //@ts-ignore
     removeWallpaper,
@@ -32,15 +34,9 @@ export default function ProfileAppearance() {
 
   const is24Hour = settings.timeFormat === '24h';
 
-  const [blur, setBlur] = useState<number>(settings.activeWallpaper?.blur || 0);
-
   useEffect(() => {
     fetchWallpapers();
   }, []);
-
-  useEffect(() => {
-    setBlur(settings.activeWallpaper?.blur || 0);
-  }, [settings.activeWallpaper]);
 
   const handleSelectWallpaper = (wall: WallpaperSetting) => {
     setActiveWallpaper({
@@ -48,21 +44,15 @@ export default function ProfileAppearance() {
       //@ts-ignore
       url: wall.url,
       type: wall.type,
-      blur: blur ?? 0,
+      blur: settings.activeWallpaper?.blur || 0,
     });
   };
 
   const handleBlurChange = (value: number) => {
-    setBlur(value);
-
     if (!settings.activeWallpaper) return;
-
-    setActiveWallpaper({
-      ...settings.activeWallpaper,
-      blur: value,
-    });
+    setBlur(value);
   };
-  console.log('settings', settings.wallpapers);
+
   return (
     <div className={styles.section}>
       <h3>{t('profileTabs.appearance')}</h3>
