@@ -24,7 +24,7 @@ const Slider: React.FC<SliderProps> = ({
   const [dragging, setDragging] = useState(false);
   const [internalValue, setInternalValue] = useState(value);
 
-  const thumbWidth = 24;
+  const thumbWidth = 30;
   const thumbInset = thumbWidth / 3;
   useEffect(() => setInternalValue(value), [value]);
 
@@ -96,6 +96,7 @@ const Slider: React.FC<SliderProps> = ({
   }, [dragging, handleMouseMove, handleMouseUp]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
     setDragging(true);
     const touch = e.touches[0];
     const val = calcValueFromPos(touch.clientX);
@@ -106,6 +107,7 @@ const Slider: React.FC<SliderProps> = ({
   const handleTouchMove = useCallback(
     (e: TouchEvent) => {
       if (!dragging) return;
+      e.preventDefault();
       const touch = e.touches[0];
       const val = calcValueFromPos(touch.clientX);
       setInternalValue(val);
@@ -127,7 +129,7 @@ const Slider: React.FC<SliderProps> = ({
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
 
-      window.addEventListener('touchmove', handleTouchMove);
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
       window.addEventListener('touchend', handleTouchEnd);
     } else {
       window.removeEventListener('mousemove', handleMouseMove);
