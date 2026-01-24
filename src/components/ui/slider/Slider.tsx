@@ -95,6 +95,63 @@ const Slider: React.FC<SliderProps> = ({
     };
   }, [dragging, handleMouseMove, handleMouseUp]);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setDragging(true);
+    const touch = e.touches[0];
+    const val = calcValueFromPos(touch.clientX);
+    setInternalValue(val);
+    onChange(val);
+  };
+
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      if (!dragging) return;
+      const touch = e.touches[0];
+      const val = calcValueFromPos(touch.clientX);
+      setInternalValue(val);
+      onChange(val);
+    },
+    [dragging, calcValueFromPos, onChange],
+  );
+
+  const handleTouchEnd = useCallback(() => {
+    setDragging(false);
+    const rounded = Math.round(internalValue / step) * step;
+    const clamped = clampValue(rounded);
+    setInternalValue(clamped);
+    onChange(clamped);
+  }, [internalValue, step, clampValue, onChange]);
+
+  useEffect(() => {
+    if (dragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+
+      window.addEventListener('touchmove', handleTouchMove);
+      window.addEventListener('touchend', handleTouchEnd);
+    } else {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [
+    dragging,
+    handleMouseMove,
+    handleMouseUp,
+    handleTouchMove,
+    handleTouchEnd,
+  ]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = Number(e.target.value);
     if (isNaN(val)) return;
@@ -151,6 +208,7 @@ const Slider: React.FC<SliderProps> = ({
         className={`${styles.track} ${dragging ? styles.dragging : ''}`}
         ref={trackRef}
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
       >
         <div
           className={styles.fill}
