@@ -53,10 +53,11 @@
     transition: none !important;
   }
   .thumb {
-    transition: none !important;
+    transition: background-color 0.3s ease !important;
   }
 }
 
 .thumb:active {
   cursor: grabbing;
+  background-color: transparent !important;
 }

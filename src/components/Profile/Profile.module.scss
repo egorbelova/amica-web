@@ -202,3 +202,17 @@
   cursor: pointer;
   width: 16px;
 }
+
+.wallpapersContainer {
+  display: flex;
+  flex-direction: column;
+  // margin: 0 10px;
+}
+
+.blurSlider {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 20px;
+}

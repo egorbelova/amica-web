@@ -80,68 +80,58 @@ export default function ProfileAppearance() {
         {loading ? (
           <div>Loading wallpapers...</div>
         ) : (
-          <div className={styles.wallpaperList}>
-            {[...settings.wallpapers].reverse().map((wall) => (
-              <div
-                key={wall.id}
-                className={`${styles.wallpaperItem}  ${
-                  settings.activeWallpaper?.id === wall.id
-                    ? styles.selected
-                    : ''
-                }`}
-              >
-                {wall.type === 'video' ? (
-                  <video
-                    //@ts-ignore
-                    src={wall.url}
-                    className={`${styles.wallpaperThumbnail}`}
-                    onClick={() => handleSelectWallpaper(wall)}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                  />
-                ) : (
-                  <img
-                    //@ts-ignore
-                    src={wall.url}
-                    alt={`Wallpaper ${wall.id}`}
-                    className={`${styles.wallpaperThumbnail}`}
-                    onClick={() => handleSelectWallpaper(wall)}
-                  />
-                )}
-                <div
-                  className={styles.removeWallpaper}
-                  onClick={removeWallpaper.bind(null, wall.id)}
-                >
-                  <Icon name='Cross' />
-                </div>
-              </div>
-            ))}
-
+          <div className={styles.wallpapersContainer}>
             {settings.activeWallpaper && (
-              <Slider
-                label='Blur'
-                value={settings.activeWallpaper.blur || 0}
-                min={0}
-                max={50}
-                step={1}
-                onChange={handleBlurChange}
-              />
+              <div className={styles.blurSlider}>
+                <Slider
+                  label='Blur'
+                  value={settings.activeWallpaper.blur || 0}
+                  min={0}
+                  max={50}
+                  step={1}
+                  onChange={handleBlurChange}
+                />
+              </div>
             )}
-            <input
-              type='file'
-              accept='image/*,video/*'
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                addUserWallpaper({
-                  //@ts-ignore
-                  file,
-                  blur: 0,
-                });
-              }}
-            />
+            <div className={styles.wallpaperList}>
+              {[...settings.wallpapers].reverse().map((wall) => (
+                <div
+                  key={wall.id}
+                  className={`${styles.wallpaperItem}  ${
+                    settings.activeWallpaper?.id === wall.id
+                      ? styles.selected
+                      : ''
+                  }`}
+                >
+                  {wall.type === 'video' ? (
+                    <video
+                      //@ts-ignore
+                      src={wall.url}
+                      className={`${styles.wallpaperThumbnail}`}
+                      onClick={() => handleSelectWallpaper(wall)}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                    />
+                  ) : (
+                    <img
+                      //@ts-ignore
+                      src={wall.url}
+                      alt={`Wallpaper ${wall.id}`}
+                      className={`${styles.wallpaperThumbnail}`}
+                      onClick={() => handleSelectWallpaper(wall)}
+                    />
+                  )}
+                  <div
+                    className={styles.removeWallpaper}
+                    onClick={removeWallpaper.bind(null, wall.id)}
+                  >
+                    <Icon name='Cross' />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

@@ -10,19 +10,13 @@ import ProfileAppearance from './ProfileAppearance';
 import ProfileSessions from './ProfileSessions';
 import Avatar from '../Avatar/Avatar';
 import { useUser } from '@/contexts/UserContext';
-
-type SubTab =
-  | 'account'
-  | 'language'
-  | 'privacy'
-  | 'notifications'
-  | 'appearance'
-  | 'active sessions';
+import { useSettings } from '@/contexts/settings/Settings';
 
 export default function Profile() {
   const { t, locale } = useTranslation();
   const { user } = useUser();
-  const [active, setActive] = useState<SubTab>('account');
+  // const [active, setActive] = useState<SubTab>('account');
+  const { activeProfileTab, setActiveProfileTab } = useSettings();
 
   const tabs = [
     {
@@ -73,9 +67,9 @@ export default function Profile() {
           <button
             key={tab.id}
             type='button'
-            onClick={() => setActive(tab.id)}
+            onClick={() => setActiveProfileTab(tab.id)}
             className={`${styles.tab} ${
-              active === tab.id ? styles.active : ''
+              activeProfileTab === tab.id ? styles.active : ''
             }`}
           >
             {tab.icon}
@@ -85,11 +79,11 @@ export default function Profile() {
       </nav>
 
       <div className={styles.content}>
-        {active === 'language' && <ProfileLanguage />}
-        {active === 'privacy' && <ProfilePrivacy />}
-        {active === 'account' && <ProfileAccount />}
-        {active === 'appearance' && <ProfileAppearance />}
-        {active === 'active sessions' && <ProfileSessions />}
+        {activeProfileTab === 'language' && <ProfileLanguage />}
+        {activeProfileTab === 'privacy' && <ProfilePrivacy />}
+        {activeProfileTab === 'account' && <ProfileAccount />}
+        {activeProfileTab === 'appearance' && <ProfileAppearance />}
+        {activeProfileTab === 'active sessions' && <ProfileSessions />}
       </div>
     </div>
   );

@@ -27,8 +27,11 @@ const SignUpPage: React.FC = () => {
     setError(null);
 
     try {
-      const res = await apiFetch('/api/signup/', {
+      const res = await fetch('/api/signup/', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(form),
       });
 
@@ -36,6 +39,7 @@ const SignUpPage: React.FC = () => {
         const data = await res.json();
         throw new Error(data.error || 'Signup failed');
       }
+      console.log('Signup successful');
 
       await refreshUser();
     } catch (err) {

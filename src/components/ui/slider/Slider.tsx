@@ -24,24 +24,36 @@ const Slider: React.FC<SliderProps> = ({
   const [dragging, setDragging] = useState(false);
   const [internalValue, setInternalValue] = useState(value);
 
+  const thumbWidth = 24;
+  const thumbInset = thumbWidth / 3;
   useEffect(() => setInternalValue(value), [value]);
 
   const clampValue = useCallback(
     (val: number) => Math.min(Math.max(val, min), max),
-    [min, max]
+    [min, max],
   );
 
   const calcValueFromPos = useCallback(
     (clientX: number) => {
       if (!trackRef.current) return internalValue;
       const { left, width } = trackRef.current.getBoundingClientRect();
-      let percent = (clientX - left) / width;
+      const fullRange = width - 2 * thumbInset;
+      let percent = (clientX - left - thumbInset) / fullRange;
       percent = Math.min(Math.max(percent, 0), 1);
-      let newValue = min + percent * (max - min);
-      newValue = Math.round(newValue / step) * step;
-      return newValue;
+      return min + percent * (max - min);
     },
-    [min, max, step, internalValue]
+    [min, max, internalValue, thumbInset],
+  );
+
+  const calcThumbLeft = useCallback(
+    (val: number) => {
+      if (!trackRef.current) return 0;
+      const { width } = trackRef.current.getBoundingClientRect();
+      const percent = (val - min) / (max - min);
+      const fullRange = width - 2 * thumbInset;
+      return thumbInset + percent * fullRange;
+    },
+    [min, max, thumbInset],
   );
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -58,12 +70,16 @@ const Slider: React.FC<SliderProps> = ({
       setInternalValue(val);
       onChange(val);
     },
-    [dragging, calcValueFromPos, onChange]
+    [dragging, calcValueFromPos, onChange],
   );
 
   const handleMouseUp = useCallback(() => {
     setDragging(false);
-  }, []);
+    const rounded = Math.round(internalValue / step) * step;
+    const clamped = clampValue(rounded);
+    setInternalValue(clamped);
+    onChange(clamped);
+  }, [internalValue, step, clampValue, onChange]);
 
   useEffect(() => {
     if (dragging) {
@@ -87,7 +103,37 @@ const Slider: React.FC<SliderProps> = ({
     onChange(val);
   };
 
-  const fillPercent = ((internalValue - min) / (max - min)) * 100;
+  const thumbLeft = calcThumbLeft(internalValue);
+
+  const calcFillWidth = (val: number) => {
+    if (!trackRef.current) return 0;
+    const { width } = trackRef.current.getBoundingClientRect();
+    const percent = (val - min) / (max - min);
+    const edge = 0.1;
+    const padding = thumbInset;
+
+    const fullRange = width - 2 * padding;
+    const centerThumb = padding + percent * fullRange;
+
+    const edgeEaseStart = (t: number) => Math.pow(t, 0.6);
+    const edgeEaseEnd = (t: number) => 1 - Math.pow(1 - t, 0.6);
+
+    if (percent < edge) {
+      const start = 0;
+      const end = padding + edge * fullRange;
+      const t = edgeEaseStart(percent / edge);
+      return start + t * (end - start);
+    } else if (percent > 1 - edge) {
+      const start = padding + (1 - edge) * fullRange;
+      const end = width;
+      const t = edgeEaseEnd((percent - (1 - edge)) / edge);
+      return start + t * (end - start);
+    } else {
+      return centerThumb;
+    }
+  };
+
+  const fillWidth = calcFillWidth(internalValue);
 
   return (
     <div className={styles.sliderWrapper}>
@@ -96,7 +142,7 @@ const Slider: React.FC<SliderProps> = ({
           {label}:
           <input
             className={styles.value}
-            value={internalValue}
+            value={Math.round(internalValue)}
             onChange={handleInputChange}
           />
         </div>
@@ -108,11 +154,17 @@ const Slider: React.FC<SliderProps> = ({
       >
         <div
           className={styles.fill}
-          style={{ width: `${fillPercent}%`, backgroundColor: color }}
+          style={{
+            width: `${fillWidth}px`,
+            backgroundColor: color,
+          }}
         />
         <div
           className={styles.thumb}
-          style={{ left: `${fillPercent}%`, backgroundColor: color }}
+          style={{
+            left: `${thumbLeft}px`,
+            backgroundColor: color,
+          }}
         />
       </div>
     </div>

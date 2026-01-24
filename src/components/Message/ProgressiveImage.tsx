@@ -44,7 +44,7 @@ export default function ProgressiveImage({
       {isValid && smallUrl && !loaded && (
         <img
           src={smallUrl}
-          className='mes_img progressive-image placeholder blurred'
+          className={`${styles['mes_img']} ${styles['progressive-image']}`}
           alt='Attachment placeholder'
           decoding='async'
         />
@@ -53,7 +53,7 @@ export default function ProgressiveImage({
       {isValid && fullUrl && (
         <img
           src={fullUrl}
-          className={`mes_img progressive-image ${loaded ? 'loaded' : ''}`}
+          className={`${styles['mes_img']} ${styles['progressive-image']} ${loaded ? styles['loaded'] : ''}`}
           onClick={onClick}
           alt='Attachment'
           decoding='async'

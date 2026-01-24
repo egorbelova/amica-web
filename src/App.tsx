@@ -19,12 +19,12 @@ const App: React.FC = () => {
     const cornerRadiusPx = getDeviceCornerRadius();
     document.documentElement.style.setProperty(
       '--device-corner-radius',
-      `${cornerRadiusPx}px`
+      `${cornerRadiusPx}px`,
     );
   }, []);
 
   if (loading) {
-    return <div className='loader'>Loading…</div>;
+    return <div className='loader'></div>;
   }
 
   return (

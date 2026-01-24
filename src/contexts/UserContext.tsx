@@ -138,7 +138,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleLoginSuccess = (data: ApiResponse) => {
     if (!data.access || !data.user) throw new Error('Invalid response');
     setAccessToken(data.access);
-    setState({ user: data.user, loading: false, error: null });
+    return fetchUser();
   };
 
   const loginWithPassword = (username: string, password: string) =>

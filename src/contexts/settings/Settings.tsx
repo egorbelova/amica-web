@@ -5,7 +5,12 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import type { Settings, SettingsContextValue, WallpaperSetting } from './types';
+import type {
+  Settings,
+  SettingsContextValue,
+  WallpaperSetting,
+  SubTab,
+} from './types';
 import { websocketManager } from '@/utils';
 import { apiUpload, apiFetch } from '@/utils/apiFetch';
 
@@ -77,6 +82,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   });
 
   const [loading, setLoading] = useState(true);
+  const [activeProfileTab, setActiveProfileTab] = useState<SubTab>('account');
 
   useEffect(() => {
     const { activeWallpaper, ...rest } = settings;
@@ -241,6 +247,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         removeWallpaper,
         fetchWallpapers,
         loading,
+        activeProfileTab,
+        setActiveProfileTab,
       }}
     >
       {children}

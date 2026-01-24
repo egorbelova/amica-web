@@ -15,9 +15,20 @@ export type Settings = {
   activeWallpaper?: WallpaperSetting | null;
   useBackgroundThroughoutTheApp: boolean;
 };
+
+export type SubTab =
+  | 'account'
+  | 'language'
+  | 'privacy'
+  | 'notifications'
+  | 'appearance'
+  | 'active sessions';
+
 export interface SettingsContextValue {
   settings: Settings;
   setSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
   setActiveWallpaper: (wallpaper: WallpaperSetting) => void;
   addUserWallpaper: (wallpaper: WallpaperSetting) => void;
+  activeProfileTab: SubTab;
+  setActiveProfileTab: (tab: SubTab) => void;
 }
