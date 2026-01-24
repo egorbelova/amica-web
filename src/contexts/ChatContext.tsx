@@ -173,11 +173,29 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       const data = await res.json();
 
       setChats(Array.isArray(data.chats) ? data.chats : []);
+      const hashRoomId = location.hash
+        ? Number(location.hash.substring(1))
+        : null;
+      if (hashRoomId) {
+        setSelectedChatId(hashRoomId);
+        fetchMessages(hashRoomId);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) =>
+      e.key === 'Escape' && setSelectedChatId(null);
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const fetchMessages = useCallback(

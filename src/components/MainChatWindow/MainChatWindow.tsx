@@ -153,7 +153,10 @@ const MainChatWindow: React.FC = () => {
         <>
           <ChatHeader
             onChatInfoClick={handleHeaderClick}
-            onGoHome={() => setSelectedChatId(null)}
+            onGoHome={() => {
+              setSelectedChatId(null);
+              location.hash = '';
+            }}
           />
           <div className={`room_wrapper ${sideBarVisible ? 'shifted' : ''}`}>
             <MessageList />
