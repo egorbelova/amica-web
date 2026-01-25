@@ -254,7 +254,7 @@ export function JWTVideo({
       //   controls
       autoPlay
       muted={muted}
-      loop={false}
+      loop
       style={{
         width: '100%',
         height: '100%',
