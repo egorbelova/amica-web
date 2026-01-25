@@ -26,29 +26,29 @@ export default function VideoLayout({
 
   const [token, setToken] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  // useEffect(() => {
+  //   let isMounted = true;
 
-    async function fetchToken() {
-      try {
-        await refreshTokenIfNeeded();
-        const accessToken = await getAccessTokenOrThrow();
-        if (isMounted) {
-          setToken(accessToken);
-        }
-      } catch {
-        if (isMounted) {
-          setToken(null);
-        }
-      }
-    }
+  //   async function fetchToken() {
+  //     try {
+  //       await refreshTokenIfNeeded();
+  //       const accessToken = await getAccessTokenOrThrow();
+  //       if (isMounted) {
+  //         setToken(accessToken);
+  //       }
+  //     } catch {
+  //       if (isMounted) {
+  //         setToken(null);
+  //       }
+  //     }
+  //   }
 
-    fetchToken();
+  //   fetchToken();
 
-    return () => {
-      isMounted = false;
-    };
-  }, [full]);
+  //   return () => {
+  //     isMounted = false;
+  //   };
+  // }, [full]);
 
   return (
     <div
@@ -60,7 +60,7 @@ export default function VideoLayout({
     >
       <JWTVideo
         url={full}
-        token={token}
+        // token={token}
         has_audio={has_audio}
         muted={!showControls}
       />
