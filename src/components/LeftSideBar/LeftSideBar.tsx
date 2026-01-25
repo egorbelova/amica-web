@@ -7,6 +7,7 @@ import Contacts from '@/components/Contacts/Contacts';
 import Profile from '@/components/Profile/Profile';
 import ChatsTabView from './ChatsTabView';
 import styles from './LeftSideBar.module.scss';
+import { useSettings } from '@/contexts/settings/Settings';
 
 interface ChooseListProps {
   userInfo?: {
@@ -19,6 +20,7 @@ interface ChooseListProps {
 }
 
 const LeftSideBar: React.FC<ChooseListProps> = () => {
+  const { activeProfileTab } = useSettings();
   return (
     <div className='choose_list'>
       <TabsProvider>
@@ -31,7 +33,15 @@ const LeftSideBar: React.FC<ChooseListProps> = () => {
             <ChatsTabView />
           </Tab>
           <Tab id='profile'>
-            <div className={styles['tab-content']}>
+            <div
+              className={styles['tab-content']}
+              style={
+                {
+                  '--offset-bottom':
+                    activeProfileTab === 'appearance' ? '120px' : '70px',
+                } as React.CSSProperties
+              }
+            >
               <Profile />
             </div>
           </Tab>

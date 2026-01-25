@@ -68,7 +68,7 @@ class WebSocketManager {
 
   public on<K extends keyof WebSocketEventMap>(
     event: K,
-    handler: WebSocketEventMap[K]
+    handler: WebSocketEventMap[K],
   ): void {
     if (!this.eventHandlers.has(event)) {
       this.eventHandlers.set(event, []);
@@ -78,7 +78,7 @@ class WebSocketManager {
 
   public off<K extends keyof WebSocketEventMap>(
     event: K,
-    handler: WebSocketEventMap[K]
+    handler: WebSocketEventMap[K],
   ): void {
     const handlers = this.eventHandlers.get(event);
     if (handlers) {
@@ -202,7 +202,7 @@ class WebSocketManager {
       switch (data.type) {
         case 'connection_established':
           this.emit('connection_established', data);
-          this.startPingInterval();
+          // this.startPingInterval();
           break;
         case 'pong':
           break;
@@ -235,7 +235,7 @@ class WebSocketManager {
         this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
 
       console.log(
-        `Reconnecting in ${delay}ms (Attempt ${this.reconnectAttempts})`
+        `Reconnecting in ${delay}ms (Attempt ${this.reconnectAttempts})`,
       );
 
       this.reconnectTimeout = window.setTimeout(() => {

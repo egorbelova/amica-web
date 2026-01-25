@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import styles from './SmartMediaLayout.module.scss';
 import { Icon } from '../Icons/AutoIcons';
+import { apiFetch } from '@/utils/apiFetch';
 
 const SPEEDS = [0.5, 1, 1.5, 2];
 
@@ -12,9 +13,11 @@ export default function AudioLayout({
   id,
   cover_url,
 }) {
-  const { objectUrl } = usePrivateMedia(full);
+  const [objectUrl, setObjectUrl] = useState(null);
   const { objectUrl: cover } = usePrivateMedia(cover_url);
   const audioRef = useRef(null);
+
+  const [hasStarted, setHasStarted] = useState(false);
 
   const progressRef = useRef(null);
   const volumeRef = useRef(null);
@@ -74,11 +77,31 @@ export default function AudioLayout({
     };
   }, [objectUrl]);
 
-  const togglePlay = useCallback(() => {
+  async function fetchPrivateMedia(url: string) {
+    const res = await apiFetch(url);
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    return objectUrl;
+  }
+
+  const togglePlay = useCallback(async () => {
     const audio = audioRef.current;
     if (!audio) return;
-    audio.paused ? audio.play() : audio.pause();
-  }, []);
+
+    if (!hasStarted) {
+      setHasStarted(true);
+
+      const url = await fetchPrivateMedia(full);
+      setObjectUrl(url);
+
+      audio.onloadedmetadata = () => {
+        audio.play();
+        audio.onloadedmetadata = null;
+      };
+    } else {
+      audio.paused ? audio.play() : audio.pause();
+    }
+  }, [full, hasStarted]);
 
   const cycleSpeed = useCallback(() => {
     const audio = audioRef.current;
@@ -188,7 +211,7 @@ export default function AudioLayout({
       onMouseOut={() => setIsControlsOpen(false)}
     >
       {cover && <img src={cover} alt='' className={styles.cover} />}
-      <audio ref={audioRef} src={objectUrl} preload='metadata' />
+      <audio ref={audioRef} src={objectUrl} preload='none' />
 
       <button onClick={togglePlay} className={styles.play}>
         {isPlaying ? <Icon name='Pause' /> : <Icon name='Play' />}

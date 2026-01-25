@@ -8,7 +8,6 @@ export function usePrivateMedia(url: string | null) {
 
   useEffect(() => {
     if (!url) return;
-
     const controller = new AbortController();
     setLoading(true);
     setError(null);
@@ -16,7 +15,10 @@ export function usePrivateMedia(url: string | null) {
     let localUrl: string | null = null;
 
     apiFetch(url, { signal: controller.signal })
-      .then((res) => res.blob())
+      .then((res) => {
+        console.log(res);
+        return res.blob();
+      })
       .then((blob) => {
         localUrl = URL.createObjectURL(blob);
         setObjectUrl(localUrl);

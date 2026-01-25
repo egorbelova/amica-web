@@ -18,10 +18,10 @@ interface Session {
 }
 
 const SESSION_LIFETIME_OPTIONS = [
-  { value: 500, label: '5s' },
-  { value: 1000, label: '10s' },
-  { value: 3000, label: '30s' },
-  { value: 6000, label: '1m' },
+  // { value: 500, label: '5s' },
+  // { value: 1000, label: '10s' },
+  // { value: 3000, label: '30s' },
+  // { value: 6000, label: '1m' },
   { value: 7, label: '1 week' },
   { value: 14, label: '2 weeks' },
   { value: 30, label: '1 month' },
@@ -43,7 +43,7 @@ export default function ProfileSessions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sessionLifetime, setSessionLifetime] = useState<number>(
-    user.preferred_session_lifetime_days
+    user.preferred_session_lifetime_days,
   );
   const [savingLifetime, setSavingLifetime] = useState(false);
 
@@ -76,7 +76,7 @@ export default function ProfileSessions() {
           break;
         case 'session_updated':
           setSessions((prev) =>
-            prev.map((s) => (s.jti === data.session.jti ? data.session : s))
+            prev.map((s) => (s.jti === data.session.jti ? data.session : s)),
           );
           break;
         case 'session_deleted':
@@ -89,7 +89,7 @@ export default function ProfileSessions() {
           break;
       }
     },
-    [user, setUser]
+    [user, setUser],
   );
 
   useEffect(() => {
@@ -213,15 +213,17 @@ export default function ProfileSessions() {
                   Terminate
                 </button>
               )}
+              {session.is_current && sessions.length > 1 && (
+                <button
+                  className={styles.revokeAllBtn}
+                  onClick={revokeOtherSessions}
+                >
+                  Terminate other sessions
+                </button>
+              )}
             </div>
           ))}
         </div>
-      )}
-
-      {sessions.length > 1 && (
-        <button className={styles.revokeAllBtn} onClick={revokeOtherSessions}>
-          Log out from all other devices
-        </button>
       )}
     </div>
   );

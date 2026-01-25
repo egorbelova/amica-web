@@ -73,7 +73,11 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
               }}
             >
               {item.file.category === 'video' && (
-                <VideoLayout full={item.file.file_url} />
+                <VideoLayout
+                  full={item.file.file_url}
+                  //@ts-ignore
+                  has_audio={item.file.has_audio}
+                />
               )}
 
               {item.file.category === 'image' && (
