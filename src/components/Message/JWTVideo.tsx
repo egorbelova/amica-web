@@ -35,7 +35,7 @@ export function JWTVideo({
     let endOfStreamCalled = false;
     const appendQueue: ArrayBuffer[] = [];
 
-    let mimeType = 'video/mp4; codecs="avc1.42E01E"';
+    let mimeType = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
     let actualHasAudio: boolean;
 
     if (has_audio == null) {
