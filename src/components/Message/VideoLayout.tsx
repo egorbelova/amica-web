@@ -2,7 +2,7 @@ import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import { useState, useRef, useEffect } from 'react';
 import { Icon } from '../Icons/AutoIcons';
 import { JWTVideo } from './JWTVideo';
-import { getAccessTokenOrThrow, refreshTokenIfNeeded } from '@/utils/authStore';
+import { useSettings } from '@/contexts/settings/Settings';
 
 export default function VideoLayout({
   full,
@@ -15,6 +15,7 @@ export default function VideoLayout({
   const [showControls, setShowControls] = useState(false);
   const videoRef = useRef(null);
   const [iconVisible, setIconVisible] = useState(false);
+  const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     setIconVisible(true);
@@ -24,35 +25,32 @@ export default function VideoLayout({
 
   // if (!objectUrl) return null;
 
-  const [token, setToken] = useState<string | null>(null);
+  const { autoplayVideos } = useSettings();
 
-  // useEffect(() => {
-  //   let isMounted = true;
+  const clickTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  //   async function fetchToken() {
-  //     try {
-  //       await refreshTokenIfNeeded();
-  //       const accessToken = await getAccessTokenOrThrow();
-  //       if (isMounted) {
-  //         setToken(accessToken);
-  //       }
-  //     } catch {
-  //       if (isMounted) {
-  //         setToken(null);
-  //       }
-  //     }
-  //   }
+  const handleClick = () => {
+    if (clickTimeout.current) return;
 
-  //   fetchToken();
+    clickTimeout.current = setTimeout(() => {
+      setShowControls((prev) => !prev);
+      clickTimeout.current = null;
+    }, 200);
+  };
 
-  //   return () => {
-  //     isMounted = false;
-  //   };
-  // }, [full]);
-  console.log('Rendering VideoLayout with full URL:', full);
+  const handleDoubleClick = () => {
+    if (clickTimeout.current) {
+      clearTimeout(clickTimeout.current);
+      clickTimeout.current = null;
+    }
+
+    setPlaying((prev) => !prev);
+  };
+
   return (
     <div
-      onClick={() => setShowControls((prev) => !prev)}
+      onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       style={{
         width: '100%',
         height: '100%',
@@ -61,34 +59,10 @@ export default function VideoLayout({
       <JWTVideo
         key={full}
         url={full}
-        // token={token}
-        has_audio={has_audio}
         muted={!showControls}
+        autoPlay={autoplayVideos}
+        playing={playing}
       />
-      {/* <video
-        ref={videoRef}
-        src={full}
-        onClick={() => setShowControls((prev) => !prev)}
-        onDoubleClick={() => {
-          if (videoRef.current) {
-            videoRef.current.currentTime = 0;
-            videoRef.current.play();
-          }
-        }}
-        // controls={showControls}
-        muted={!showControls}
-        autoPlay
-        loop
-        playsInline
-        preload='metadata'
-        controls
-        style={{
-          width: '100%',
-          height: '300px',
-          display: 'block',
-          objectFit: 'cover',
-        }}
-      /> */}
 
       {has_audio && (
         <Icon

@@ -31,4 +31,6 @@ export interface SettingsContextValue {
   addUserWallpaper: (wallpaper: WallpaperSetting) => void;
   activeProfileTab: SubTab;
   setActiveProfileTab: (tab: SubTab) => void;
+  autoplayVideos: boolean;
+  setAutoplayVideos: (value: boolean) => void;
 }

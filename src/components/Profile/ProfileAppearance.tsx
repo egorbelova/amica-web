@@ -22,6 +22,10 @@ export default function ProfileAppearance() {
     fetchWallpapers,
     //@ts-ignore
     loading,
+    //@ts-ignore
+    autoplayVideos,
+    //@ts-ignore
+    setAutoplayVideos,
   } = useSettings();
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -66,6 +70,13 @@ export default function ProfileAppearance() {
           }
         />
       </div>
+      <div className={styles.optionRow}>
+        <div>Autoplay Videos</div>
+        <Toggle
+          checked={autoplayVideos}
+          onChange={(checked) => setAutoplayVideos(checked)}
+        />
+      </div>
       {windowWidth <= 768 && (
         <div className={styles.optionRow}>
           <div>Use Wallpaper Throughout The App</div>
@@ -105,7 +116,6 @@ export default function ProfileAppearance() {
                 >
                   {wall.type === 'video' ? (
                     <video
-                      //@ts-ignore
                       src={wall.url}
                       className={`${styles.wallpaperThumbnail}`}
                       onClick={() => handleSelectWallpaper(wall)}
@@ -116,7 +126,6 @@ export default function ProfileAppearance() {
                     />
                   ) : (
                     <img
-                      //@ts-ignore
                       src={wall.url}
                       alt={`Wallpaper ${wall.id}`}
                       className={`${styles.wallpaperThumbnail}`}

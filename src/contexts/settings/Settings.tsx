@@ -17,19 +17,19 @@ import { apiUpload, apiFetch } from '@/utils/apiFetch';
 const defaultWallpapers: WallpaperSetting[] = [
   {
     id: 'default-0',
-    url: '../DefaultWallpapers/abdelhamid-azoui-Zhl3nrozkG0-unsplash.jpg',
+    url: '../DefaultWallpapers/abdelhamid-azoui-Zhl3nrozkG0-unsplash.jpg.webp',
     type: 'photo',
     blur: 0,
   },
   {
     id: 'default-1',
-    url: '../DefaultWallpapers/syuhei-inoue-fvgv3i4_uvI-unsplash.jpg',
+    url: '../DefaultWallpapers/syuhei-inoue-fvgv3i4_uvI-unsplash.jpg.webp',
     type: 'photo',
     blur: 2,
   },
   {
     id: 'default-2',
-    url: '../DefaultWallpapers/dave-hoefler-PEkfSAxeplg-unsplash.jpg',
+    url: '../DefaultWallpapers/dave-hoefler-PEkfSAxeplg-unsplash.jpg.webp',
     type: 'photo',
     blur: 5,
   },
@@ -83,6 +83,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const [loading, setLoading] = useState(true);
   const [activeProfileTab, setActiveProfileTab] = useState<SubTab>('account');
+  const [autoplayVideos, setAutoplayVideos] = useState<boolean>(false);
 
   useEffect(() => {
     const { activeWallpaper, ...rest } = settings;
@@ -249,6 +250,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         loading,
         activeProfileTab,
         setActiveProfileTab,
+        autoplayVideos,
+        setAutoplayVideos,
       }}
     >
       {children}

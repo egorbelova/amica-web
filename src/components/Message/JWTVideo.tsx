@@ -1,26 +1,37 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useEffect } from 'react';
 
 interface JWTVideoProps {
   url: string;
-  token?: string;
+  autoPlay?: boolean;
   className?: string;
-  has_audio?: boolean | null;
   muted?: boolean;
+  playing?: boolean;
 }
 
 export function JWTVideo({
   url,
-  token,
   className,
-  has_audio,
   muted = false,
+  autoPlay = true,
+  playing = true,
 }: JWTVideoProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (playing && videoRef.current) {
+      videoRef.current.play();
+    } else if (!playing && videoRef.current) {
+      videoRef.current.pause();
+    }
+  }, [playing]);
   return (
     <video
-      //   ref={videoRef}
+      ref={videoRef}
       //   controls
+      disablePictureInPicture
+      playsInline
       src={url}
-      autoPlay
+      autoPlay={autoPlay}
       muted={muted}
       loop
       style={{

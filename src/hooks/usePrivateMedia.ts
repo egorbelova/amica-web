@@ -16,7 +16,6 @@ export function usePrivateMedia(url: string | null) {
 
     apiFetch(url, { signal: controller.signal })
       .then((res) => {
-        console.log(res);
         return res.blob();
       })
       .then((blob) => {
