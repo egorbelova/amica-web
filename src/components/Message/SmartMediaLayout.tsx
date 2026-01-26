@@ -58,10 +58,16 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
         {layout.length === 1 && (
           <div className={styles.wrapperGlow}>
             {layout[0].file.category === 'video' && (
-              <VideoLayout
-                full={layout[0].file.file_url}
-                //@ts-ignore
-                has_audio={layout[0].file.has_audio}
+              <video
+                src={layout[0].file.file_url + '#t=0.001'}
+                muted
+                loop
+                playsInline
+                style={{
+                  height: '100%',
+                  width: '100%',
+                  objectFit: 'cover',
+                }}
               />
             )}
             {layout[0].file.category === 'image' && (
