@@ -49,7 +49,7 @@ export default function VideoLayout({
   //     isMounted = false;
   //   };
   // }, [full]);
-
+  console.log('Rendering VideoLayout with full URL:', full);
   return (
     <div
       onClick={() => setShowControls((prev) => !prev)}

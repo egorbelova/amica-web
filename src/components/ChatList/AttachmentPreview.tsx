@@ -3,7 +3,7 @@ import styles from './ChatListItem.module.scss';
 
 function AttachmentPreview({ file }) {
   const { objectUrl } = usePrivateMedia(
-    file.thumbnail_small_url || file.file_url
+    file.thumbnail_small_url || file.file_url,
   );
 
   if (!objectUrl) return null;
@@ -22,7 +22,7 @@ function AttachmentPreview({ file }) {
       return (
         <video
           className={styles['chat-list-item__attachment']}
-          src={objectUrl}
+          src={file.file_url}
           loop
           muted
           playsInline

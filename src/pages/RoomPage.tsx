@@ -80,17 +80,35 @@ const RoomPage: React.FC = () => {
           {activeWallpaper?.url && (
             <>
               {activeWallpaper?.type === 'photo' && (
-                <img
-                  src={activeWallpaper.url}
-                  alt='Wallpaper'
-                  className={styles.wallpaper}
-                  style={{
-                    filter: `blur(${activeWallpaper.blur}px)`,
-                  }}
-                />
+                <>
+                  {windowWidth > 768 && (
+                    <img
+                      src={activeWallpaper.url}
+                      alt='Wallpaper'
+                      className={styles.wallpaperGlow}
+                    />
+                  )}
+                  <img
+                    src={activeWallpaper.url}
+                    alt='Wallpaper'
+                    className={styles.wallpaper}
+                    style={{
+                      filter: `blur(${activeWallpaper.blur}px)`,
+                    }}
+                  />
+                </>
               )}
               {activeWallpaper?.type === 'video' && (
                 <>
+                  {windowWidth > 768 && (
+                    <video
+                      src={activeWallpaper.url + '#t=0.001'}
+                      playsInline
+                      muted
+                      preload='metadata'
+                      className={styles.wallpaperGlow}
+                    />
+                  )}
                   <video
                     ref={videoRef}
                     src={activeWallpaper.url + '#t=0.001'}
