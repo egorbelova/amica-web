@@ -53,62 +53,64 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
   );
 
   return (
-    <div className={styles.container}>
-      {layout.length === 1 && (
-        <div className={styles.wrapperGlow}>
-          {layout[0].file.category === 'video' && (
-            <VideoLayout
-              full={layout[0].file.file_url}
-              //@ts-ignore
-              has_audio={layout[0].file.has_audio}
-            />
-          )}
-          {layout[0].file.category === 'image' && (
-            <ProgressiveImage
-              small={layout[0].file.thumbnail_small_url}
-              full={layout[0].file.thumbnail_medium_url}
-              dominant_color={layout[0].file.dominant_color}
-            />
-          )}
-        </div>
-      )}
-      {/* MEDIA GRID */}
-      {!!mediaFiles.length && (
-        <div
-          className={styles.wrapper}
-          style={{ width: containerWidth, height: containerHeight }}
-        >
-          {layout.map((item) => (
-            <div
-              key={item.file.id}
-              data-file-id={item.file.id}
-              className={styles.item}
-              style={{
-                top: item.top,
-                left: item.left,
-                width: item.width,
-                height: item.height,
-              }}
-            >
-              {item.file.category === 'video' && (
-                <VideoLayout
-                  full={item.file.file_url}
-                  //@ts-ignore
-                  has_audio={item.file.has_audio}
-                />
-              )}
+    <>
+      <div className={styles['container-media']}>
+        {layout.length === 1 && (
+          <div className={styles.wrapperGlow}>
+            {layout[0].file.category === 'video' && (
+              <VideoLayout
+                full={layout[0].file.file_url}
+                //@ts-ignore
+                has_audio={layout[0].file.has_audio}
+              />
+            )}
+            {layout[0].file.category === 'image' && (
+              <ProgressiveImage
+                small={layout[0].file.thumbnail_small_url}
+                full={layout[0].file.thumbnail_medium_url}
+                dominant_color={layout[0].file.dominant_color}
+              />
+            )}
+          </div>
+        )}
+        {/* MEDIA GRID */}
+        {!!mediaFiles.length && (
+          <div
+            className={styles.wrapper}
+            style={{ width: containerWidth, height: containerHeight }}
+          >
+            {layout.map((item) => (
+              <div
+                key={item.file.id}
+                data-file-id={item.file.id}
+                className={styles.item}
+                style={{
+                  top: item.top,
+                  left: item.left,
+                  width: item.width,
+                  height: item.height,
+                }}
+              >
+                {item.file.category === 'video' && (
+                  <VideoLayout
+                    full={item.file.file_url}
+                    //@ts-ignore
+                    has_audio={item.file.has_audio}
+                  />
+                )}
 
-              {item.file.category === 'image' && (
-                <ProgressiveImage
-                  small={item.file.thumbnail_small_url}
-                  full={item.file.thumbnail_medium_url}
-                  dominant_color={item.file.dominant_color}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+                {item.file.category === 'image' && (
+                  <ProgressiveImage
+                    small={item.file.thumbnail_small_url}
+                    full={item.file.thumbnail_medium_url}
+                    dominant_color={item.file.dominant_color}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {!!audioFiles.length && (
         <div className={styles.audioList}>
@@ -127,7 +129,7 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 };
 
