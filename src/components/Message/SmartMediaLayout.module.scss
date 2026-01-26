@@ -2,6 +2,21 @@
   position: relative;
 }
 
+.wrapperGlow {
+  position: absolute;
+  width: 100%;
+  filter: blur(20px);
+}
+
+.container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+}
+
 .item {
   position: absolute;
   overflow: hidden;

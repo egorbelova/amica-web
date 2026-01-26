@@ -53,7 +53,25 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
   );
 
   return (
-    <>
+    <div className={styles.container}>
+      {layout.length === 1 && (
+        <div className={styles.wrapperGlow}>
+          {layout[0].file.category === 'video' && (
+            <VideoLayout
+              full={layout[0].file.file_url}
+              //@ts-ignore
+              has_audio={layout[0].file.has_audio}
+            />
+          )}
+          {layout[0].file.category === 'image' && (
+            <ProgressiveImage
+              small={layout[0].file.thumbnail_small_url}
+              full={layout[0].file.thumbnail_medium_url}
+              dominant_color={layout[0].file.dominant_color}
+            />
+          )}
+        </div>
+      )}
       {/* MEDIA GRID */}
       {!!mediaFiles.length && (
         <div
@@ -109,7 +127,7 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 };
 
