@@ -59,6 +59,7 @@ export default function VideoLayout({
       }}
     >
       <JWTVideo
+        key={full}
         url={full}
         // token={token}
         has_audio={has_audio}
