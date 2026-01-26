@@ -128,7 +128,11 @@ class WebSocketManager {
     const ws_host = window.location.hostname;
     let ws_port: number | null = null;
 
-    if (ws_host === 'localhost' || ws_host === '127.0.0.1') {
+    if (
+      ws_host === 'localhost' ||
+      ws_host === '127.0.0.1' ||
+      ws_host === '192.168.1.68'
+    ) {
       ws_port = 8000;
     }
 

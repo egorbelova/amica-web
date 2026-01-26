@@ -53,17 +53,19 @@ const defaultSettings: Settings = {
 export const SettingsContext = createContext<SettingsContextValue | null>(null);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<Settings>(() => {
-    const saved = localStorage.getItem('app-settings');
-    let parsed: Partial<Settings> = {};
-    if (saved) {
-      try {
-        parsed = JSON.parse(saved);
-      } catch {
-        parsed = {};
-      }
-    }
+  const saved = localStorage.getItem('app-settings');
+  let parsed: Partial<Settings & { autoplayVideos?: boolean }> = {};
+  if (saved) {
+    try {
+      parsed = JSON.parse(saved);
+    } catch {}
+  }
 
+  const [autoplayVideos, setAutoplayVideos] = useState<boolean>(
+    parsed.autoplayVideos ?? false,
+  );
+
+  const [settings, setSettings] = useState<Settings>(() => {
     const combinedWallpapers = [
       ...defaultWallpapers.filter(
         (df) => !parsed.wallpapers?.some((w: any) => w.id === df.id),
@@ -83,12 +85,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const [loading, setLoading] = useState(true);
   const [activeProfileTab, setActiveProfileTab] = useState<SubTab>('account');
-  const [autoplayVideos, setAutoplayVideos] = useState<boolean>(false);
 
   useEffect(() => {
     const { activeWallpaper, ...rest } = settings;
-    localStorage.setItem('app-settings', JSON.stringify(rest));
-  }, [settings]);
+    const toSave = {
+      ...rest,
+      autoplayVideos,
+    };
+    localStorage.setItem('app-settings', JSON.stringify(toSave));
+  }, [settings, autoplayVideos]);
 
   const setSetting = <K extends keyof Settings>(key: K, value: Settings[K]) =>
     setSettings((prev) => ({ ...prev, [key]: value }));

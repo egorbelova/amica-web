@@ -14,43 +14,50 @@ export default function VideoLayout({
   // const { objectUrl } = usePrivateMedia(full);
   const [showControls, setShowControls] = useState(false);
   const videoRef = useRef(null);
-  const [iconVisible, setIconVisible] = useState(false);
-  const [playing, setPlaying] = useState(false);
+  const [soundIconVisible, setSoundIconVisible] = useState(false);
+  const [playIconVisible, setPlayIconVisible] = useState(false);
+  const { autoplayVideos } = useSettings();
+
+  const [playing, setPlaying] = useState(autoplayVideos);
 
   useEffect(() => {
-    setIconVisible(true);
-    const timeout = setTimeout(() => setIconVisible(false), 700);
+    setSoundIconVisible(true);
+    const timeout = setTimeout(() => setSoundIconVisible(false), 700);
     return () => clearTimeout(timeout);
   }, [showControls]);
 
+  useEffect(() => {
+    setPlayIconVisible(true);
+    const timeout = setTimeout(() => setPlayIconVisible(false), 700);
+    return () => clearTimeout(timeout);
+  }, [playing]);
+
   // if (!objectUrl) return null;
 
-  const { autoplayVideos } = useSettings();
+  const lastTap = useRef<number>(0);
 
-  const clickTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handlePointerDown = () => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
 
-  const handleClick = () => {
-    if (clickTimeout.current) return;
+    if (now - lastTap.current < DOUBLE_TAP_DELAY) {
+      setPlaying((prev) => !prev);
+      lastTap.current = 0;
+    } else {
+      lastTap.current = now;
 
-    clickTimeout.current = setTimeout(() => {
-      setShowControls((prev) => !prev);
-      clickTimeout.current = null;
-    }, 200);
-  };
-
-  const handleDoubleClick = () => {
-    if (clickTimeout.current) {
-      clearTimeout(clickTimeout.current);
-      clickTimeout.current = null;
+      setTimeout(() => {
+        if (lastTap.current !== 0) {
+          setShowControls((prev) => !prev);
+          lastTap.current = 0;
+        }
+      }, DOUBLE_TAP_DELAY);
     }
-
-    setPlaying((prev) => !prev);
   };
 
   return (
     <div
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
+      onPointerDown={handlePointerDown}
       style={{
         width: '100%',
         height: '100%',
@@ -63,6 +70,20 @@ export default function VideoLayout({
         autoPlay={autoplayVideos}
         playing={playing}
       />
+      <Icon
+        name={playing ? 'Pause' : 'Play'}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 50,
+          height: 50,
+          opacity: playIconVisible ? 1 : 0,
+          transition: 'opacity 0.3s ease-in-out',
+          pointerEvents: 'none',
+        }}
+      />
 
       {has_audio && (
         <Icon
@@ -73,7 +94,7 @@ export default function VideoLayout({
             right: 10,
             width: 25,
             height: 25,
-            opacity: iconVisible ? 1 : 0,
+            opacity: soundIconVisible ? 1 : 0,
             transition: 'opacity 0.3s ease-in-out',
             pointerEvents: 'none',
           }}
