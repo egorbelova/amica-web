@@ -1,10 +1,12 @@
 import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import styles from './ChatListItem.module.scss';
+import { useSettings } from '@/contexts/settings/Settings';
 
 function AttachmentPreview({ file }) {
   const { objectUrl } = usePrivateMedia(
     file.thumbnail_small_url || file.file_url,
   );
+  const { autoplayVideos } = useSettings();
 
   if (!objectUrl) return null;
 
@@ -22,11 +24,11 @@ function AttachmentPreview({ file }) {
       return (
         <video
           className={styles['chat-list-item__attachment']}
-          src={file.file_url}
+          src={file.file_url ? file.file_url + '#t=0.001' : ''}
           loop
           muted
           playsInline
-          autoPlay
+          autoPlay={autoplayVideos}
         />
       );
 

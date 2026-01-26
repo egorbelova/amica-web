@@ -20,13 +20,13 @@ interface LayoutItem {
 }
 
 const GAP = 3;
-const MAX_W = 420;
+// const MAX_W = 420;
 const MAX_H = 560;
 const MIN_W = 200;
 const MIN_H = 200;
 const RATIO_3_TOP = 0.62;
 
-export function generateLayout(files: File[]): LayoutItem[] {
+export function generateLayout(files: File[], MAX_W = 432): LayoutItem[] {
   const count = files.length;
   if (count === 0) return [];
 

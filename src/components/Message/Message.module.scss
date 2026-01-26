@@ -11,7 +11,7 @@
 
 .message_div_temp_separator {
   margin: 0;
-  padding: 6px;
+  padding: 6px 8px;
   text-align: left;
   position: relative;
   // display: flex;
@@ -28,7 +28,11 @@
   /* gap: 10px; */
   max-width: 100%;
   min-height: fit-content;
-  transition: color 1s, background 1s, opacity 0.3s, transform 0.3s;
+  transition:
+    color 1s,
+    background 1s,
+    opacity 0.3s,
+    transform 0.3s;
 
   .message_div_subdata {
     display: flex;
@@ -165,63 +169,37 @@
   z-index: 0;
   /* clip-path: var(--path); */
   border-radius: 20px;
-  max-width: min(432px, calc(100% - 30px));
+  max-width: min(432px, calc(100% - 90px));
   font-size: 1rem;
   overflow: hidden;
   position: relative;
-  transition: margin-left 0.4s, width 0.2s,
-    height 0.2s cubic-bezier(0.075, 0.82, 0.165, 1), opacity 0.1s ease-out,
+  transition:
+    margin-left 0.4s,
+    width 0.2s,
+    height 0.2s cubic-bezier(0.075, 0.82, 0.165, 1),
+    opacity 0.1s ease-out,
     translate 0.3s;
 
-  // $w: 400px;
-  // $h: 200px;
-  // $c: #fe500033;
-  // width: $w;
-  // height: $h;
-  // @include super-rectangle(100, $h, $c);
-  // @include rectangle-svg($w, $h, $c, 50px);
-  // border-radius: 20px;
-  // clip-path: var(--path);
-  // background-color: red;
-  // border-radius: 20px;
-  // overflow: hidden;
   // &::after {
   //   content: '';
   //   position: absolute;
-  //   bottom: -8px;
-  //   z-index: -1;
-  //   right: 15px;
-  //   // background-color: red;
-  //   // width: 10px;
-  //   // height: 10px;
-  //   // border-radius: 5px solid #ffffff;
-  //   border-right: 10px solid rgb(from var(--darker_) r g b / 95%);
-  //   // border-top: 0px solid transparent;
-  //   border-bottom: 8px solid transparent;
-  //   border-radius: 0 0 20px 20px;
+  //   right: -6px;
+  //   bottom: 0;
+  //   width: 12px;
+  //   height: 12px;
+
+  //   background: inherit;
+  //   background-size: inherit;
+  //   background-position: bottom right;
+
+  //   clip-path: path('M0 12 C8 12 12 8 12 0 L0 0 Z');
   // }
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: -6px;
-    bottom: 0;
-    width: 12px;
-    height: 12px;
-
-    background: inherit;
-    background-size: inherit;
-    background-position: bottom right;
-
-    clip-path: path('M0 12 C8 12 12 8 12 0 L0 0 Z');
-  }
 
   &.right {
     margin-left: auto;
   }
 
   &.darker {
-    // background-color: black;
     .message {
       background-color: rgb(from var(--darker_) r g b / 90%);
       // background-color: var(--darker_);

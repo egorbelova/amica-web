@@ -35,12 +35,23 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
     [files],
   );
 
-  const layout = useMemo(() => generateLayout(mediaFiles), [mediaFiles]);
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  const MAX_W = Math.min(windowWidth - 90, 432);
+  const MAX_H = 560;
+
+  const layout = useMemo(
+    () => generateLayout(mediaFiles, MAX_W),
+    [mediaFiles, MAX_W],
+  );
 
   if (!files.length) return null;
-
-  const MAX_W = 420;
-  const MAX_H = 560;
 
   const containerWidth = Math.min(
     layout.reduce((max, item) => Math.max(max, item.left + item.width), 0),
@@ -79,7 +90,7 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
             )}
           </div>
         )}
-        {/* MEDIA GRID */}
+
         {!!mediaFiles.length && (
           <div
             className={styles.wrapper}

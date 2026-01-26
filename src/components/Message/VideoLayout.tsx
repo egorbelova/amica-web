@@ -1,4 +1,3 @@
-import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import { useState, useRef, useEffect } from 'react';
 import { Icon } from '../Icons/AutoIcons';
 import { JWTVideo } from './JWTVideo';
@@ -11,13 +10,13 @@ export default function VideoLayout({
   full: string;
   has_audio: boolean;
 }) {
-  // const { objectUrl } = usePrivateMedia(full);
   const [showControls, setShowControls] = useState(false);
-  const videoRef = useRef(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [soundIconVisible, setSoundIconVisible] = useState(false);
   const [playIconVisible, setPlayIconVisible] = useState(false);
-  const { autoplayVideos } = useSettings();
+  const [progress, setProgress] = useState(0);
 
+  const { autoplayVideos } = useSettings();
   const [playing, setPlaying] = useState(autoplayVideos);
 
   useEffect(() => {
@@ -32,7 +31,21 @@ export default function VideoLayout({
     return () => clearTimeout(timeout);
   }, [playing]);
 
-  // if (!objectUrl) return null;
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    let animationFrameId: number;
+
+    const updateProgress = () => {
+      setProgress((video.currentTime / video.duration) * 100);
+      animationFrameId = requestAnimationFrame(updateProgress);
+    };
+
+    animationFrameId = requestAnimationFrame(updateProgress);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [videoRef]);
 
   const lastTap = useRef<number>(0);
 
@@ -41,18 +54,31 @@ export default function VideoLayout({
     const DOUBLE_TAP_DELAY = 300;
 
     if (now - lastTap.current < DOUBLE_TAP_DELAY) {
-      setPlaying((prev) => !prev);
+      setShowControls((prev) => !prev);
       lastTap.current = 0;
     } else {
       lastTap.current = now;
 
       setTimeout(() => {
         if (lastTap.current !== 0) {
-          setShowControls((prev) => !prev);
+          setPlaying((prev) => !prev);
           lastTap.current = 0;
         }
       }, DOUBLE_TAP_DELAY);
     }
+  };
+
+  const handleProgressClick = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+  ) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // const rect = (e.target as HTMLDivElement).getBoundingClientRect();
+    // const clickPos = e.clientX - rect.left;
+    // const newTime = (clickPos / rect.width) * video.duration;
+    // video.currentTime = newTime;
+    // setProgress((newTime / video.duration) * 100);
   };
 
   return (
@@ -61,15 +87,40 @@ export default function VideoLayout({
       style={{
         width: '100%',
         height: '100%',
+        position: 'relative',
+        background: '#000',
       }}
     >
       <JWTVideo
+        ref={videoRef}
         key={full}
         url={full}
         muted={!showControls}
         autoPlay={autoplayVideos}
         playing={playing}
       />
+
+      <div
+        onClick={handleProgressClick}
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          height: 5,
+          background: 'rgba(255,255,255,0.2)',
+          cursor: 'pointer',
+        }}
+      >
+        <div
+          style={{
+            width: `${progress}%`,
+            height: '100%',
+            background: '#fff',
+          }}
+        />
+      </div>
+
       <Icon
         name={playing ? 'Pause' : 'Play'}
         style={{
@@ -79,7 +130,7 @@ export default function VideoLayout({
           transform: 'translate(-50%, -50%)',
           width: 50,
           height: 50,
-          opacity: playIconVisible ? 1 : 0,
+          opacity: playIconVisible || !playing ? 1 : 0,
           transition: 'opacity 0.3s ease-in-out',
           pointerEvents: 'none',
         }}

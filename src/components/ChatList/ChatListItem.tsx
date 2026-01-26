@@ -2,7 +2,7 @@ import React, { forwardRef, useRef } from 'react';
 import { lastMessageDateFormat, unreadCountFormat } from '../../utils/index';
 import Avatar from '../Avatar/Avatar';
 import styles from './ChatListItem.module.scss';
-import { SquircleContainer } from '../SquircleContainer/SquircleContainer';
+// import { SquircleContainer } from '../SquircleContainer/SquircleContainer';
 import AttachmentPreview from './AttachmentPreview';
 
 export interface ChatListItemProps {
