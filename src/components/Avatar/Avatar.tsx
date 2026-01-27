@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { stringToColor, pSBC } from '../../utils/index';
 import styles from './Avatar.module.scss';
 import type { DisplayMedia, PhotoMedia, VideoMedia, MediaLayer } from '@/types';
+import { usePrivateMedia } from '@/hooks/usePrivateMedia';
+import { apiFetch } from '@/utils/apiFetch';
 
 export interface AvatarProps {
   displayName: string;
@@ -72,15 +74,54 @@ const Avatar: React.FC<AvatarProps> = ({
     setLayers((prev) => [...prev, newLayer]);
   }, [displayMedia]);
 
+  const [url, setUrl] = useState<string | null>(null);
+
+  async function fetchPrivateMedia(url: string) {
+    const res = await apiFetch(url);
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    return objectUrl;
+  }
+
+  useEffect(() => {
+    if (!currentMedia) return;
+
+    let isMounted = true;
+
+    async function load() {
+      const protectedUrl =
+        currentMedia.type === 'photo'
+          ? size === 'medium' && currentMedia.medium
+            ? currentMedia.medium
+            : currentMedia.small
+          : currentMedia.url;
+
+      const objectUrl = await fetchPrivateMedia(protectedUrl);
+
+      if (isMounted) {
+        setUrl(objectUrl);
+      }
+    }
+
+    load();
+
+    return () => {
+      isMounted = false;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [currentMedia, size]);
+
   const renderMedia = (media: DisplayMedia | null) => {
     if (!media) return null;
     const isVideo = media.type === 'video';
-    const url =
-      media.type === 'photo'
-        ? size === 'medium' && (media as PhotoMedia).medium
-          ? (media as PhotoMedia).medium
-          : (media as PhotoMedia).small
-        : (media as VideoMedia).url;
+    // const protectedUrl =
+    //   media.type === 'photo'
+    //     ? size === 'medium' && (media as PhotoMedia).medium
+    //       ? (media as PhotoMedia).medium
+    //       : (media as PhotoMedia).small
+    //     : (media as VideoMedia).url;
+
+    // setUrl(fetchPrivateMedia(protectedUrl));
 
     if (isVideo)
       return (

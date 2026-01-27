@@ -37,7 +37,12 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
     const lastMessageText = lastMessage && lastMessage.value;
 
     const lastMessageFiles = (lastMessage?.files || [])
-      .filter((file) => file.category === 'video' || file.category === 'image')
+      .filter(
+        (file) =>
+          file.category === 'video' ||
+          file.category === 'image' ||
+          file.category === 'audio',
+      )
       .slice(0, 3);
 
     const unread_counter = unreadCountFormat(unread_count);
@@ -61,6 +66,35 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
         ripple.remove();
       });
     };
+    const getAttachmentText = (files = []) => {
+      if (!files.length) return '';
+      console.log('getAttachmentText files', files[0].category);
+      const isImage = (f) => f.category === 'image';
+      const isVideo = (f) => f.category === 'video';
+      const isAudio = (f) => f.category === 'audio';
+
+      const allImages = files.every(isImage);
+      const allVideos = files.every(isVideo);
+      const allAudios = files.every(isAudio);
+
+      if (allImages) {
+        return files.length === 1 ? 'Photo' : 'Photos';
+      }
+
+      if (allVideos) {
+        return files.length === 1 ? 'Video' : 'Videos';
+      }
+
+      if (allAudios) {
+        return files.length === 1 ? files[0].original_name : 'Audio';
+      }
+
+      return 'Media';
+    };
+
+    const attachment_text = lastMessage
+      ? getAttachmentText(lastMessage.files)
+      : '';
 
     return (
       <a
@@ -99,7 +133,7 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
               {lastMessage &&
                 (lastMessageText
                   ? lastMessageText
-                  : `${lastMessageFiles.length} Photos`)}
+                  : `${lastMessageFiles.length === 1 ? '' : lastMessage.files.length} ${attachment_text}`)}
             </div>
             {unread_count > 0 && (
               <span className={styles['chat-list-item__unread']}>

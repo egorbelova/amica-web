@@ -4,9 +4,11 @@ import { useSettings } from '@/contexts/settings/Settings';
 
 function AttachmentPreview({ file }) {
   const { objectUrl } = usePrivateMedia(
-    file.thumbnail_small_url || file.file_url,
+    file.thumbnail_small_url || file.cover_url || file.file_url,
   );
   const { autoplayVideos } = useSettings();
+
+  // const { objectUrl: audioCoverUrl } = usePrivateMedia(file.cover_url);
 
   if (!objectUrl) return null;
 
@@ -30,6 +32,19 @@ function AttachmentPreview({ file }) {
           playsInline
           autoPlay={autoplayVideos}
         />
+      );
+
+    case 'audio':
+      return (
+        <>
+          {file.cover_url && (
+            <img
+              className={styles['chat-list-item__attachment--audio-cover']}
+              src={objectUrl}
+              alt={file.original_name}
+            />
+          )}
+        </>
       );
 
     default:

@@ -1,10 +1,13 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import styles from './SmartMediaLayout.module.scss';
 import { generateLayout } from './SmartMediaLayout';
 import ProgressiveImage from './ProgressiveImage';
 import { useMediaModal } from '../../contexts/MediaModalContext';
 import VideoLayout from './VideoLayout';
 import AudioLayout from './AudioLayout';
+import { useChat } from '../../contexts/ChatContext';
+import Reel from './Reel';
+import { JWTVideo } from './JWTVideo';
 
 interface File {
   id: number;
@@ -41,6 +44,32 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const [reelVisible, setReelVisible] = useState(false);
+  const { messages } = useChat();
+
+  const lastTap = useRef<number>(0);
+  const handleClick = () => {
+    const now = Date.now();
+    const DOUBLE_CLICK_DELAY = 250;
+
+    if (now - lastTap.current < DOUBLE_CLICK_DELAY) {
+      setReelVisible((prev) => !prev);
+      lastTap.current = 0;
+    } else {
+      lastTap.current = now;
+      setTimeout(() => {
+        if (lastTap.current !== 0) {
+          // setPlaying((prev) => !prev);
+          lastTap.current = 0;
+        }
+      }, DOUBLE_CLICK_DELAY);
+    }
+  };
+
+  const items = messages.filter(
+    (message) => Array.isArray(message.files) && message.files.length > 0,
+  );
+
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const MAX_W = Math.min(windowWidth - 90, 432);
@@ -65,20 +94,30 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
 
   return (
     <>
-      <div className={styles['container-media']}>
+      <div className={styles['container-media']} onClick={handleClick}>
+        {reelVisible && (
+          // @ts-ignore
+          <Reel items={items} onClose={() => setReelVisible(false)} />
+        )}
         {layout.length === 1 && (
           <div className={styles.wrapperGlow}>
             {layout[0].file.category === 'video' && (
-              <video
-                src={layout[0].file.file_url + '#t=0.001'}
-                muted
-                loop
-                playsInline
-                style={{
-                  height: '100%',
-                  width: '100%',
-                  objectFit: 'cover',
-                }}
+              // <video
+              //   src={layout[0].file.file_url + '#t=0.001'}
+              //   muted
+              //   loop
+              //   playsInline
+              //   style={{
+              //     height: '100%',
+              //     width: '100%',
+              //     objectFit: 'cover',
+              //   }}
+              // />
+              <JWTVideo
+                url={layout[0].file.file_url}
+                muted={true}
+                autoPlay={false}
+                playing={false}
               />
             )}
             {layout[0].file.category === 'image' && (
