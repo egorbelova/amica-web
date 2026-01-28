@@ -20,67 +20,67 @@ export default function VideoLayout({
   const [muted, setMuted] = useState(autoplayVideos);
   const [buffered, setBuffered] = useState(0);
 
-  // useEffect(() => {
-  //   const video = videoRef.current;
-  //   if (!video) return;
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
 
-  //   const updateBufferedPlayable = () => {
-  //     if (video.duration > 0 && video.buffered.length > 0) {
-  //       let playableEnd = 0;
+    const updateBufferedPlayable = () => {
+      if (video.duration > 0 && video.buffered.length > 0) {
+        let playableEnd = 0;
 
-  //       for (let i = 0; i < video.buffered.length; i++) {
-  //         if (video.buffered.start(i) <= video.currentTime) {
-  //           playableEnd = video.buffered.end(i);
-  //         }
-  //       }
+        for (let i = 0; i < video.buffered.length; i++) {
+          if (video.buffered.start(i) <= video.currentTime) {
+            playableEnd = video.buffered.end(i);
+          }
+        }
 
-  //       setBuffered(Math.min((playableEnd / video.duration) * 100, 100));
-  //     }
-  //   };
+        setBuffered(Math.min((playableEnd / video.duration) * 100, 100));
+      }
+    };
 
-  //   const updateProgress = () => {
-  //     if (video.duration > 0) {
-  //       setProgress((video.currentTime / video.duration) * 100);
-  //       requestAnimationFrame(updateProgress);
-  //     }
-  //   };
+    const updateProgress = () => {
+      if (video.duration > 0) {
+        setProgress((video.currentTime / video.duration) * 100);
+        requestAnimationFrame(updateProgress);
+      }
+    };
 
-  //   video.addEventListener('progress', updateBufferedPlayable);
-  //   requestAnimationFrame(updateProgress);
+    video.addEventListener('progress', updateBufferedPlayable);
+    requestAnimationFrame(updateProgress);
 
-  //   return () => {
-  //     video.removeEventListener('progress', updateBufferedPlayable);
-  //   };
-  // }, []);
+    return () => {
+      video.removeEventListener('progress', updateBufferedPlayable);
+    };
+  }, []);
 
-  // useEffect(() => {
-  //   const video = videoRef.current;
-  //   if (!video) return;
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
 
-  //   let rafId: number;
+    let rafId: number;
 
-  //   const updateProgress = () => {
-  //     if (video.duration) {
-  //       setProgress((video.currentTime / video.duration) * 100);
-  //     }
-  //     rafId = requestAnimationFrame(updateProgress);
-  //   };
+    const updateProgress = () => {
+      if (video.duration) {
+        setProgress((video.currentTime / video.duration) * 100);
+      }
+      rafId = requestAnimationFrame(updateProgress);
+    };
 
-  //   rafId = requestAnimationFrame(updateProgress);
-  //   return () => cancelAnimationFrame(rafId);
-  // }, []);
+    rafId = requestAnimationFrame(updateProgress);
+    return () => cancelAnimationFrame(rafId);
+  }, []);
 
-  // useEffect(() => {
-  //   setSoundIconVisible(true);
-  //   const timeout = setTimeout(() => setSoundIconVisible(false), 700);
-  //   return () => clearTimeout(timeout);
-  // }, [muted]);
+  useEffect(() => {
+    setSoundIconVisible(true);
+    const timeout = setTimeout(() => setSoundIconVisible(false), 700);
+    return () => clearTimeout(timeout);
+  }, [muted]);
 
-  // useEffect(() => {
-  //   setPlayIconVisible(true);
-  //   const timeout = setTimeout(() => setPlayIconVisible(false), 700);
-  //   return () => clearTimeout(timeout);
-  // }, [playing]);
+  useEffect(() => {
+    setPlayIconVisible(true);
+    const timeout = setTimeout(() => setPlayIconVisible(false), 700);
+    return () => clearTimeout(timeout);
+  }, [playing]);
 
   const lastTap = useRef<number>(0);
 
