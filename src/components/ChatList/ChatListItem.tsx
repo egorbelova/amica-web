@@ -68,7 +68,6 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
     };
     const getAttachmentText = (files = []) => {
       if (!files.length) return '';
-      console.log('getAttachmentText files', files[0].category);
       const isImage = (f) => f.category === 'image';
       const isVideo = (f) => f.category === 'video';
       const isAudio = (f) => f.category === 'audio';

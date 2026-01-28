@@ -19,6 +19,7 @@ export const JWTVideo = forwardRef<HTMLVideoElement, JWTVideoProps>(
   ({ url, className, muted = false, autoPlay = true, playing = true }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [signedUrl, setSignedUrl] = useState<string | null>(null);
+
     useImperativeHandle(ref, () => videoRef.current!);
 
     useEffect(() => {
@@ -32,15 +33,17 @@ export const JWTVideo = forwardRef<HTMLVideoElement, JWTVideoProps>(
           console.error(e);
         }
       };
-
       addTokenToUrl();
     }, [url]);
 
     useEffect(() => {
       const video = videoRef.current;
-      if (!video) return;
-      if (playing) video.play().catch(() => {});
-      else video.pause();
+      if (!video || !signedUrl) return;
+
+      if (video.src !== signedUrl) video.src = signedUrl;
+
+      if (playing && video.paused) video.play().catch(() => {});
+      if (!playing && !video.paused) video.pause();
     }, [playing, signedUrl]);
 
     return (
@@ -48,11 +51,9 @@ export const JWTVideo = forwardRef<HTMLVideoElement, JWTVideoProps>(
         ref={videoRef}
         disablePictureInPicture
         playsInline
-        src={signedUrl}
         autoPlay={autoPlay}
         muted={muted}
         loop
-        preload='auto'
         style={{
           width: '100%',
           height: '100%',

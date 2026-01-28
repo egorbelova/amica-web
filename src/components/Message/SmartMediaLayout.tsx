@@ -72,7 +72,7 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  const MAX_W = Math.min(windowWidth - 90, 432);
+  const MAX_W = Math.min(windowWidth - 60, 432);
   const MAX_H = 560;
 
   const layout = useMemo(
@@ -101,7 +101,7 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
         )}
         {layout.length === 1 && (
           <div className={styles.wrapperGlow}>
-            {layout[0].file.category === 'video' && (
+            {/* {layout[0].file.category === 'video' && (
               // <video
               //   src={layout[0].file.file_url + '#t=0.001'}
               //   muted
@@ -119,7 +119,7 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
                 autoPlay={false}
                 playing={false}
               />
-            )}
+            )} */}
             {layout[0].file.category === 'image' && (
               <ProgressiveImage
                 small={layout[0].file.thumbnail_small_url}
