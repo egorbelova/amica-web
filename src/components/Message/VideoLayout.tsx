@@ -20,6 +20,94 @@ export default function VideoLayout({
   const [muted, setMuted] = useState(autoplayVideos);
   const [buffered, setBuffered] = useState(0);
 
+  const progressRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const wasPlayingBeforeDrag = useRef(false);
+
+  const seekByClientX = (clientX: number) => {
+    const video = videoRef.current;
+    const bar = progressRef.current;
+    if (!video || !bar || !video.duration) return;
+
+    const rect = bar.getBoundingClientRect();
+    const pos = (clientX - rect.left) / rect.width;
+    const clamped = Math.max(0, Math.min(pos, 1));
+
+    video.currentTime = clamped * video.duration;
+    setProgress(clamped * 100);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    wasPlayingBeforeDrag.current = playing;
+    setPlaying(false);
+
+    isDragging.current = true;
+    seekByClientX(e.clientX);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging.current) return;
+    seekByClientX(e.clientX);
+  };
+
+  const handleMouseUp = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (!isDragging.current) return;
+
+    isDragging.current = false;
+
+    if (wasPlayingBeforeDrag.current) {
+      setPlaying(true);
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation();
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    wasPlayingBeforeDrag.current = playing;
+    setPlaying(false);
+
+    isDragging.current = true;
+    seekByClientX(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (!isDragging.current) return;
+    seekByClientX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging.current) return;
+
+    isDragging.current = false;
+
+    if (wasPlayingBeforeDrag.current) {
+      setPlaying(true);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchmove', handleTouchMove);
+    window.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -85,34 +173,8 @@ export default function VideoLayout({
   const lastTap = useRef<number>(0);
 
   const handleClick = () => {
-    const now = Date.now();
-    const DOUBLE_CLICK_DELAY = 0;
-
-    if (now - lastTap.current < DOUBLE_CLICK_DELAY) {
-      // setReelVisible((prev) => !prev);
-      lastTap.current = 0;
-    } else {
-      lastTap.current = now;
-      setTimeout(() => {
-        if (lastTap.current !== 0) {
-          setPlaying((prev) => !prev);
-          lastTap.current = 0;
-        }
-      }, DOUBLE_CLICK_DELAY);
-    }
-  };
-
-  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const video = videoRef.current;
-    if (!video?.duration) return;
-    e.stopPropagation();
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pos = (e.clientX - rect.left) / rect.width;
-    const newTime = Math.max(0, Math.min(pos * video.duration, video.duration));
-
-    video.currentTime = newTime;
-    setProgress((newTime / video.duration) * 100);
+    if (isDragging.current) return;
+    setPlaying((prev) => !prev);
   };
 
   return (
@@ -134,41 +196,56 @@ export default function VideoLayout({
       />
 
       <div
-        onClick={handleProgressClick}
+        ref={progressRef}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onClick={(e) => e.stopPropagation()}
         style={{
           position: 'absolute',
           bottom: 0,
           left: 0,
           width: '100%',
-          height: 5,
-          background: 'rgba(255,255,255,0.2)',
+          height: 20,
           cursor: 'pointer',
+          touchAction: 'none',
+          zIndex: 1,
         }}
       >
-        {/* Buffered */}
         <div
           style={{
-            width: `${buffered}%`,
-            height: '100%',
-            background: 'rgba(255, 255, 255, 0.5)',
             position: 'absolute',
-            top: 0,
-            left: 0,
-            transition: 'width 0.3s ease-in-out',
+            width: '100%',
+            height: 5,
+            background: 'rgba(255,255,255,0.2)',
+            bottom: 0,
           }}
-        />
+        >
+          {/* Buffered */}
 
-        {/* Played */}
-        <div
-          style={{
-            width: `${progress}%`,
-            height: '100%',
-            background: '#fff',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-          }}
-        />
+          <div
+            style={{
+              width: `${buffered}%`,
+              height: '100%',
+              background: 'rgba(255, 255, 255, 0.5)',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              transition: 'width 0.3s ease-in-out',
+            }}
+          />
+
+          {/* Played */}
+          <div
+            style={{
+              width: `${progress}%`,
+              height: '100%',
+              background: '#fff',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+            }}
+          />
+        </div>
       </div>
 
       <Icon

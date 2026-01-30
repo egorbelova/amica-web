@@ -49,10 +49,10 @@ export const JWTVideo = forwardRef<HTMLVideoElement, JWTVideoProps>(
     return (
       <video
         ref={videoRef}
-        disablePictureInPicture
         playsInline
         autoPlay={autoPlay}
         muted={muted}
+        controlsList='nodownload'
         loop
         style={{
           width: '100%',
@@ -61,6 +61,8 @@ export const JWTVideo = forwardRef<HTMLVideoElement, JWTVideoProps>(
           background: '#000',
         }}
         className={className}
+        disablePictureInPicture
+        // pip='false'
       />
     );
   },
