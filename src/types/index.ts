@@ -3,6 +3,7 @@ export interface File {
   file_url: string;
   file_type?: string;
   original_name?: string;
+  category?: string;
 }
 
 export interface Message {
