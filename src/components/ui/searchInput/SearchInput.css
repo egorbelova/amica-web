@@ -360,7 +360,7 @@
     /* backdrop-filter: blur(2px) saturate(200%); */
   }
 
-  .search_div::before {
+  /* .search_div::before {
     content: '';
     position: absolute;
 
@@ -389,10 +389,8 @@
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     backdrop-filter: blur(30px) brightness(300%) opacity(100%);
-    /* -webkit-backdrop-filter: saturate(200%) blur(30px) brightness(300%)
-      opacity(100%); */
     z-index: -1;
-  }
+  } */
 
   /* .send_div::before {
     content: '';

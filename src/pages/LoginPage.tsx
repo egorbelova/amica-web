@@ -3,6 +3,8 @@ import './LoginPage.css';
 import GoogleLoginButton from '../components/GoogleLoginButton/GoogleLoginButton';
 import { PasskeyLoginButton } from '../components/PasskeyButton/PasskeyLoginButton';
 import { useUser } from '../contexts/UserContext';
+import styles from './LoginPage.module.scss';
+import { Icon } from '@/components/Icons/AutoIcons';
 
 interface LoginFormData {
   username: string;
@@ -34,7 +36,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
       setFormData((prev) => ({ ...prev, [name]: value }));
       if (error) setError('');
     },
-    [error]
+    [error],
   );
 
   const handleLogin = async () => {
@@ -50,7 +52,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
       e.preventDefault();
       handleLogin();
     },
-    [handleLogin]
+    [handleLogin],
   );
 
   const handleKeyPress = useCallback(
@@ -61,14 +63,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
           passwordRef.current?.focus();
       }
     },
-    [handleLogin]
+    [handleLogin],
   );
 
   const handleSignUp = useCallback(() => onShowSignup(), [onShowSignup]);
 
   return (
     <form className='login-form offset' onSubmit={handleSubmit} noValidate>
-      <h4 className='registration_form'>Log In</h4>
+      <h4 className={styles['login-title']}>Log In</h4>
       <fieldset className='form'>
         <legend className='form-label'>Username</legend>
         <input
@@ -99,7 +101,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
       {error && <div style={{ color: 'red', margin: '8px 0' }}>{error}</div>}
       <button
         type='submit'
-        className='next_button controls'
+        className={styles['next-button']}
         disabled={loading || !formData.username || !formData.password}
       >
         {loading ? 'Logging in...' : 'Next'}
@@ -107,12 +109,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
       <div className='OR_div'>
         <span className='OR'>OR</span>
       </div>
-      <GoogleLoginButton />
-      <PasskeyLoginButton />
-      Need an account?{' '}
-      <a className='controls' onClick={handleSignUp}>
-        Sign Up
-      </a>
+      <GoogleLoginButton className={styles['google-login-button']} />
+      <PasskeyLoginButton styles={styles} />
+      <div className={styles['need-account']}>
+        <span>Need an account?</span>
+        <a onClick={handleSignUp}>Sign Up</a>
+      </div>
     </form>
   );
 };

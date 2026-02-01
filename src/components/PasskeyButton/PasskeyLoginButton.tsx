@@ -16,7 +16,13 @@ function bufferToBase64Url(buffer: ArrayBuffer): string {
     .replace(/=+$/, '');
 }
 
-export function PasskeyLoginButton() {
+import { Icon } from '@/components/Icons/AutoIcons';
+import React from 'react';
+interface PasskeyLoginButtonProps {
+  styles?: React.CSSProperties;
+}
+
+export function PasskeyLoginButton({ styles }: PasskeyLoginButtonProps) {
   const handleLogin = async () => {
     try {
       const startRes = await fetch('/api/passkey/auth/start/', {
@@ -84,5 +90,10 @@ export function PasskeyLoginButton() {
     }
   };
 
-  return <div onClick={handleLogin}>Passkey Login</div>;
+  return (
+    <div onClick={handleLogin} className={styles['passkey-login-button']}>
+      <Icon name='Passkey' className={styles['passkey-icon']} />
+      Passkey Login
+    </div>
+  );
 }

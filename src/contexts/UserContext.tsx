@@ -147,7 +147,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     );
 
   const loginWithGoogle = (idToken: string) =>
-    postJson<ApiResponse>('/api/google/', { id_token: idToken }).then(
+    postJson<ApiResponse>('/api/google/', { access_token: idToken }).then(
       handleLoginSuccess,
     );
 

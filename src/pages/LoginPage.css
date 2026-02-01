@@ -2,30 +2,6 @@
   margin-top: 20px;
 }
 
-.next_button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgb(160, 150, 170);
-  padding: 12px;
-  margin-bottom: 20px;
-  text-align: center;
-  font-size: 18px;
-  color: #fff;
-  width: 100%;
-  border-radius: 12px;
-  border-style: none;
-  text-decoration: none;
-  user-select: none;
-}
-
-.next_button:hover {
-  background: rgb(130, 120, 140);
-}
-.next_button:active {
-  background: rgb(110, 100, 120);
-}
-
 .offset {
   margin-top: 100px;
   position: relative;
@@ -35,35 +11,27 @@
   padding: 20px;
 }
 
-.registration_form {
-  text-align: center;
-  font-size: 35px;
-  padding: 30px;
-}
-
 .form-label {
   color: grey;
   font-size: 13px;
-  margin-left: 4px;
   padding: 0 3px;
-  user-select: none;
 }
 
 .form {
   border: 1px solid rgb(80, 80, 80);
-  border-radius: 7px;
-  height: 55px;
+  border-radius: 16px;
   margin-top: 10px;
-  padding: 0 5px;
+  padding: 0 20px;
+
   position: relative;
+  height: 50px;
+  input {
+    padding-left: 3px;
+  }
 }
 
 .form:hover {
-  border: 1px solid rgb(130, 120, 140);
-}
-
-.form:focus-within {
-  border: 2px solid rgb(130, 120, 140);
+  border: 1px solid #4d8ddb;
 }
 
 .OR_div {

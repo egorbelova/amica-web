@@ -1,0 +1,105 @@
+@font-face {
+  font-family: 'SFProRounded';
+  font-weight: 600;
+  font-display: swap;
+  src: url('../Fonts/Nunito-Bold.woff2') format('woff2');
+}
+
+.google-login-button {
+  width: 100%;
+  border-radius: 32px;
+  color: #000;
+  background-color: rgb(255, 255, 255);
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 10px;
+  font-size: 1.125rem;
+  font-family: 'SFProRounded', sans-serif;
+
+  img {
+    margin-right: 10px;
+    height: 100%;
+  }
+}
+
+.passkey-login-button {
+  height: 45px;
+  border-radius: 32px;
+  border: 1px solid #999;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  font-size: 1.125rem;
+  font-family: 'SFProRounded', sans-serif;
+}
+
+.passkey-icon {
+  margin-right: 10px;
+  height: 100%;
+}
+
+.need-account {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  font-family: 'SFProRounded', sans-serif;
+
+  a {
+    text-decoration: none;
+    color: #4d8ddb;
+  }
+}
+
+.next-button {
+  width: 100%;
+  border-radius: 32px;
+  color: #fff;
+  background-color: #4d8ddb;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 10px;
+  font-size: 1.125rem;
+  font-family: 'SFProRounded', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.next-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 60%
+  );
+  animation: next-button-shine 2s ease-in-out infinite;
+}
+
+@keyframes next-button-shine {
+  0% {
+    left: -150%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.login-title {
+  font-family: 'SFProRounded', sans-serif;
+  font-size: 2rem;
+  text-align: center;
+  padding: 30px;
+}

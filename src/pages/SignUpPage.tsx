@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { apiFetch } from '../utils/apiFetch';
 import { useUser } from '../contexts/UserContext';
+import styles from './LoginPage.module.scss';
+import { Icon } from '@/components/Icons/AutoIcons';
 
-const SignUpPage: React.FC = () => {
+interface SignUpPageProps {
+  onShowLogin: () => void;
+}
+
+const SignUpPage: React.FC = ({ onShowLogin }: SignUpPageProps) => {
   const { refreshUser } = useUser();
 
   const [form, setForm] = useState({
@@ -49,11 +55,21 @@ const SignUpPage: React.FC = () => {
     }
   };
 
-  return (
-    <div className='signup-container'>
-      <h1>Sign Up</h1>
+  const handleLogIn = useCallback(() => onShowLogin(), [onShowLogin]);
 
-      <form onSubmit={handleSubmit}>
+  return (
+    <div className='login-form offset'>
+      <Icon
+        name='Arrow'
+        style={{ transform: 'rotate(180deg)', height: 40 }}
+        onClick={handleLogIn}
+      />
+      <h1 className={styles['login-title']}>Sign Up</h1>
+
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+      >
         <input
           name='username'
           placeholder='Username'
@@ -82,7 +98,11 @@ const SignUpPage: React.FC = () => {
 
         {error && <p className='error'>{error}</p>}
 
-        <button disabled={loading}>
+        <button
+          disabled={loading}
+          type='submit'
+          className={styles['next-button']}
+        >
           {loading ? 'Creating account…' : 'Sign Up'}
         </button>
       </form>
