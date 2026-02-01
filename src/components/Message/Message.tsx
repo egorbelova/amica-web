@@ -108,6 +108,13 @@ const Message: React.FC<MessageProps> = ({
   // }, []);
   // console.log(message);
   // console.log('message', message);
+  const hasOnlyMediaFiles =
+    Array.isArray(message.files) &&
+    message.files.length > 0 &&
+    message.files.every(
+      (file) => file.category === 'image' || file.category === 'video',
+    );
+
   const handleDoubleClick = () => {};
   return (
     <div
@@ -150,7 +157,7 @@ const Message: React.FC<MessageProps> = ({
           <div
             className={`${styles.message_div_temp_separator} ${
               !message.value ? styles.textEmpty : ''
-            }`}
+            } ${hasOnlyMediaFiles ? styles.hasOnlyMediaFiles : ''}`}
           >
             <div className='message_and_reaction'>
               {message.value && (

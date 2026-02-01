@@ -1,4 +1,10 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  useLayoutEffect,
+} from 'react';
 import styles from './Slider.module.scss';
 
 interface SliderProps {
@@ -27,6 +33,13 @@ const Slider: React.FC<SliderProps> = ({
   const thumbWidth = 30;
   const thumbInset = thumbWidth / 3;
   useEffect(() => setInternalValue(value), [value]);
+  const [trackWidth, setTrackWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    if (trackRef.current) {
+      setTrackWidth(trackRef.current.getBoundingClientRect().width);
+    }
+  }, []);
 
   const clampValue = useCallback(
     (val: number) => Math.min(Math.max(val, min), max),
@@ -45,16 +58,12 @@ const Slider: React.FC<SliderProps> = ({
     [min, max, internalValue, thumbInset],
   );
 
-  const calcThumbLeft = useCallback(
-    (val: number) => {
-      if (!trackRef.current) return 0;
-      const { width } = trackRef.current.getBoundingClientRect();
-      const percent = (val - min) / (max - min);
-      const fullRange = width - 2 * thumbInset;
-      return thumbInset + percent * fullRange;
-    },
-    [min, max, thumbInset],
-  );
+  const calcThumbLeft = (val: number) => {
+    if (!trackWidth) return 0;
+    const percent = (val - min) / (max - min);
+    const fullRange = trackWidth - 2 * thumbInset;
+    return thumbInset + percent * fullRange;
+  };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setDragging(true);

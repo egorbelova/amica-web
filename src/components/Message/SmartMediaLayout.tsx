@@ -123,7 +123,7 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
             {layout[0].file.category === 'image' && (
               <ProgressiveImage
                 small={layout[0].file.thumbnail_small_url}
-                full={layout[0].file.thumbnail_medium_url}
+                full={layout[0].file.thumbnail_small_url}
                 dominant_color={layout[0].file.dominant_color}
               />
             )}

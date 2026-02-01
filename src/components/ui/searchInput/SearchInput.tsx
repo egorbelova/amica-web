@@ -35,9 +35,9 @@ const UserSearchInput = ({ placeholder = 'Search' }) => {
           </span>
         </div>
       </div>
-      <button className={styles['chat-actions-button']} type='button'>
+      {/* <button className={styles['chat-actions-button']} type='button'>
         <Icon name='AddPlus' className={styles['chat-actions-icon']} />
-      </button>
+      </button> */}
 
       <div className='search_cross_div' onClick={clear}>
         <svg className='search_cross'>

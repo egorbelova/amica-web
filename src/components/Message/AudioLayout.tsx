@@ -130,7 +130,9 @@ export default function AudioLayout({
 
     updateTime(getClientX(e));
     const onMouseMove = (moveEvent) => {
-      updateTime(moveEvent.clientX);
+      moveEvent.preventDefault();
+
+      updateTime(getClientX(moveEvent));
     };
 
     const onMouseUp = () => {
@@ -142,9 +144,52 @@ export default function AudioLayout({
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
-    document.addEventListener('touchmove', onMouseMove);
+    document.addEventListener('touchmove', onMouseMove, { passive: false });
     document.addEventListener('touchend', onMouseUp);
   };
+
+  function isVolumeSupported(audio: HTMLAudioElement) {
+    const initial = audio.volume;
+
+    try {
+      audio.volume = initial === 1 ? 0.5 : 1;
+      const supported = audio.volume !== initial;
+      audio.volume = initial;
+      return supported;
+    } catch {
+      return false;
+    }
+  }
+
+  const [canChangeVolume, setCanChangeVolume] = useState(false);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const checkVolumeSupport = () => {
+      if (
+        !('volume' in audio) ||
+        audio.volume === undefined ||
+        audio.volume === null
+      ) {
+        return false;
+      }
+
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) return false;
+
+      const original = audio.volume;
+      audio.volume = 0;
+      const canMute = audio.volume === 0;
+      audio.volume = original;
+
+      return canMute;
+    };
+
+    const supported = checkVolumeSupport();
+    setCanChangeVolume(supported);
+  }, [objectUrl]);
 
   const formatTime = (time = 0) => {
     const minutes = Math.floor(time / 60);
@@ -222,7 +267,7 @@ export default function AudioLayout({
           ref={progressRef}
           className={styles.progress}
           onMouseDown={startSeek}
-          onTouchMove={startSeek}
+          onTouchStart={startSeek}
         >
           {!waveform && (
             <div className={styles.progressFillWrapper}>
@@ -304,24 +349,26 @@ export default function AudioLayout({
             {speed}×
           </button>
 
-          <div className={styles.volumeWrapper}>
-            <button className={styles.volumeButton}>
-              <Icon name={getVolumeIcon()} />
-            </button>
+          {canChangeVolume && (
+            <div className={styles.volumeWrapper}>
+              <button className={styles.volumeButton}>
+                <Icon name={getVolumeIcon()} />
+              </button>
 
-            <div className={styles.volumePopover}>
-              <div
-                ref={volumeRef}
-                className={styles.volume}
-                onMouseDown={startVolumeDrag}
-              >
+              <div className={styles.volumePopover}>
                 <div
-                  className={styles.volumeFill}
-                  style={{ width: `${volumePercent}%` }}
-                />
+                  ref={volumeRef}
+                  className={styles.volume}
+                  onMouseDown={startVolumeDrag}
+                >
+                  <div
+                    className={styles.volumeFill}
+                    style={{ width: `${volumePercent}%` }}
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

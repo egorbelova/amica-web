@@ -51,7 +51,9 @@
     position: absolute;
     top: unset;
     bottom: 6px;
+  }
 
+  &.hasOnlyMediaFiles {
     .message_div_subdata {
       border-radius: 99rem;
       background-color: rgba(0, 0, 0, 0.3);
