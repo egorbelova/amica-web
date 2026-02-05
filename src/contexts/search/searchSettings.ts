@@ -1,12 +1,14 @@
 import { apiFetch } from '@/utils/apiFetch';
-//@ts-ignore
-import type { Setting } from '@/types';
 
-export const searchSettings = async (query: string): Promise<Setting[]> => {
+import type { SettingsContextValue } from '@/contexts/settings/types';
+
+export const searchSettings = async (
+  query: string,
+): Promise<SettingsContextValue[]> => {
   if (!query || query.length < 1) return [];
 
   const res = await apiFetch(
-    `/api/settings/search/?q=${encodeURIComponent(query)}`
+    `/api/settings/search/?q=${encodeURIComponent(query)}`,
   );
 
   if (!res.ok) {

@@ -124,10 +124,10 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
             )}
             <span>{item.label}</span>
           </div>
-        )
+        ),
       )}
     </div>,
-    document.body
+    document.body,
   );
 };
 

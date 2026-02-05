@@ -70,6 +70,7 @@
   font-family: 'SFProRounded', sans-serif;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .next-button::before {
@@ -102,4 +103,66 @@
   font-size: 2rem;
   text-align: center;
   padding: 30px;
+}
+
+.form-label {
+  color: grey;
+  font-size: 13px;
+  padding: 0 3px;
+  width: 0;
+  //   opacity: 0;
+}
+
+.form-label-placeholder {
+  position: absolute;
+  font-size: 1rem;
+  translate: 0 0;
+  transition: all 0.2s ease-in-out;
+}
+
+.form:focus-within .form-label-placeholder {
+  translate: 3px -15px;
+  font-size: 13px;
+}
+
+.form:focus-within .form-label {
+  opacity: 1;
+  width: auto;
+}
+
+.form {
+  border: 1px solid rgb(80, 80, 80);
+  border-radius: 16px;
+  margin-top: 10px;
+  padding: 0 20px;
+  flex-shrink: 0;
+  position: relative;
+  height: 50px;
+  input {
+    padding-left: 3px;
+  }
+}
+
+.form:hover {
+  border: 1px solid #4d8ddb;
+}
+
+.login-wrapper {
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: scroll;
+  width: min(100% - 30px, 400px);
+}
+
+.login-form {
+  padding-bottom: 200px;
+}
+
+.login-top-fill {
+  flex: 1 1 0;
+}
+
+.login-bottom-fill {
+  flex: 1 1 0;
 }

@@ -2,25 +2,13 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import styles from './SmartMediaLayout.module.scss';
 import { generateLayout } from './SmartMediaLayout';
 import ProgressiveImage from './ProgressiveImage';
-import { useMediaModal } from '../../contexts/MediaModalContext';
+// import { useMediaModal } from '../../contexts/MediaModalContext';
 import VideoLayout from './VideoLayout';
 import AudioLayout from './AudioLayout';
 import { useChat } from '../../contexts/ChatContext';
 import Reel from './Reel';
 import { JWTVideo } from './JWTVideo';
-
-interface File {
-  id: number;
-  file_url: string;
-  category?: string;
-  thumbnail_small_url?: string;
-  thumbnail_medium_url?: string;
-  file_type?: string;
-  original_name?: string;
-  height?: number;
-  width?: number;
-  dominant_color?: string;
-}
+import type { File } from '@/types';
 
 interface Props {
   files: File[];
@@ -150,7 +138,6 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
                 {item.file.category === 'video' && (
                   <VideoLayout
                     full={item.file.file_url}
-                    //@ts-ignore
                     has_audio={item.file.has_audio}
                   />
                 )}
@@ -175,11 +162,8 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
               key={file.id}
               id={file.id}
               full={file.file_url}
-              //@ts-ignore
               waveform={file.waveform}
-              //@ts-ignore
               duration={file.duration}
-              //@ts-ignore
               cover_url={file.cover_url}
             />
           ))}

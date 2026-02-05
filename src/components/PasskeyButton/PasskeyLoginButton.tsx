@@ -93,7 +93,7 @@ export function PasskeyLoginButton({ styles }: PasskeyLoginButtonProps) {
   return (
     <div onClick={handleLogin} className={styles['passkey-login-button']}>
       <Icon name='Passkey' className={styles['passkey-icon']} />
-      Passkey Login
+      Sign in with Passkey
     </div>
   );
 }

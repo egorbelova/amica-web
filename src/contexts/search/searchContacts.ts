@@ -1,12 +1,11 @@
 import { apiFetch } from '@/utils/apiFetch';
-//@ts-ignore
 import type { Contact } from '@/types';
 
 export const searchContacts = async (query: string): Promise<Contact[]> => {
   if (!query || query.length < 1) return [];
 
   const res = await apiFetch(
-    `/api/contacts/search/?q=${encodeURIComponent(query)}`
+    `/api/contacts/search/?q=${encodeURIComponent(query)}`,
   );
 
   if (!res.ok) {

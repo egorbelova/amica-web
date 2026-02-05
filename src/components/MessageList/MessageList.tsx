@@ -5,11 +5,14 @@ import ContextMenu from '../ContextMenu/ContextMenu';
 import styles from './MessageList.module.scss';
 import { createPortal } from 'react-dom';
 import Avatar from '../Avatar/Avatar';
+import { useJump } from '@/contexts/JumpContext';
+import { useMergedRefs } from '@/hooks/useMergedRefs';
 
 const MessageList: React.FC = () => {
   const { messages, updateMessages, selectedChat } = useChat();
   const selectedChatRef = useRef(selectedChat);
   const messagesRef = useRef(messages);
+  const { containerRef: jumpContainerRef, setIsVisible } = useJump();
 
   useEffect(() => {
     selectedChatRef.current = selectedChat;
@@ -340,6 +343,20 @@ const MessageList: React.FC = () => {
   // }
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const mergedRef = useMergedRefs([containerRef, jumpContainerRef]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const onScroll = () => {
+      setIsVisible(el.scrollTop < -50);
+    };
+
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -384,7 +401,7 @@ const MessageList: React.FC = () => {
   }, [messages]);
 
   return (
-    <div className='room_div room_body' id='display' ref={containerRef}>
+    <div className='room_div room_body' id='display' ref={mergedRef}>
       {menuVisible && (
         <ContextMenu
           items={menuItems}
@@ -432,8 +449,7 @@ const ViewersList: React.FC<{ viewers: any[]; onClose: () => void }> = ({
           <div key={v.user.id} className={styles['viewer-item']}>
             <Avatar
               displayName={v.user.username}
-              //@ts-ignore
-              imageUrl={v.user.profile.thumbnail_small}
+              displayMedia={v.user.profile.primary_avatar}
               className='user-info-avatar'
             />
             <div className={styles['viewer-info']}>

@@ -7,9 +7,13 @@ import DropZone from '../DropZone/DropZone';
 import { Icon } from '../Icons/AutoIcons';
 import { useSearchContext } from '@/contexts/search/SearchContext';
 import styles from './SendArea.module.scss';
+import JumpToBottom from '../JumpToBottom/JumpToBottom';
 import './SendArea.css';
 
-const MessageInput: React.FC = () => {
+const MessageInput: React.FC = ({
+  isJumpToBottomVisible,
+  onJumpToBottom,
+}: any) => {
   const [message, setMessage] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -91,7 +95,7 @@ const MessageInput: React.FC = () => {
           formData,
           (percent) => {
             console.log(`Uploading: ${percent}%`);
-          }
+          },
         );
 
         console.log('Uploaded:', result);
@@ -104,7 +108,7 @@ const MessageInput: React.FC = () => {
         setIsUploading(false);
       }
     },
-    [user?.id, roomId]
+    [user?.id, roomId],
   );
 
   const mirrorRef = useRef<HTMLDivElement>(document.createElement('div'));
@@ -179,8 +183,7 @@ const MessageInput: React.FC = () => {
             chat_id: roomId,
             data: {
               value: message.trim(),
-              //@ts-ignore
-              user_id: roomId < 0 ? selectedChat.users[0].id : undefined,
+              user_id: roomId < 0 ? selectedChat.members[0].id : undefined,
             },
           });
 
@@ -198,7 +201,7 @@ const MessageInput: React.FC = () => {
         console.error('Error sending message:', error);
       }
     },
-    [message, files, roomId, sendFilesViaHttp]
+    [message, files, roomId, sendFilesViaHttp],
   );
 
   const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
@@ -224,7 +227,7 @@ const MessageInput: React.FC = () => {
 
       e.target.value = '';
     },
-    []
+    [],
   );
 
   const handleSelfieUpload = useCallback(
@@ -234,7 +237,7 @@ const MessageInput: React.FC = () => {
         setFiles((prev) => [...prev, selfieFile]);
       }
     },
-    []
+    [],
   );
 
   const handleKeyDown = useCallback(
@@ -244,7 +247,7 @@ const MessageInput: React.FC = () => {
         handleSubmit(e);
       }
     },
-    [handleSubmit]
+    [handleSubmit],
   );
 
   const handlePaste = useCallback(
@@ -280,7 +283,7 @@ const MessageInput: React.FC = () => {
 
       handleInput();
     },
-    [handleInput]
+    [handleInput],
   );
 
   const handleFileClick = useCallback(() => {
@@ -299,8 +302,20 @@ const MessageInput: React.FC = () => {
     setFiles(files);
   };
 
+  function formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 B';
+
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    const size = bytes / Math.pow(k, i);
+    return `${size.toFixed(1)} ${sizes[i]}`;
+  }
+
   return (
     <>
+      <JumpToBottom />
       <DropZone onFiles={handleFiles} />
       <div className='send_div_container'>
         <form
@@ -389,25 +404,78 @@ const MessageInput: React.FC = () => {
           </button>
         </form>
 
-        {/* {files.length > 0 && (
-        <div className='files-preview'>
-          {files.map((file, index) => (
-            <div key={index} className='file-preview-item'>
-              <span className='file-name'>{file.name}</span>
-              <span className='file-size'>
-                {(file.size / 1024).toFixed(1)} KB
-              </span>
+        {files.length > 0 && (
+          <div className={styles['files-preview']}>
+            <div className={styles['files-preview-header']}>
+              <span>Attached Files ({files.length})</span>
               <button
-                onClick={() => removeFile(index)}
                 type='button'
-                className='remove-file-btn'
+                className={styles['clear-all-btn']}
+                onClick={() => setFiles([])}
+                aria-label='Clear all files'
               >
-                ×
+                Clear All
               </button>
             </div>
-          ))}
-        </div>
-      )} */}
+            <div className={styles['files-preview-list']}>
+              {files.map((file, index) => {
+                const getFileType = (file: File) => {
+                  if (file.type.startsWith('image/')) return 'image';
+                  if (file.type.startsWith('video/')) return 'video';
+                  if (file.type === 'application/pdf') return 'pdf';
+                  return 'file';
+                };
+
+                const fileType = getFileType(file);
+
+                const previewUrl =
+                  fileType === 'image' || fileType === 'video'
+                    ? URL.createObjectURL(file)
+                    : null;
+
+                return (
+                  <div key={index} className={styles['file-preview-item']}>
+                    {fileType === 'image' && (
+                      <img
+                        src={previewUrl}
+                        alt={file.name}
+                        className={styles['file-preview-image']}
+                      />
+                    )}
+
+                    {fileType === 'video' && (
+                      <video
+                        src={previewUrl}
+                        muted
+                        autoPlay
+                        playsInline
+                        className={styles['file-preview-image']}
+                      />
+                    )}
+                    {fileType === 'file' && (
+                      <div className={styles['file-preview-file']}>📄</div>
+                    )}
+
+                    <div className={styles['file-info']}>
+                      <span className={styles['file-name']}>{file.name}</span>
+                      <span className={styles['file-size']}>
+                        <span>{formatFileSize(file.size)}</span>
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => removeFile(index)}
+                      type='button'
+                      className={styles['remove-file-btn']}
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

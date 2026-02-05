@@ -1,14 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styles from './MediaModal.module.scss';
-
-interface File {
-  id: number;
-  file_url: string;
-  category?: string;
-  thumbnail_small_url?: string;
-  thumbnail_medium_url?: string;
-  dominant_color?: string;
-}
+import type { File } from '@/types';
 
 interface MediaModalProps {
   file: File;
@@ -58,8 +50,6 @@ const MediaModal: React.FC<MediaModalProps> = ({
           ) : (
             <img
               src={file.thumbnail_medium_url || file.file_url}
-              //@ts-ignore
-              alt={file.original_name || 'Media'}
               className={styles.fullMedia}
             />
           )}

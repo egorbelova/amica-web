@@ -13,18 +13,12 @@ export default function ProfileAppearance() {
     settings,
     setSetting,
     setActiveWallpaper,
-    //@ts-ignore
     setBlur,
     addUserWallpaper,
-    //@ts-ignore
     removeWallpaper,
-    //@ts-ignore
     fetchWallpapers,
-    //@ts-ignore
     loading,
-    //@ts-ignore
     autoplayVideos,
-    //@ts-ignore
     setAutoplayVideos,
   } = useSettings();
 
@@ -45,7 +39,6 @@ export default function ProfileAppearance() {
   const handleSelectWallpaper = (wall: WallpaperSetting) => {
     setActiveWallpaper({
       id: wall.id,
-      //@ts-ignore
       url: wall.url,
       type: wall.type,
       blur: settings.activeWallpaper?.blur || 0,

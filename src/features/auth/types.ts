@@ -8,10 +8,3 @@ export interface LoginResponse {
   error?: string;
   redirect?: string;
 }
-
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  is_authenticated: boolean;
-}

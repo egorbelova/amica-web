@@ -5,14 +5,7 @@ import React, {
   type ReactNode,
 } from 'react';
 import MediaModal from '../components/Message/MediaModal';
-
-interface File {
-  id: number;
-  file_url: string;
-  category?: string;
-  thumbnail_medium_url?: string;
-  dominant_color?: string;
-}
+import type { File } from '../types';
 
 interface MediaModalContextType {
   openMediaModal: (file: File, rect?: DOMRect) => void;

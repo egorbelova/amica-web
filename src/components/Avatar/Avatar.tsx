@@ -77,9 +77,11 @@ const Avatar: React.FC<AvatarProps> = ({
   const [url, setUrl] = useState<string | null>(null);
 
   async function fetchPrivateMedia(url: string) {
+    console.log('Fetching private media:', url);
     const res = await apiFetch(url);
     const blob = await res.blob();
     const objectUrl = URL.createObjectURL(blob);
+    console.log('Fetched private media:', objectUrl);
     return objectUrl;
   }
 

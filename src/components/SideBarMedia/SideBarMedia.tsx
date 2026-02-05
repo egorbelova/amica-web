@@ -10,23 +10,7 @@ import { useUser } from '../../contexts/UserContext';
 import { useTranslation, type Locale } from '@/contexts/LanguageContext';
 import EditableAvatar from '@/components/Avatar/EditableAvatar';
 import MorphingIcon from '@/utils/morphSVG';
-
-interface MediaProfileItem {
-  id: string | number;
-  type: 'photo' | 'video';
-  url?: string;
-  small?: string;
-  medium?: string;
-  video_url?: string;
-}
-
-interface FileItem {
-  id: number;
-  file_url: string;
-  category: 'image' | 'video' | 'audio' | 'document' | 'pdf';
-  width?: number;
-  height?: number;
-}
+import type { File } from '@/types';
 
 interface Member {
   id: number;
@@ -36,7 +20,7 @@ interface Member {
 }
 
 interface SideBarMediaProps {
-  files: FileItem[];
+  files: File[];
   visible: boolean;
   members?: Member[];
   onClose?: () => void;
@@ -299,12 +283,11 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
           {/* <Avatar
             key={selectedChat.id}
             displayName={selectedChat.name}
-            //@ts-ignore
             displayMedia={selectedChat.primary_media}
             size={isAvatarRollerOpen ? 'medium' : 'small'}
             className={styles['sidebar__avatar']}
             onClick={
-              //@ts-ignore
+              -ignore
               selectedChat.primary_media && !interlocutorEditVisible
                 ? () => setIsAvatarRollerOpen(true)
                 : undefined
@@ -391,8 +374,6 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
                   <Avatar
                     className={styles.memberAvatar}
                     displayName={member.username}
-                    //@ts-ignore
-                    imageUrl={member?.profile?.primary_photo?.small || ''}
                   />
                   <div className={styles.memberInfo}>
                     <span className={styles.memberName}>{member.username}</span>
@@ -413,9 +394,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
                     return (
                       <ProgressiveImage
                         key={file.id}
-                        //@ts-ignore
                         small={file.thumbnail_small_url}
-                        //@ts-ignore
                         full={file.thumbnail_medium_url || file.file_url}
                         dominant_color='#eee'
                       />

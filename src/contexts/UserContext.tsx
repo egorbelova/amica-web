@@ -65,16 +65,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const fetchUser = async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const data = await apiJson<{ user: User }>('/api/get_general_info/');
+      const data = await apiJson<{ user: User; active_wallpaper?: any }>(
+        '/api/get_general_info/',
+      );
       setState({ user: data.user, loading: false, error: null });
-      //@ts-ignore
+
       if (!data.active_wallpaper) return;
       setActiveWallpaper({
-        //@ts-ignore
         id: data.active_wallpaper.id,
-        //@ts-ignore
         url: data.active_wallpaper.url,
-        //@ts-ignore
         type: data.active_wallpaper.type,
         blur: 0,
       });

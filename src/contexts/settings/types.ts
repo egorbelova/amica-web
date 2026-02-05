@@ -28,9 +28,13 @@ export interface SettingsContextValue {
   settings: Settings;
   setSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
   setActiveWallpaper: (wallpaper: WallpaperSetting) => void;
-  addUserWallpaper: (wallpaper: WallpaperSetting) => void;
+  addUserWallpaper: (file: File) => void;
   activeProfileTab: SubTab;
   setActiveProfileTab: (tab: SubTab) => void;
   autoplayVideos: boolean;
   setAutoplayVideos: (value: boolean) => void;
+  setBlur: (value: number) => void;
+  removeWallpaper: (id: string) => void;
+  fetchWallpapers: () => Promise<void>;
+  loading: boolean;
 }

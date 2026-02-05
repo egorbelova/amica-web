@@ -1,13 +1,5 @@
 import React, { createContext, useContext, useReducer } from 'react';
-
-interface Message {
-  id: number;
-  value: string;
-  date: string;
-  user: number;
-  room: number;
-  liked: number;
-}
+import type { Message } from '@/types';
 
 interface MessagesState {
   messages: { [roomId: number]: Message[] };
@@ -35,7 +27,7 @@ const initialState: MessagesState = {
 
 const messagesReducer = (
   state: MessagesState,
-  action: MessagesAction
+  action: MessagesAction,
 ): MessagesState => {
   switch (action.type) {
     case 'SET_LOADING':
@@ -75,7 +67,7 @@ const messagesReducer = (
           ).map((msg) =>
             msg.id === action.payload.messageId
               ? { ...msg, ...action.payload.updates }
-              : msg
+              : msg,
           ),
         },
       };
@@ -101,7 +93,7 @@ const messagesReducer = (
           ).map((msg) =>
             msg.id === action.payload.messageId
               ? { ...msg, liked: msg.liked + 1 }
-              : msg
+              : msg,
           ),
         },
       };
@@ -119,7 +111,7 @@ interface MessagesContextType {
   updateMessage: (
     roomId: number,
     messageId: number,
-    updates: Partial<Message>
+    updates: Partial<Message>,
   ) => void;
   deleteMessage: (roomId: number, messageId: number) => void;
   likeMessage: (roomId: number, messageId: number) => void;
@@ -127,7 +119,7 @@ interface MessagesContextType {
 }
 
 const MessagesContext = createContext<MessagesContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export const MessagesProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -146,7 +138,7 @@ export const MessagesProvider: React.FC<{ children: React.ReactNode }> = ({
   const updateMessage = (
     roomId: number,
     messageId: number,
-    updates: Partial<Message>
+    updates: Partial<Message>,
   ) => {
     dispatch({
       type: 'UPDATE_MESSAGE',

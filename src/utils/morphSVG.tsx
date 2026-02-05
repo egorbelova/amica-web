@@ -74,7 +74,7 @@ function toCubic(pathD) {
         largeArc,
         sweep,
         x2,
-        y2
+        y2,
       );
       out.push(...cubicSegs);
       x = x2;
@@ -102,32 +102,12 @@ function normalizePaths(paths) {
 
 function interpolate(a, b, t) {
   return a.map((seg, i) =>
-    seg.map((v, j) => (j === 0 ? v : v + (b[i][j] - v) * t))
+    seg.map((v, j) => (j === 0 ? v : v + (b[i][j] - v) * t)),
   );
 }
 
 function stringify(path) {
   return path.map((s) => s.join(' ')).join(' ');
-}
-
-let start = null;
-let target = null;
-const duration = 900;
-
-function animate(time) {
-  if (!start) start = time;
-  const t = Math.min((time - start) / duration, 1);
-  const eased = t * t * (3 - 2 * t);
-  //@ts-ignore
-  const frame = interpolate(current, target, eased);
-  //@ts-ignore
-  svgPath.setAttribute('d', stringify(frame));
-  if (t < 1) requestAnimationFrame(animate);
-  else {
-    //@ts-ignore
-    current = target;
-    start = null;
-  }
 }
 
 function arcToCubic(x1, y1, rx, ry, angle, largeArcFlag, sweepFlag, x2, y2) {

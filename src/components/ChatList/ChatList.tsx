@@ -6,7 +6,6 @@ import React, {
   memo,
   useMemo,
   useState,
-  useContext,
 } from 'react';
 import ChatListItem from './ChatListItem';
 import { useChat } from '../../contexts/ChatContext';
@@ -25,17 +24,17 @@ const ChatList: React.FC = () => {
 
   const loadingContainerRef = useRef<HTMLDivElement>(null);
   const chatListRef = useRef<HTMLDivElement>(null);
-  const chatItemsRef = useRef<Map<number, HTMLFormElement>>(new Map());
+  const chatItemsRef = useRef<Map<number, HTMLAnchorElement>>(new Map());
 
   const [animatedChats, setAnimatedChats] = useState<Chat[]>([]);
   const prevChatIdsRef = useRef<number[]>([]);
 
   const setChatItemRef = useCallback(
-    (chatId: number, element: HTMLFormElement | null) => {
+    (chatId: number, element: HTMLAnchorElement | null) => {
       if (element) chatItemsRef.current.set(chatId, element);
       else chatItemsRef.current.delete(chatId);
     },
-    []
+    [],
   );
 
   const sortedChats = useMemo(() => {
@@ -155,14 +154,12 @@ const ChatList: React.FC = () => {
           <MemoizedChatListItem
             key={chat.id}
             chatId={chat.id}
-            //@ts-ignore
             displayPrimaryMedia={chat.primary_media}
             displayName={chat.name}
             lastMessage={chat.last_message}
             unread_count={chat.unread_count}
             isActive={selectedChat?.id === chat.id}
             onChatClick={handleChatClick}
-            //@ts-ignore
             ref={(el) => setChatItemRef(chat.id, el)}
             index={index}
           />

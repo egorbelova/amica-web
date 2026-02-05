@@ -15,7 +15,6 @@ import { useSettings } from '@/contexts/settings/Settings';
 export default function Profile() {
   const { t, locale } = useTranslation();
   const { user } = useUser();
-  // const [active, setActive] = useState<SubTab>('account');
   const { activeProfileTab, setActiveProfileTab } = useSettings();
 
   const tabs = [

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import './LoginPage.css';
 import GoogleLoginButton from '../components/GoogleLoginButton/GoogleLoginButton';
 import { PasskeyLoginButton } from '../components/PasskeyButton/PasskeyLoginButton';
 import { useUser } from '../contexts/UserContext';
@@ -69,53 +68,55 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
   const handleSignUp = useCallback(() => onShowSignup(), [onShowSignup]);
 
   return (
-    <form className='login-form offset' onSubmit={handleSubmit} noValidate>
-      <h4 className={styles['login-title']}>Log In</h4>
-      <fieldset className='form'>
-        <legend className='form-label'>Username</legend>
-        <input
-          ref={usernameRef}
-          name='username'
-          value={formData.username}
-          onChange={handleInputChange}
-          onKeyPress={handleKeyPress}
-          disabled={loading}
-          autoComplete='username'
-          required
-        />
-      </fieldset>
-      <fieldset className='form'>
-        <legend className='form-label'>Password</legend>
-        <input
-          ref={passwordRef}
-          type='password'
-          name='password'
-          value={formData.password}
-          onChange={handleInputChange}
-          onKeyPress={handleKeyPress}
-          disabled={loading}
-          autoComplete='current-password'
-          required
-        />
-      </fieldset>
-      {error && <div style={{ color: 'red', margin: '8px 0' }}>{error}</div>}
-      <button
-        type='submit'
-        className={styles['next-button']}
-        disabled={loading || !formData.username || !formData.password}
-      >
-        {loading ? 'Logging in...' : 'Next'}
-      </button>
-      <div className='OR_div'>
-        <span className='OR'>OR</span>
-      </div>
-      <GoogleLoginButton className={styles['google-login-button']} />
-      <PasskeyLoginButton styles={styles} />
-      <div className={styles['need-account']}>
-        <span>Need an account?</span>
-        <a onClick={handleSignUp}>Sign Up</a>
-      </div>
-    </form>
+    <div className={styles['login-wrapper']}>
+      <div className={styles['login-top-fill']} />
+      <form className={styles['login-form']} onSubmit={handleSubmit} noValidate>
+        <h4 className={styles['login-title']}>Sign in</h4>
+        <fieldset className={styles['form']}>
+          <legend className={styles['form-label']}>Username</legend>
+          <legend className={styles['form-label-placeholder']}>Username</legend>
+          <input
+            ref={usernameRef}
+            name='username'
+            value={formData.username}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            disabled={loading}
+            autoComplete='username'
+            required
+          />
+        </fieldset>
+        <fieldset className={styles['form']}>
+          <legend className={styles['form-label']}>Password</legend>
+          <input
+            ref={passwordRef}
+            type='password'
+            name='password'
+            value={formData.password}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            disabled={loading}
+            autoComplete='current-password'
+            required
+          />
+        </fieldset>
+        {error && <div style={{ color: 'red', margin: '8px 0' }}>{error}</div>}
+        <button
+          type='submit'
+          className={styles['next-button']}
+          disabled={loading || !formData.username || !formData.password}
+        >
+          {loading ? 'Logging in...' : 'Next'}
+        </button>
+        <GoogleLoginButton className={styles['google-login-button']} />
+        <PasskeyLoginButton styles={styles} />
+        <div className={styles['need-account']}>
+          <span>Need an account?</span>
+          <a onClick={handleSignUp}>Sign Up</a>
+        </div>
+      </form>
+      <div className={styles['login-bottom-fill']} />
+    </div>
   );
 };
 

@@ -88,14 +88,16 @@ const RoomPage: React.FC = () => {
                       className={styles.wallpaperGlow}
                     />
                   )}
-                  <img
-                    src={activeWallpaper.url}
-                    alt='Wallpaper'
-                    className={styles.wallpaper}
-                    style={{
-                      filter: `blur(${activeWallpaper.blur}px)`,
-                    }}
-                  />
+                  <div className={styles.wallpaperContainer}>
+                    <img
+                      src={activeWallpaper.url}
+                      alt='Wallpaper'
+                      className={styles.wallpaper}
+                      style={{
+                        filter: `blur(${activeWallpaper.blur}px)`,
+                      }}
+                    />
+                  </div>
                 </>
               )}
               {activeWallpaper?.type === 'video' && (
@@ -128,7 +130,6 @@ const RoomPage: React.FC = () => {
             muted
             loop
             playsInline
-            // @ts-ignore
             fetchPriority='high'
             preload='metadata'
             style={{

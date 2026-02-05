@@ -4,22 +4,12 @@ import styles from './Reel.module.scss';
 import { JWTVideo } from './JWTVideo';
 import { apiFetch } from '@/utils/apiFetch';
 import AudioLayout from './AudioLayout';
-
-export interface FileItem {
-  id: string;
-  category: 'image' | 'video' | 'audio';
-  file_url: string;
-  alt?: string;
-  waveform?: string;
-  duration?: number;
-  cover_url?: string;
-  thumbnail_medium_url?: string;
-}
+import type { File } from '@/types';
 
 export interface MediaItem {
   id: string;
   value?: string;
-  files: FileItem[];
+  files: File[];
 }
 
 interface ReelProps {
@@ -253,17 +243,10 @@ const Reel: React.FC<ReelProps> = ({ items, onClose }) => {
     setCurrentFileIndex(0);
   };
 
-  const renderMedia = (file: FileItem, blobUrl: string) => {
+  const renderMedia = (file: File, blobUrl: string) => {
     if (!blobUrl) return null;
     if (file.category === 'image') {
-      return (
-        <img
-          key={file.id}
-          src={blobUrl}
-          alt={file.alt || 'media'}
-          className={styles.media}
-        />
-      );
+      return <img key={file.id} src={blobUrl} className={styles.media} />;
     }
     if (file.category === 'video') {
       return (

@@ -53,7 +53,6 @@ const App: React.FC = () => {
         ) : currentView === 'login' ? (
           <LoginPage onShowSignup={showSignup} />
         ) : (
-          // @ts-ignore
           <SignUpPage onShowLogin={showLogin} />
         )}
       </div>

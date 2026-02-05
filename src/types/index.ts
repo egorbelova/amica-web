@@ -1,9 +1,18 @@
 export interface File {
   id: number;
+  width?: number;
+  height?: number;
   file_url: string;
   file_type?: string;
   original_name?: string;
   category?: string;
+  has_audio?: boolean;
+  thumbnail_small_url?: string;
+  thumbnail_medium_url?: string;
+  dominant_color?: string;
+  duration?: number;
+  waveform?: number[];
+  cover_url?: string;
 }
 
 export interface Message {
@@ -64,4 +73,12 @@ export interface User {
   username: string;
   profile: UserProfile;
   preferred_session_lifetime_days: number;
+  active_wallpaper?: any | null;
+}
+
+export interface Contact {
+  id: number;
+  username: string;
+  profile: UserProfile;
+  primary_avatar: any | null;
 }

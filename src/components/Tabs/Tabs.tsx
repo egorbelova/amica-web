@@ -55,11 +55,7 @@ export function Tabs() {
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (!file) return;
-              addUserWallpaper({
-                //@ts-ignore
-                file,
-                blur: 0,
-              });
+              addUserWallpaper(file);
             }}
           />
         </div>

@@ -8,7 +8,7 @@ interface SignUpPageProps {
   onShowLogin: () => void;
 }
 
-const SignUpPage: React.FC = ({ onShowLogin }: SignUpPageProps) => {
+const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
   const { refreshUser } = useUser();
 
   const [form, setForm] = useState({

@@ -108,8 +108,6 @@ const MainChatWindow: React.FC = () => {
                   muted
                   loop
                   playsInline
-                  // @ts-ignore
-                  fetchPriority='high'
                   preload='metadata'
                   className={wallpaperStyles.wallpaper}
                   style={{
@@ -124,7 +122,6 @@ const MainChatWindow: React.FC = () => {
             muted
             loop
             playsInline
-            // @ts-ignore
             fetchPriority='high'
             preload='metadata'
             style={{
@@ -163,10 +160,8 @@ const MainChatWindow: React.FC = () => {
             <SendArea />
           </div>
           <SideBarMedia
-            // @ts-ignore
-            {...(selectedChat.room_type === 'G'
-              ? // @ts-ignore
-                { members: selectedChat.users }
+            {...(selectedChat.type === 'G'
+              ? { members: selectedChat.members }
               : {})}
             files={[]}
             visible={sideBarVisible}

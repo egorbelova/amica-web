@@ -174,12 +174,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const addUserWallpaper = async (wallpaper: WallpaperSetting) => {
+  const addUserWallpaper = async (wallpaper: File) => {
     try {
       const formData = new FormData();
       Object.entries(wallpaper).forEach(([key, value]) => {
         if (!value) return;
-        // @ts-ignore
         if (value instanceof File) {
           formData.append(key, value);
         } else {
@@ -247,9 +246,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         setSetting,
         setActiveWallpaper,
         addUserWallpaper,
-        //@ts-ignore
         setBlur,
-        //@ts-ignore
         removeWallpaper,
         fetchWallpapers,
         loading,

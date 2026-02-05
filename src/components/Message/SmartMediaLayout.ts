@@ -1,15 +1,4 @@
-interface File {
-  id: number;
-  file_url: string;
-  category?: string;
-  thumbnail_small_url?: string;
-  thumbnail_medium_url?: string;
-  file_type?: string;
-  original_name?: string;
-  height?: number;
-  width?: number;
-  dominant_color?: string;
-}
+import type { File } from '@/types';
 
 interface LayoutItem {
   file: File;

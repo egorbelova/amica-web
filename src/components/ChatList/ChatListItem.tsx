@@ -3,12 +3,13 @@ import { lastMessageDateFormat, unreadCountFormat } from '../../utils/index';
 import Avatar from '../Avatar/Avatar';
 import styles from './ChatListItem.module.scss';
 // import { SquircleContainer } from '../SquircleContainer/SquircleContainer';
+import type { DisplayMedia } from '@/types';
 import AttachmentPreview from './AttachmentPreview';
 
 export interface ChatListItemProps {
   index?: number;
   chatId: number;
-  displayPrimaryMedia?: string;
+  displayPrimaryMedia?: DisplayMedia;
   displayName: string;
   lastMessage: any | null;
   unread_count: number;
@@ -107,7 +108,6 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
       >
         <Avatar
           displayName={displayName}
-          //@ts-ignore
           displayMedia={displayPrimaryMedia}
           className={styles['chat-list-item__avatar']}
         />

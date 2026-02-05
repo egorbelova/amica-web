@@ -8,6 +8,7 @@ import { MediaModalProvider } from '../contexts/MediaModalContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
 import { SettingsProvider } from '@/contexts/settings/Settings';
 import { SearchProvider } from '@/contexts/search/SearchContext';
+import { JumpProvider } from '@/contexts/JumpContext';
 import { apiFetch } from '@/utils/apiFetch';
 import type { User } from '../types';
 
@@ -23,13 +24,13 @@ const composeProviders = (
   return ({ children }: ProviderProps) =>
     providers.reduceRight(
       (acc, Provider) => <Provider>{acc}</Provider>,
-      children
+      children,
     );
 };
 
 export const searchGlobal = async (query: string): Promise<User[]> => {
   const res = await apiFetch(
-    `/api/users/search/?email=${encodeURIComponent(query)}`
+    `/api/users/search/?email=${encodeURIComponent(query)}`,
   );
   if (!res.ok) throw new Error('Search failed');
   return res.json();
@@ -48,7 +49,8 @@ const AppProvidersComponent = composeProviders(
   ChatProvider,
   MessagesProvider,
   AudioProvider,
-  LanguageProvider
+  LanguageProvider,
+  JumpProvider,
 );
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
