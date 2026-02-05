@@ -10,7 +10,7 @@ COPY . .
 
 RUN npm run build
 
-FROM wokalek/nginx-brotli:alpine
+FROM fholzer/nginx-brotli:latest
 
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
