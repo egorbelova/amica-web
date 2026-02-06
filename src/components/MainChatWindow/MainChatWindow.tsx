@@ -117,32 +117,6 @@ const MainChatWindow: React.FC = () => {
               )}
             </>
           )}
-          {/* <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            fetchPriority='high'
-            preload='metadata'
-            style={{
-              position: 'absolute',
-              right: 0,
-              bottom: 0,
-              minWidth: '100%',
-              minHeight: '100%',
-              maxWidth: '100%',
-              maxHeight: '100%',
-              objectFit: 'cover',
-              zIndex: -1,
-            }}
-          >
-            <source
-              src='Videos/blue-sky-seen-directly-with-some-clouds_480p_infinity.webm'
-              type='video/webm'
-            />
-            <track kind='captions' label='English' />
-            Your browser does not support the video tag.
-          </video> */}
         </>
       )}
       {/* {windowWidth <= 768 && <BackgroundComponent />} */}

@@ -84,7 +84,6 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
     <>
       <div className={styles['container-media']} onClick={handleClick}>
         {reelVisible && (
-          // @ts-ignore
           <Reel items={items} onClose={() => setReelVisible(false)} />
         )}
         {layout.length === 1 && (

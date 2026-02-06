@@ -74,6 +74,7 @@ export interface User {
   profile: UserProfile;
   preferred_session_lifetime_days: number;
   active_wallpaper?: any | null;
+  last_seen: string | null;
 }
 
 export interface Contact {

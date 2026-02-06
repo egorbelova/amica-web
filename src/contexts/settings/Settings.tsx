@@ -25,13 +25,13 @@ const defaultWallpapers: WallpaperSetting[] = [
     id: 'default-1',
     url: '../DefaultWallpapers/syuhei-inoue-fvgv3i4_uvI-unsplash.jpg.webp',
     type: 'photo',
-    blur: 2,
+    blur: 0,
   },
   {
     id: 'default-2',
     url: '../DefaultWallpapers/dave-hoefler-PEkfSAxeplg-unsplash.jpg.webp',
     type: 'photo',
-    blur: 5,
+    blur: 0,
   },
   {
     id: 'default-3',
@@ -177,14 +177,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const addUserWallpaper = async (wallpaper: File) => {
     try {
       const formData = new FormData();
-      Object.entries(wallpaper).forEach(([key, value]) => {
-        if (!value) return;
-        if (value instanceof File) {
-          formData.append(key, value);
-        } else {
-          formData.append(key, String(value));
-        }
-      });
+      formData.append('file', wallpaper);
+
       await apiUpload('/api/wallpapers/', formData);
     } catch (error) {
       console.error('addUserWallpaper error:', error);

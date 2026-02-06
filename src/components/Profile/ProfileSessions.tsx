@@ -113,7 +113,6 @@ export default function ProfileSessions() {
 
     websocketManager.sendMessage({
       type: 'set_session_lifetime',
-      // @ts-ignore
       days: value,
     });
 

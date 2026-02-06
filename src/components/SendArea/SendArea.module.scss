@@ -51,8 +51,8 @@
 
 .remove-file-btn {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 10px;
+  right: 10px;
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -60,6 +60,7 @@
   background: rgba(0, 0, 0, 0.6);
   color: #fff;
   cursor: pointer;
+  padding: 3px;
 }
 
 .files-preview-header {

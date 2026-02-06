@@ -4,7 +4,6 @@ import MainChatWindow from '../components/MainChatWindow/MainChatWindow';
 import { websocketManager } from '../utils/websocket-manager';
 import './room.scss';
 import styles from './RoomPage.module.scss';
-import { useUser } from '../contexts/UserContext';
 import { useSettings } from '@/contexts/settings/Settings';
 import BackgroundComponent from '../components/BackgroundComponent/BackgroundComponent';
 
@@ -111,45 +110,22 @@ const RoomPage: React.FC = () => {
                       className={styles.wallpaperGlow}
                     />
                   )}
-                  <video
-                    ref={videoRef}
-                    src={activeWallpaper.url + '#t=0.001'}
-                    playsInline
-                    muted
-                    loop
-                    preload='metadata'
-                    className={styles.wallpaper}
-                    style={{ filter: `blur(${activeWallpaper.blur}px)` }}
-                  />
+                  <div className={styles.wallpaperContainer}>
+                    <video
+                      ref={videoRef}
+                      src={activeWallpaper.url + '#t=0.001'}
+                      playsInline
+                      muted
+                      loop
+                      preload='metadata'
+                      className={styles.wallpaper}
+                      style={{ filter: `blur(${activeWallpaper.blur}px)` }}
+                    />
+                  </div>
                 </>
               )}
             </>
           )}
-          {/* <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            fetchPriority='high'
-            preload='metadata'
-            style={{
-              position: 'absolute',
-              right: 0,
-              bottom: 0,
-              minWidth: '100%',
-              minHeight: '100%',
-              maxWidth: '100%',
-              maxHeight: '100%',
-              objectFit: 'cover',
-            }}
-          >
-            <source
-              src='Videos/blue-sky-seen-directly-with-some-clouds_480p_infinity.webm'
-              type='video/webm'
-            />
-            <track kind='captions' label='English' />
-            Your browser does not support the video tag.
-          </video> */}
         </>
       )}
       {/* {windowWidth > 768 && <BackgroundComponent />} */}

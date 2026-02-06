@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import styles from './ContextMenu.module.scss';
 import { createPortal } from 'react-dom';
 import { Icon } from '../Icons/AutoIcons';
+import type { IconName } from '../Icons/AutoIcons';
 
-interface MenuItem {
+export interface MenuItem {
   label: string;
-  icon?: string;
+  icon?: IconName;
   onClick: () => void;
   danger?: boolean;
   separator?: boolean;
@@ -117,7 +118,6 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
           >
             {item.icon && (
               <Icon
-                // @ts-ignore
                 name={item.icon}
                 className={styles['context-menu__item--icon']}
               />

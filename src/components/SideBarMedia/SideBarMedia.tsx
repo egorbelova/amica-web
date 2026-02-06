@@ -11,18 +11,12 @@ import { useTranslation, type Locale } from '@/contexts/LanguageContext';
 import EditableAvatar from '@/components/Avatar/EditableAvatar';
 import MorphingIcon from '@/utils/morphSVG';
 import type { File } from '@/types';
-
-interface Member {
-  id: number;
-  username: string;
-  last_seen?: string;
-  thumbnail_small?: string;
-}
+import type { User } from '@/types';
 
 interface SideBarMediaProps {
   files: File[];
   visible: boolean;
-  members?: Member[];
+  members?: User[];
   onClose?: () => void;
 }
 

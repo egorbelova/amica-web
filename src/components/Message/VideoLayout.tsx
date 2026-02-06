@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Icon } from '../Icons/AutoIcons';
 import { JWTVideo } from './JWTVideo';
 import { useSettings } from '@/contexts/settings/Settings';
+import styles from './SmartMediaLayout.module.scss';
 
 export default function VideoLayout({
   full,
@@ -178,15 +179,7 @@ export default function VideoLayout({
   };
 
   return (
-    <div
-      onClick={handleClick}
-      style={{
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-        background: '#000',
-      }}
-    >
+    <div onClick={handleClick} className={styles['video-layout']}>
       <JWTVideo
         ref={videoRef}
         url={full}
@@ -200,28 +193,9 @@ export default function VideoLayout({
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         onClick={(e) => e.stopPropagation()}
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          width: '100%',
-          height: 20,
-          cursor: 'pointer',
-          touchAction: 'none',
-          zIndex: 1,
-        }}
+        className={styles['progress-bar-container']}
       >
-        <div
-          style={{
-            position: 'absolute',
-            width: '100%',
-            height: 5,
-            background: 'rgba(255,255,255,0.2)',
-            bottom: 0,
-          }}
-        >
-          {/* Buffered */}
-
+        <div className={styles['progress-bar']}>
           <div
             style={{
               width: `${buffered}%`,
@@ -234,7 +208,6 @@ export default function VideoLayout({
             }}
           />
 
-          {/* Played */}
           <div
             style={{
               width: `${progress}%`,

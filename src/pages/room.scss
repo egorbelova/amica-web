@@ -3,19 +3,12 @@
   --swipe-margin-choose-list: 0%;
   --device-corner-radius: 0px;
 
-  --offset-tab-gradient-top-bottom: 20%;
-  --offset-tab-gradient-left-right: 5%;
-  --padding-tab: 0px;
-
   --room_BG_color_hex: #4d8ddb;
-  --room_BG_shadow: 45;
   --myColor1: #4d8ddb;
   --myColor2: #4d8ddb99;
   --myColor3: #4d8ddb33;
   --darker_: #1972de;
   --message_color: #1c1c1c;
-
-  --display-after-height: 0px;
 
   --sat: env(safe-area-inset-top);
   --sar: env(safe-area-inset-right);
@@ -26,16 +19,8 @@
   --c-light: #fff;
   --c-dark: #000;
 
-  --c-content: #e1e1e1;
-  --c-action: #03d5ff;
-
-  --c-bg: #1b1b1d;
-
   --glass-reflex-dark: 2;
   --glass-reflex-light: 0.3;
-
-  --saturation: 150%;
-  --sizeVar: 25vmin;
 }
 
 ::-webkit-scrollbar {
@@ -102,12 +87,7 @@ html {
 
 html,
 body {
-  box-sizing: border-box;
   user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   overflow: hidden;
   overscroll-behavior-x: none;
   overscroll-behavior-y: none;
@@ -129,7 +109,7 @@ body {
     'Helvetica Neue',
     sans-serif;
   font-weight: 400;
-  color: white;
+  color: #fff;
   background-color: rgb(30, 30, 30);
   max-height: calc(100%);
   border-radius: var(--device-corner-radius);
@@ -154,8 +134,6 @@ body {
   align-items: center;
   flex-direction: row;
   flex-wrap: nowrap;
-  // overflow: hidden;
-
   z-index: 999;
   will-change: transform;
   position: relative;
@@ -170,10 +148,6 @@ body {
 
 .main_chat_window:not(.swipe) {
   transition:
-    --myColor1 2s,
-    --myColor2 2s,
-    --myColor3 2s,
-    --shadow_degree 0s,
     background 0.2s ease-in,
     transform 0.35s;
 }
@@ -220,7 +194,7 @@ svg {
   max-width: 384px;
   min-width: 384px;
   position: relative;
-  border-radius: 20px;
+  border-radius: 24px;
   will-change: transform;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.6);
@@ -234,6 +208,7 @@ svg {
   padding-bottom: calc(min(env(safe-area-inset-bottom, 0px), 10px) + 50px);
   max-width: 100%;
   min-height: 100px;
+  height: 100%;
   overflow-y: scroll;
   display: flex;
   flex-direction: column-reverse;
@@ -259,16 +234,6 @@ svg {
     rgba(0, 0, 0, 0) 100%
   );
   pointer-events: none;
-}
-
-.room_div > :last-child {
-  transition: margin-top 0.4s cubic-bezier(0.075, 0.82, 0.165, 1);
-}
-
-.room_body {
-  transition: width 0.4s;
-  width: 100%;
-  height: 100%;
 }
 
 .room_wrapper {
@@ -300,7 +265,6 @@ svg {
 }
 
 .chat-container {
-  // overflow: hidden;
   width: 100%;
   max-width: 1680px;
   margin: 0 auto;
@@ -309,7 +273,6 @@ svg {
   display: flex;
   justify-content: center;
   position: relative;
-  // background: #000;
   animation: chat-loaded 0.3s ease-in-out;
 }
 
@@ -349,6 +312,18 @@ svg {
   transition: background 1.5s;
   position: relative;
   width: 100%;
+  animation: message_loaded 0.2s ease-in-out;
+}
+
+@keyframes message_loaded {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px);
+  }
 }
 
 .temp_full.active {
@@ -357,10 +332,6 @@ svg {
 }
 
 .temp_full.selected {
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
   background: rgba(127, 127, 127, 0.2);
   transition: background 0.4s;
@@ -374,10 +345,6 @@ svg {
 .time-left {
   font-size: 0.625rem;
   color: #d5eaff;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
   white-space: nowrap;
 }
@@ -442,10 +409,6 @@ svg {
 }
 
 .message_div.selected_prepare {
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
   margin-left: 40px;
   transition: margin-left 0.4s;
@@ -616,17 +579,13 @@ svg {
   #opponent_title_name {
     min-width: 100%;
   }
-  .room_body {
-    min-width: 100%;
-  }
+
   .chat-background-image {
     background-size:
       cover,
       450px auto !important;
   }
-}
 
-@media screen and (max-width: 768px) {
   .chat-list-title {
     display: block;
     text-align: left;
@@ -656,10 +615,6 @@ svg {
     transition: transform 0s;
   }
 
-  .choose_list.swiped {
-    display: none !important;
-  }
-
   .message_div {
     max-width: 80%;
   }
@@ -667,13 +622,6 @@ svg {
     width: 100%;
   }
 
-  .room_body.active {
-    width: 0;
-    opacity: 0;
-    transition:
-      width 0.2s ease-in,
-      opacity 0.2s ease-in;
-  }
   .send_div.hidden {
     width: 0;
     opacity: 0;

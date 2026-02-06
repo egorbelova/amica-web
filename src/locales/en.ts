@@ -47,4 +47,7 @@ export default {
     signOut: 'Log Out',
   },
   privacy: {},
+  contacts: {
+    loading: 'Loading contacts',
+  },
 } as const;

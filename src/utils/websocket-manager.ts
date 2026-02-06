@@ -12,6 +12,7 @@ interface WebSocketMessage {
   message?: string;
   token?: string;
   userId?: number;
+  days?: number;
 }
 
 interface WebSocketEventMap {

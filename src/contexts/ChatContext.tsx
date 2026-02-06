@@ -5,6 +5,7 @@ import React, {
   useState,
   useEffect,
   useMemo,
+  useTransition,
 } from 'react';
 import type { ReactNode } from 'react';
 import type { Message, Chat, User } from '@/types';
@@ -230,9 +231,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const handleCreateTemporaryChat = useCallback(
     (user: User) => {
       const tempId = Math.min(...chats.map((c) => c.id), 0) - 1;
-      // @ts-ignore
       const tempChat: Chat = {
         id: tempId,
+        info: user.username,
         name: user.username,
         members: [user],
         last_message: null,
@@ -248,11 +249,16 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     [chats, selectChat],
   );
 
+  const [isPending, startTransition] = useTransition();
+
   const handleChatClick = useCallback(
     async (chatId: number) => {
       if (chatId === selectedChatId) return;
       setSelectedChatId(chatId);
-      await fetchMessages(chatId);
+
+      startTransition(() => {
+        fetchMessages(chatId);
+      });
     },
     [selectedChatId, fetchMessages],
   );

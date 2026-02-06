@@ -7,6 +7,8 @@ import { createPortal } from 'react-dom';
 import Avatar from '../Avatar/Avatar';
 import { useJump } from '@/contexts/JumpContext';
 import { useMergedRefs } from '@/hooks/useMergedRefs';
+import type { MenuItem } from '../ContextMenu/ContextMenu';
+import type { IconName } from '../Icons/AutoIcons';
 
 const MessageList: React.FC = () => {
   const { messages, updateMessages, selectedChat } = useChat();
@@ -224,14 +226,18 @@ const MessageList: React.FC = () => {
     }
   };
 
-  const menuItems = [
-    { label: 'Reply', icon: 'Reply', onClick: () => alert('Reply clicked') },
+  const menuItems: MenuItem[] = [
+    {
+      label: 'Reply',
+      icon: 'Reply' as IconName,
+      onClick: () => alert('Reply clicked'),
+    },
     { separator: true, label: '', onClick: () => {} },
     ...(menuMessage?.value
       ? [
           {
             label: 'Copy Text',
-            icon: 'CopyText',
+            icon: 'CopyText' as IconName,
             onClick: () => handleCopyMessage(menuMessage),
           },
         ]
@@ -241,7 +247,7 @@ const MessageList: React.FC = () => {
       ? [
           {
             label: 'Copy Media',
-            icon: 'CopyMedia',
+            icon: 'CopyMedia' as IconName,
             onClick: () => handleCopyMedia(menuMessage),
           },
         ]
@@ -252,26 +258,33 @@ const MessageList: React.FC = () => {
       ? [
           {
             label: 'Save As...',
-            icon: 'SaveAs',
+            icon: 'SaveAs' as IconName,
             onClick: () => handleSaveFile(menuMessage),
           },
         ]
       : []),
     { separator: true, label: '', onClick: () => {} },
-    { label: 'Edit', icon: 'Edit', onClick: () => alert('Edit clicked') },
+    {
+      label: 'Edit',
+      icon: 'Edit' as IconName,
+      onClick: () => alert('Edit clicked'),
+    },
     {
       label: 'Forward',
-      icon: 'Forward',
+      icon: 'Forward' as IconName,
       onClick: () => alert('Forward clicked'),
     },
-    { label: 'Select', icon: 'Select', onClick: () => alert('Select clicked') },
+    {
+      label: 'Select',
+      icon: 'Select' as IconName,
+      onClick: () => alert('Select clicked'),
+    },
     ...(menuMessage?.viewers?.length && menuMessage?.is_own
       ? [
           { separator: true, label: '', onClick: () => {} },
-
           {
             label: `${menuMessage.viewers.length} Seen`,
-            icon: 'Read',
+            icon: 'Read' as IconName,
             onClick: () => handleShowViewers(menuMessage),
           },
         ]
@@ -279,7 +292,7 @@ const MessageList: React.FC = () => {
     { separator: true, label: '', onClick: () => {} },
     {
       label: 'Delete',
-      icon: 'Delete',
+      icon: 'Delete' as IconName,
       onClick: () => alert('Delete clicked'),
       danger: true,
     },
@@ -332,15 +345,6 @@ const MessageList: React.FC = () => {
     }, 0);
   };
 
-  // if (!messages || messages.length === 0) {
-  //   return (
-  //     <div className='offset room_div room_body' id='display'>
-  //       <div className='no-messages'>
-  //         <p>No messages yet. Start a conversation!</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
   const containerRef = useRef<HTMLDivElement>(null);
 
   const mergedRef = useMergedRefs([containerRef, jumpContainerRef]);
@@ -401,7 +405,7 @@ const MessageList: React.FC = () => {
   }, [messages]);
 
   return (
-    <div className='room_div room_body' id='display' ref={mergedRef}>
+    <div className='room_div' ref={mergedRef}>
       {menuVisible && (
         <ContextMenu
           items={menuItems}
@@ -416,6 +420,10 @@ const MessageList: React.FC = () => {
           viewers={currentViewers}
           onClose={() => setViewersVisible(false)}
         />
+      )}
+
+      {messages.length === 0 && (
+        <div className={styles['no-messages']}>No messages yet</div>
       )}
       {[...messages].reverse().map((message) =>
         message.value || message.files?.length ? (

@@ -10,10 +10,7 @@ import styles from './SendArea.module.scss';
 import JumpToBottom from '../JumpToBottom/JumpToBottom';
 import './SendArea.css';
 
-const MessageInput: React.FC = ({
-  isJumpToBottomVisible,
-  onJumpToBottom,
-}: any) => {
+const MessageInput: React.FC = () => {
   const [message, setMessage] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -325,14 +322,11 @@ const MessageInput: React.FC = ({
           onSubmit={handleSubmit}
           ref={formRef}
         >
-          <div
+          <button
             id='file_div'
             onClick={handleFileClick}
-            role='button'
-            tabIndex={0}
+            type='button'
             onKeyDown={(e) => e.key === 'Enter' && handleFileClick()}
-            style={{ cursor: 'pointer' }}
-            aria-label='Attach File'
           >
             <input
               type='file'
@@ -345,7 +339,7 @@ const MessageInput: React.FC = ({
               // accept='image/*,video/*,audio/*,.pdf,.doc,.docx'
             />
             <Icon name='Attachment' className='input_attach' />
-          </div>
+          </button>
 
           <div
             className='textarea_container'
@@ -468,7 +462,7 @@ const MessageInput: React.FC = ({
                       type='button'
                       className={styles['remove-file-btn']}
                     >
-                      ×
+                      <Icon name='Cross' />
                     </button>
                   </div>
                 );

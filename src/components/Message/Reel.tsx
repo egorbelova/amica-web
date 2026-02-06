@@ -5,15 +5,10 @@ import { JWTVideo } from './JWTVideo';
 import { apiFetch } from '@/utils/apiFetch';
 import AudioLayout from './AudioLayout';
 import type { File } from '@/types';
-
-export interface MediaItem {
-  id: string;
-  value?: string;
-  files: File[];
-}
+import type { Message } from '@/types';
 
 interface ReelProps {
-  items: MediaItem[];
+  items: Message[];
   onClose: () => void;
 }
 
@@ -191,7 +186,7 @@ const Reel: React.FC<ReelProps> = ({ items, onClose }) => {
   useEffect(() => {
     let isCancelled = false;
 
-    const fetchBlobs = async (item: MediaItem) => {
+    const fetchBlobs = async (item: Message) => {
       const urls: string[] = [];
       for (const file of item.files) {
         try {
