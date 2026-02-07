@@ -4,22 +4,27 @@ import styles from './Profile.module.scss';
 export default function ProfileLanguage() {
   const { locale, changeLanguage, t } = useTranslation();
 
-  const items = availableLanguages.map((lang) => ({
-    label: lang.name,
-    value: lang.code,
-  }));
-
   return (
     <div className={styles.section}>
       <h3>{t('profileTabs.language')}</h3>
+
       {availableLanguages.map((lang) => (
         <div
           key={lang.code}
           onClick={() => changeLanguage(lang.code)}
           className={styles.languageItem}
+          role='button'
+          tabIndex={0}
         >
-          {locale === lang.code ? '✓ ' : ''}
-          <span className={styles.languageFlag}>{lang.flag}</span>
+          {locale === lang.code && <span className={styles.check}>✓</span>}
+
+          <img
+            src={`../flags/${lang.country}.webp`}
+            alt={lang.name}
+            className={styles.languageFlag}
+            loading='lazy'
+          />
+
           <div className={styles.languageInfo}>
             <span className={styles.languageName}>{lang.name}</span>
             <span className={styles.languageLabel}>

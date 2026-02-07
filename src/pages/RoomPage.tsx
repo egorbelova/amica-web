@@ -25,10 +25,10 @@ const RoomPage: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // if ('serviceWorker' in navigator) {
-  //   console.log('Service Worker registration');
-  //   navigator.serviceWorker.register('/sw.js');
-  // }
+  if ('serviceWorker' in navigator) {
+    console.log('Service Worker registration');
+    navigator.serviceWorker.register('/sw.js');
+  }
 
   const videoRef = useRef<HTMLVideoElement>(null);
 

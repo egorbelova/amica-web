@@ -15,7 +15,7 @@ const locales = Object.fromEntries(
   Object.entries(localeModules).map(([path, mod]) => {
     const lang = path.split('/').pop()?.replace('.ts', '') ?? 'en';
     return [lang, mod];
-  })
+  }),
 ) as Record<string, Record<string, any>>;
 
 export type Locale = keyof typeof locales;
@@ -48,8 +48,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     (savedLang && savedLang in locales
       ? savedLang
       : browserLang in locales
-      ? browserLang
-      : 'en') as Locale
+        ? browserLang
+        : 'en') as Locale,
   );
   const [messages, setMessages] = useState<Messages>(defaultLang);
 
@@ -103,18 +103,18 @@ export const useTranslation = () => {
 };
 export const availableLanguages: {
   code: Locale;
-  flag: string;
+  country: string;
   name: string;
 }[] = [
-  { code: 'en', flag: '🇬🇧', name: 'English' },
-  { code: 'ru', flag: '🇷🇺', name: 'Русский' },
-  { code: 'ar', flag: '🇸🇦', name: 'العربية' },
-  { code: 'es', flag: '🇪🇸', name: 'Español' },
-  { code: 'fr', flag: '🇫🇷', name: 'Français' },
-  { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
-  { code: 'it', flag: '🇮🇹', name: 'Italiano' },
-  { code: 'zh', flag: '🇨🇳', name: '中文' },
-  { code: 'ja', flag: '🇯🇵', name: '日本語' },
-  { code: 'ko', flag: '🇰🇷', name: '한국어' },
-  { code: 'ua', flag: '🇺🇦', name: 'Українська' },
+  { code: 'en', country: 'gb', name: 'English' },
+  { code: 'ru', country: 'ru', name: 'Русский' },
+  { code: 'ar', country: 'sa', name: 'العربية' },
+  { code: 'es', country: 'es', name: 'Español' },
+  { code: 'fr', country: 'fr', name: 'Français' },
+  { code: 'de', country: 'de', name: 'Deutsch' },
+  { code: 'it', country: 'it', name: 'Italiano' },
+  { code: 'zh', country: 'cn', name: '中文' },
+  { code: 'ja', country: 'jp', name: '日本語' },
+  { code: 'ko', country: 'kr', name: '한국어' },
+  { code: 'ua', country: 'ua', name: 'Українська' },
 ];

@@ -1,41 +1,57 @@
-// const CACHE_NAME = 'video-chunks-cache-v1';
+const CACHE_NAME = 'app-cache-v1';
+const STATIC_ASSETS = ['/', '/index.html'];
 
-// self.addEventListener('fetch', (event) => {
-//   const url = event.request.url;
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(STATIC_ASSETS);
+    }),
+  );
 
-//   if (!url.includes('/videos/')) return;
+  self.skipWaiting();
+});
 
-//   event.respondWith(handleVideoRequest(event.request));
-// });
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key !== CACHE_NAME)
+            .map((key) => caches.delete(key)),
+        ),
+      ),
+  );
 
-// async function handleVideoRequest(request) {
-//   const cache = await caches.open(CACHE_NAME);
+  self.clients.claim();
+});
 
-//   const range = request.headers.get('Range');
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
 
-//   if (!range) {
-//     const cached = await cache.match(request);
-//     if (cached) return cached;
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).catch(() => caches.match('/index.html')));
+    return;
+  }
 
-//     const response = await fetch(request);
-//     cache.put(request, response.clone());
-//     return response;
-//   }
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
 
-//   let response = await fetch(request);
-
-//   const size = parseInt(response.headers.get('Content-Length') || '0', 10);
-//   if (size > 50_000) {
-//     cache.put(request, response.clone());
-//   }
-
-//   return response;
-// }
-
-// self.addEventListener('install', () => {
-//   self.skipWaiting();
-// });
-
-// self.addEventListener('activate', () => {
-//   clients.claim();
-// });
+      return fetch(request).then((response) => {
+        if (
+          response &&
+          (response.status === 200 || response.status === 206) &&
+          (response.type === 'basic' || response.type === 'cors')
+        ) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseClone);
+          });
+        }
+        return response;
+      });
+    }),
+  );
+});
