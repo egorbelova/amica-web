@@ -1,4 +1,4 @@
-const CACHE_NAME = 'app-cache-v1';
+const CACHE_NAME = 'app-cache-v5';
 const STATIC_ASSETS = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {
@@ -23,9 +23,32 @@ self.addEventListener('activate', (event) => {
         ),
       ),
   );
-
   self.clients.claim();
 });
+
+const STATIC_EXTENSIONS = [
+  '.js',
+  'tsx',
+  'ts',
+  '.css',
+  '.scss',
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.webp',
+  '.svg',
+  '.woff2',
+  '.woff',
+  '.ttf',
+  '.html',
+  '.json',
+  '.xml',
+  '.txt',
+  '.ico',
+  '.webmanifest',
+];
+
+const STATIC_PATHS = ['/assets/'];
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
@@ -42,13 +65,20 @@ self.addEventListener('fetch', (event) => {
       return fetch(request).then((response) => {
         if (
           response &&
-          (response.status === 200 || response.status === 206) &&
+          response.status === 200 &&
           (response.type === 'basic' || response.type === 'cors')
         ) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseClone);
-          });
+          const url = new URL(request.url);
+          const isStatic =
+            STATIC_EXTENSIONS.some((ext) => url.pathname.endsWith(ext)) ||
+            STATIC_PATHS.some((path) => url.pathname.startsWith(path));
+
+          if (isStatic) {
+            const responseClone = response.clone();
+            caches
+              .open(CACHE_NAME)
+              .then((cache) => cache.put(request, responseClone));
+          }
         }
         return response;
       });
