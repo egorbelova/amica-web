@@ -16,14 +16,18 @@ export default function ProfileLanguage() {
           role='button'
           tabIndex={0}
         >
-          {locale === lang.code && <span className={styles.check}>✓</span>}
+          <span
+            className={
+              styles.check + ' ' + (lang.code === locale ? styles.active : '')
+            }
+          ></span>
 
-          <img
+          {/* <img
             src={`../flags/${lang.country}.webp`}
             alt={lang.name}
             className={styles.languageFlag}
             loading='lazy'
-          />
+          /> */}
 
           <div className={styles.languageInfo}>
             <span className={styles.languageName}>{lang.name}</span>

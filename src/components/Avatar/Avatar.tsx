@@ -13,6 +13,11 @@ export interface AvatarProps {
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
+interface MediaLayerWithUrl extends MediaLayer {
+  url?: string;
+  ready?: boolean;
+}
+
 const Avatar: React.FC<AvatarProps> = ({
   displayName,
   displayMedia,
@@ -23,7 +28,7 @@ const Avatar: React.FC<AvatarProps> = ({
   const avatarColor = stringToColor(displayName);
   const middleColor = pSBC(-0.6, avatarColor);
   const darkerColor = pSBC(-0.8, avatarColor);
-  const [layers, setLayers] = useState<MediaLayer[]>([]);
+  const [layers, setLayers] = useState<MediaLayerWithUrl[]>([]);
   const fadeDuration = 1000;
 
   const avatarRef = useRef<HTMLDivElement>(null);
@@ -84,46 +89,39 @@ const Avatar: React.FC<AvatarProps> = ({
   }
 
   useEffect(() => {
-    if (!currentMedia) return;
+    if (!displayMedia) return;
 
-    let isMounted = true;
+    const id = Date.now();
+    const newLayer: MediaLayerWithUrl = {
+      id,
+      media: displayMedia,
+      ready: false,
+    };
+    setLayers((prev) => [...prev, newLayer]);
 
-    async function load() {
+    async function loadUrl() {
       const protectedUrl =
-        currentMedia.type === 'photo'
-          ? size === 'medium' && currentMedia.medium
-            ? currentMedia.medium
-            : currentMedia.small
-          : currentMedia.url;
+        displayMedia.type === 'photo'
+          ? size === 'medium' && (displayMedia as PhotoMedia).medium
+            ? (displayMedia as PhotoMedia).medium
+            : (displayMedia as PhotoMedia).small
+          : (displayMedia as VideoMedia).url;
 
       const objectUrl = await fetchPrivateMedia(protectedUrl);
-
-      if (isMounted) {
-        setUrl(objectUrl);
-      }
+      setUrl(objectUrl);
+      setLayers((prev) =>
+        prev.map((layer) =>
+          layer.id === id ? { ...layer, url: objectUrl, ready: true } : layer,
+        ),
+      );
     }
 
-    load();
+    loadUrl();
+  }, [displayMedia]);
 
-    return () => {
-      isMounted = false;
-      if (url) URL.revokeObjectURL(url);
-    };
-  }, [currentMedia, size]);
-
-  const renderMedia = (media: DisplayMedia | null) => {
-    if (!media) return null;
-    const isVideo = media.type === 'video';
-    // const protectedUrl =
-    //   media.type === 'photo'
-    //     ? size === 'medium' && (media as PhotoMedia).medium
-    //       ? (media as PhotoMedia).medium
-    //       : (media as PhotoMedia).small
-    //     : (media as VideoMedia).url;
-
-    // setUrl(fetchPrivateMedia(protectedUrl));
-
-    if (isVideo)
+  const renderMedia = (media: DisplayMedia, url?: string) => {
+    if (!media || !url) return null;
+    if (media.type === 'video') {
       return (
         <video
           className={styles.avatarImage}
@@ -135,7 +133,7 @@ const Avatar: React.FC<AvatarProps> = ({
           preload='metadata'
         />
       );
-
+    }
     return (
       <img
         className={styles.avatarImage}
@@ -154,38 +152,36 @@ const Avatar: React.FC<AvatarProps> = ({
       onClick={onClick}
     >
       <div className={styles.avatarLayer}>
-        {renderMedia(currentMedia) || (
+        {renderMedia(currentMedia, url) || (
           <span className={styles.avatarInitials} style={{ fontSize }}>
             {initials}
           </span>
         )}
       </div>
 
-      {layers.map((layer) => (
-        <div
-          key={layer.id}
-          className={styles.avatarLayer}
-          style={{
-            opacity: 0,
-            animation: `fadeIn ${fadeDuration}ms ease forwards`,
-          }}
-          onAnimationEnd={() => {
-            setCurrentMedia(layer.media);
-            setLayers((prev) => {
-              if (prev.length > 1) {
-                return prev.slice(prev.length - 1);
-              }
-              return prev;
-            });
-          }}
-        >
-          {renderMedia(layer.media) || (
-            <span className={styles.avatarInitials} style={{ fontSize }}>
-              {initials}
-            </span>
-          )}
-        </div>
-      ))}
+      {layers.map(
+        (layer) =>
+          layer.ready && (
+            <div
+              key={layer.id}
+              className={styles.avatarLayer}
+              style={{
+                opacity: 0,
+                animation: `fadeIn ${fadeDuration}ms ease forwards`,
+              }}
+              onAnimationEnd={() => {
+                setCurrentMedia(layer.media);
+                setLayers((prev) => prev.slice(prev.length - 1));
+              }}
+            >
+              {renderMedia(layer.media, layer.url) || (
+                <span className={styles.avatarInitials} style={{ fontSize }}>
+                  {initials}
+                </span>
+              )}
+            </div>
+          ),
+      )}
     </div>
   );
 };

@@ -171,7 +171,7 @@ export default function AvatarCropModal({
       FRAME + imgPosRef.current.x,
       FRAME + imgPosRef.current.y,
       imgWidth,
-      imgHeight
+      imgHeight,
     );
 
     const sel = selectionRef.current;
@@ -210,7 +210,7 @@ export default function AvatarCropModal({
       imgPosRef.current.x,
       imgPosRef.current.y,
       imgWidth,
-      imgHeight
+      imgHeight,
     );
 
     createMask();
@@ -244,7 +244,7 @@ export default function AvatarCropModal({
       sel.y - o,
       handleSize,
       LINEWIDTH,
-      cornerRadius
+      cornerRadius,
     );
     ctx.fill();
     ctx.beginPath();
@@ -253,7 +253,7 @@ export default function AvatarCropModal({
       sel.y - o,
       LINEWIDTH,
       handleSize,
-      cornerRadius
+      cornerRadius,
     );
     ctx.fill();
 
@@ -264,7 +264,7 @@ export default function AvatarCropModal({
       sel.y + sel.size,
       handleSize,
       LINEWIDTH,
-      cornerRadius
+      cornerRadius,
     );
     ctx.fill();
     ctx.beginPath();
@@ -273,7 +273,7 @@ export default function AvatarCropModal({
       sel.y + sel.size - handleSize + o,
       LINEWIDTH,
       handleSize,
-      cornerRadius
+      cornerRadius,
     );
     ctx.fill();
 
@@ -284,7 +284,7 @@ export default function AvatarCropModal({
       sel.y + sel.size,
       handleSize,
       LINEWIDTH,
-      cornerRadius
+      cornerRadius,
     );
     ctx.fill();
     ctx.beginPath();
@@ -293,7 +293,7 @@ export default function AvatarCropModal({
       sel.y + sel.size - handleSize + o,
       LINEWIDTH,
       handleSize,
-      cornerRadius
+      cornerRadius,
     );
     ctx.fill();
   }, []);
@@ -383,35 +383,87 @@ export default function AvatarCropModal({
     };
   }, []);
 
-  const onMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (!canvasRef.current) return;
+  const handleUpload = useCallback(async () => {
+    const sel = selectionRef.current;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = sel.size;
+    canvas.height = sel.size;
+    const ctx = canvas.getContext('2d')!;
+
+    const img = imageRef.current;
+    const sx = (sel.x - imgPosRef.current.x) / imgScaleRef.current;
+    const sy = (sel.y - imgPosRef.current.y) / imgScaleRef.current;
+    const sSize = sel.size / imgScaleRef.current;
+
+    ctx.drawImage(img, sx, sy, sSize, sSize, 0, 0, sel.size, sel.size);
+
+    const blob = await new Promise<Blob>((resolve) =>
+      canvas.toBlob((b) => resolve(b as Blob), 'image/webp', 0.95),
+    );
+
+    const formData = new FormData();
+    formData.append(
+      'file',
+      new File([blob], file.name.replace(/\.[^/.]+$/, '.webp')),
+    );
+
+    try {
+      const data = await apiUpload(
+        `/api/media_files/primary-media/?content_type=${contentType}&object_id=${objectId}`,
+        formData,
+      );
+      console.log('Upload success:', data);
+
+      if (data) {
+        onUploadSuccess(data);
+      } else {
+        onUploadSuccess(null);
+      }
+      onClose();
+    } catch (e) {
+      console.error('Upload failed:', e);
+    }
+  }, [file.name, contentType, objectId, onUploadSuccess, onClose]);
+
+  const pointerIdRef = useRef<number | null>(null);
+
+  const startDrag = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!canvasRef.current || isDraggingRef.current) return;
+
       const rect = canvasRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left - FRAME;
       const y = e.clientY - rect.top - FRAME;
 
       const edge = detectEdge(x, y);
+      if (!edge) return;
 
-      const cursorMap: Record<Edge, string> = {
-        inside: activeEdgeRef.current ? 'none' : 'all-scroll',
-        topLeft: 'nwse-resize',
-        topRight: 'nesw-resize',
-        bottomLeft: 'nesw-resize',
-        bottomRight: 'nwse-resize',
-      };
-      setCursor(edge ? cursorMap[edge] : 'default');
+      setActiveEdge(edge);
+      setOffset({
+        x: x - selectionRef.current.x,
+        y: y - selectionRef.current.y,
+      });
+      isDraggingRef.current = true;
+
+      pointerIdRef.current = e.pointerId;
+      canvasRef.current.setPointerCapture(e.pointerId);
     },
-    [detectEdge]
+    [detectEdge],
   );
 
-  const onGlobalMove = useCallback(
-    (e: MouseEvent) => {
-      const edge = activeEdgeRef.current;
-      if (!edge || !canvasRef.current) return;
+  const onCanvasPointerMove = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (!isDraggingRef.current || !canvasRef.current) return;
 
       const rect = canvasRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left - FRAME;
       const y = e.clientY - rect.top - FRAME;
+
+      const edge = activeEdgeRef.current;
+      if (!edge) return;
 
       const off = offsetRef.current;
       const prev = selectionRef.current;
@@ -431,7 +483,7 @@ export default function AvatarCropModal({
           let deltaY = py - y;
           let newSize = Math.max(
             MIN_SIZE,
-            Math.min(size + deltaX, size + deltaY, px + size, py + size)
+            Math.min(size + deltaX, size + deltaY, px + size, py + size),
           );
           px = px + (size - newSize);
           py = py + (size - newSize);
@@ -444,7 +496,7 @@ export default function AvatarCropModal({
           let deltaY = py - y;
           let newSize = Math.max(
             MIN_SIZE,
-            Math.min(size + deltaY, size + deltaX, canvasWidth - px, py + size)
+            Math.min(size + deltaY, size + deltaX, canvasWidth - px, py + size),
           );
           py = py + (size - newSize);
           size = newSize;
@@ -455,7 +507,11 @@ export default function AvatarCropModal({
           const delta = Math.min(px - x, y - (py + size));
           const newSize = Math.max(
             MIN_SIZE,
-            Math.min(size + delta, canvasWidth - px + delta, CANVAS_HEIGHT - py)
+            Math.min(
+              size + delta,
+              canvasWidth - px + delta,
+              CANVAS_HEIGHT - py,
+            ),
           );
           px = px + (size - newSize);
           size = newSize;
@@ -466,7 +522,7 @@ export default function AvatarCropModal({
           const delta = Math.min(x - (px + size), y - (py + size));
           const newSize = Math.max(
             MIN_SIZE,
-            Math.min(size + delta, canvasWidth - px, CANVAS_HEIGHT - py)
+            Math.min(size + delta, canvasWidth - px, CANVAS_HEIGHT - py),
           );
           size = newSize;
           break;
@@ -481,91 +537,47 @@ export default function AvatarCropModal({
       selectionRef.current = newSel;
       scheduleRedraw();
     },
-    [canvasWidth, scheduleRedraw]
+    [canvasWidth, scheduleRedraw],
   );
-
-  const startDrag = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
+  const onHoverMove = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
       if (!canvasRef.current) return;
       const rect = canvasRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left - FRAME;
       const y = e.clientY - rect.top - FRAME;
 
       const edge = detectEdge(x, y);
-      if (!edge) return;
 
-      setActiveEdge(edge);
-      setOffset({
-        x: x - selectionRef.current.x,
-        y: y - selectionRef.current.y,
-      });
-      isDraggingRef.current = true;
-
-      window.addEventListener('mousemove', onGlobalMove);
-      window.addEventListener('mouseup', endDrag);
+      const cursorMap: Record<Edge, string> = {
+        inside: activeEdgeRef.current ? 'none' : 'all-scroll',
+        topLeft: 'nwse-resize',
+        topRight: 'nesw-resize',
+        bottomLeft: 'nesw-resize',
+        bottomRight: 'nwse-resize',
+      };
+      setCursor(edge ? cursorMap[edge] : 'default');
     },
-    [detectEdge, onGlobalMove]
+    [detectEdge],
   );
 
   const endDrag = useCallback(
-    (e: MouseEvent) => {
-      e?.preventDefault();
+    (e?: React.PointerEvent<HTMLCanvasElement> | PointerEvent) => {
+      e?.preventDefault?.();
       setTimeout(() => {
         isDraggingRef.current = false;
       }, 0);
       setActiveEdge(null);
       setSelection(selectionRef.current);
-      window.removeEventListener('mousemove', onGlobalMove);
-      window.removeEventListener('mouseup', endDrag);
+      if (canvasRef.current && pointerIdRef.current != null) {
+        try {
+          canvasRef.current.releasePointerCapture(pointerIdRef.current);
+        } catch {}
+        pointerIdRef.current = null;
+      }
       scheduleRedraw();
     },
-    [onGlobalMove, scheduleRedraw, setSelection]
+    [scheduleRedraw],
   );
-
-  const handleUpload = useCallback(async () => {
-    const sel = selectionRef.current;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = sel.size;
-    canvas.height = sel.size;
-    const ctx = canvas.getContext('2d')!;
-
-    const img = imageRef.current;
-    const sx = (sel.x - imgPosRef.current.x) / imgScaleRef.current;
-    const sy = (sel.y - imgPosRef.current.y) / imgScaleRef.current;
-    const sSize = sel.size / imgScaleRef.current;
-
-    ctx.drawImage(img, sx, sy, sSize, sSize, 0, 0, sel.size, sel.size);
-
-    const blob = await new Promise<Blob>((resolve) =>
-      canvas.toBlob((b) => resolve(b as Blob), 'image/webp', 0.95)
-    );
-
-    const formData = new FormData();
-    formData.append(
-      'file',
-      new File([blob], file.name.replace(/\.[^/.]+$/, '.webp'))
-    );
-
-    try {
-      const data = await apiUpload(
-        `/api/media_files/primary-media/?content_type=${contentType}&object_id=${objectId}`,
-        formData
-      );
-      console.log('Upload success:', data);
-
-      if (data) {
-        onUploadSuccess(data);
-      } else {
-        onUploadSuccess(null);
-      }
-      onClose();
-    } catch (e) {
-      console.error('Upload failed:', e);
-    }
-  }, [file.name, contentType, objectId, onUploadSuccess, onClose]);
 
   if (!isOpen) return null;
 
@@ -581,18 +593,24 @@ export default function AvatarCropModal({
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <canvas
           ref={canvasRef}
-          onMouseDown={startDrag}
-          onMouseMove={onMouseMove}
-          onMouseLeave={() => setCursor('default')}
+          onPointerDown={startDrag}
+          onPointerMove={(e) => {
+            onHoverMove(e);
+            onCanvasPointerMove(e);
+          }}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          onPointerLeave={() => setCursor('default')}
           className={styles.canvas}
-          style={{ cursor }}
+          style={{ cursor, touchAction: 'none' }}
         />
+
         <div className={styles.buttons}>
           <button onClick={onClose}>Cancel</button>
           <button onClick={handleUpload}>Save</button>
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

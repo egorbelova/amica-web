@@ -100,6 +100,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  cursor: pointer;
 }
 
 .languageInfo {
@@ -215,4 +216,20 @@
   justify-content: center;
   align-items: center;
   padding: 10px 20px;
+}
+
+.radio {
+  display: none;
+}
+
+.check {
+  width: 12px;
+  height: 12px;
+  transition: background 0.2s ease;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.check.active {
+  background: #4d8ddb;
 }
