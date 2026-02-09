@@ -28,7 +28,8 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
 }) => {
   const hasImages = files.some((f) => f.category === 'image');
   const hasVideos = files.some((f) => f.category === 'video');
-  const { selectedChat }: any = useChat();
+  const { selectedChat, addContact, deleteContact, saveContact }: any =
+    useChat();
   const { user } = useUser();
   const { t, locale }: { t: any; locale: Locale } = useTranslation();
 
@@ -189,8 +190,8 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
     });
   }, []);
 
-  const interlocutor = selectedChat?.users?.[0];
-  const contactId = interlocutor?.contact_id;
+  const interlocutor = selectedChat?.members?.[0];
+
   return (
     <div
       className={`${styles.sidebar} ${visible ? styles.visible : ''}`}
@@ -216,16 +217,30 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
 
         {selectedChat &&
           selectedChat.chat_type === 'D' &&
-          selectedChat.users &&
-          selectedChat.users[0].is_contact && (
-            <div
-              className={`${styles.button} ${
-                interlocutorEditVisible ? styles.hidden : ''
-              }`}
-              onClick={onInterlocutorEdit}
-            >
-              Edit
-            </div>
+          selectedChat.members && (
+            <>
+              {selectedChat.members[0].is_contact ? (
+                <div
+                  className={`${styles.button} ${
+                    interlocutorEditVisible ? styles.hidden : ''
+                  }`}
+                  onClick={onInterlocutorEdit}
+                >
+                  Edit
+                </div>
+              ) : (
+                <div
+                  className={`${styles.button} ${
+                    interlocutorEditVisible ? styles.hidden : ''
+                  }`}
+                  onClick={() => {
+                    addContact(selectedChat.members[0].id);
+                  }}
+                >
+                  Add Contact
+                </div>
+              )}
+            </>
           )}
       </div>
 
@@ -253,7 +268,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
             key={selectedChat.id}
             displayName={selectedChat.name}
             avatar={selectedChat.primary_media}
-            objectId={contactId}
+            objectId={interlocutor?.contact_id}
             contentType='contact'
             className={styles['sidebar__avatar']}
             classNameAvatar={styles['sidebar__editable-avatar']}
@@ -432,9 +447,23 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
               </>
             )}
 
-            <div className={`${styles.button} ${styles.save}`}>
+            <button
+              className={`${styles.button} ${styles.save}`}
+              type='button'
+              onClick={() => saveContact(interlocutor?.contact_id, value)}
+            >
               {t('buttons.save')}
-            </div>
+            </button>
+            <button
+              className={`${styles.button} ${styles.delete}`}
+              type='button'
+              onClick={() => {
+                deleteContact(interlocutor?.contact_id);
+                setInterlocutorEditVisible(false);
+              }}
+            >
+              Delete Contact
+            </button>
           </div>
         </div>
       )}

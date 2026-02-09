@@ -73,7 +73,7 @@ export default function AvatarCropModal({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (!isOpen || type !== 'video' || !file) return;
+    if (!isOpen || type === 'video' || !file) return;
 
     const url = URL.createObjectURL(file);
     if (videoRef.current) {
@@ -384,47 +384,76 @@ export default function AvatarCropModal({
   }, []);
 
   const handleUpload = useCallback(async () => {
-    const sel = selectionRef.current;
+    if (type === 'video') {
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const data = await apiUpload(
+          `/api/media_files/primary-media/?content_type=${contentType}&object_id=${objectId}`,
+          formData,
+        );
 
-    const canvas = document.createElement('canvas');
-    canvas.width = sel.size;
-    canvas.height = sel.size;
-    const ctx = canvas.getContext('2d')!;
+        if (data) {
+          onUploadSuccess(data);
+        } else {
+          onUploadSuccess(null);
+        }
 
-    const img = imageRef.current;
-    const sx = (sel.x - imgPosRef.current.x) / imgScaleRef.current;
-    const sy = (sel.y - imgPosRef.current.y) / imgScaleRef.current;
-    const sSize = sel.size / imgScaleRef.current;
-
-    ctx.drawImage(img, sx, sy, sSize, sSize, 0, 0, sel.size, sel.size);
-
-    const blob = await new Promise<Blob>((resolve) =>
-      canvas.toBlob((b) => resolve(b as Blob), 'image/webp', 0.95),
-    );
-
-    const formData = new FormData();
-    formData.append(
-      'file',
-      new File([blob], file.name.replace(/\.[^/.]+$/, '.webp')),
-    );
-
-    try {
-      const data = await apiUpload(
-        `/api/media_files/primary-media/?content_type=${contentType}&object_id=${objectId}`,
-        formData,
-      );
-      console.log('Upload success:', data);
-
-      if (data) {
-        onUploadSuccess(data);
-      } else {
-        onUploadSuccess(null);
+        onClose();
+      } catch (e) {
+        console.error('Video upload failed:', e);
       }
-      onClose();
-    } catch (e) {
-      console.error('Upload failed:', e);
+
+      return;
+    } else {
+      const sel = selectionRef.current;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = sel.size;
+      canvas.height = sel.size;
+      const ctx = canvas.getContext('2d')!;
+
+      const img = imageRef.current;
+      const sx = (sel.x - imgPosRef.current.x) / imgScaleRef.current;
+      const sy = (sel.y - imgPosRef.current.y) / imgScaleRef.current;
+      const sSize = sel.size / imgScaleRef.current;
+
+      ctx.drawImage(img, sx, sy, sSize, sSize, 0, 0, sel.size, sel.size);
+
+      const blob = await new Promise<Blob>((resolve) =>
+        canvas.toBlob((b) => resolve(b as Blob), 'image/webp', 0.95),
+      );
+
+      const formData = new FormData();
+      formData.append(
+        'file',
+        new File([blob], file.name.replace(/\.[^/.]+$/, '.webp')),
+      );
+
+      try {
+        const data = await apiUpload(
+          `/api/media_files/primary-media/?content_type=${contentType}&object_id=${objectId}`,
+          formData,
+        );
+        console.log('Upload success:', data);
+
+        if (data) {
+          onUploadSuccess(data);
+        } else {
+          onUploadSuccess(null);
+        }
+        onClose();
+      } catch (e) {
+        console.error('Upload failed:', e);
+      }
     }
   }, [file.name, contentType, objectId, onUploadSuccess, onClose]);
+
+  useEffect(() => {
+    if (isOpen && type === 'video') {
+      handleUpload();
+    }
+  }, [isOpen, type, handleUpload]);
 
   const pointerIdRef = useRef<number | null>(null);
 

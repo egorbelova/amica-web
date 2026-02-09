@@ -10,7 +10,7 @@ import React, {
 import type { ReactNode } from 'react';
 import type { Message, Chat, User } from '@/types';
 import { websocketManager } from '@/utils/websocket-manager';
-import { apiFetch } from '@/utils/apiFetch';
+import { apiFetch, apiUpload } from '@/utils/apiFetch';
 
 interface ChatContextType {
   selectedChat: Chat | null;
@@ -33,6 +33,9 @@ interface ChatContextType {
   handleChatClick: (chatId: number) => Promise<void>;
   handleCreateTemporaryChat: (user: User) => void;
   setSelectedChatId: (chatId: number | null) => void;
+  addContact: (userId: number) => void;
+  deleteContact: (contactId: number) => void;
+  saveContact: (contactId: number, name: string) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -134,6 +137,94 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     [],
   );
 
+  const saveContact = useCallback(
+    async (contactId: number, name: string) => {
+      if (!selectedChat) return;
+
+      const formData = new FormData();
+      formData.append('contact_id', contactId.toString());
+      formData.append('name', name);
+
+      const res = await apiFetch('/api/contact/', {
+        method: 'PATCH',
+        body: formData,
+      });
+
+      if (!res.ok) return;
+
+      const updatedMembers = selectedChat.members?.map((u) =>
+        u.contact_id === contactId ? { ...u, name } : u,
+      );
+
+      setChats((prevChats) =>
+        prevChats.map((chat) =>
+          chat.id === selectedChat.id
+            ? { ...chat, members: updatedMembers, name }
+            : chat,
+        ),
+      );
+    },
+    [selectedChat],
+  );
+
+  const deleteContact = useCallback(
+    async (contactId: number) => {
+      if (!selectedChatId) return;
+      const formData = new FormData();
+      formData.append('contact_id', contactId.toString());
+      const res = await apiFetch('/api/contact/', {
+        method: 'DELETE',
+        body: formData,
+      });
+
+      setChats((prevChats) =>
+        prevChats.map((chat) => {
+          if (chat.id !== selectedChatId) return chat;
+
+          if (!chat.members || chat.members.length === 0) return chat;
+
+          const updatedUsers = chat.members.map((u, index) =>
+            index === 0 ? { ...u, is_contact: false } : u,
+          );
+
+          return {
+            ...chat,
+            members: updatedUsers,
+          };
+        }),
+      );
+    },
+    [selectedChatId],
+  );
+
+  const addContact = useCallback(
+    async (usedId: number) => {
+      if (!selectedChatId) return;
+      const formData = new FormData();
+      formData.append('user_id', usedId.toString());
+      const res = await apiUpload('/api/contact/', formData);
+      if (res.error) return setError(res.error);
+
+      setChats((prevChats) =>
+        prevChats.map((chat) => {
+          if (chat.id !== selectedChatId) return chat;
+
+          if (!chat.members || chat.members.length === 0) return chat;
+
+          const updatedUsers = chat.members.map((u, index) =>
+            index === 0 ? { ...u, is_contact: true } : u,
+          );
+
+          return {
+            ...chat,
+            members: updatedUsers,
+          };
+        }),
+      );
+    },
+    [selectedChatId],
+  );
+
   const getCachedMessages = useCallback(
     (roomId: number) => {
       return messagesCache[roomId] || null;
@@ -213,7 +304,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           setChats((prevChats) => {
             const updatedChats = prevChats.map((chat) =>
               chat.id === chatId
-                ? { ...chat, media: data.chat.media, users: data.chat.users }
+                ? { ...chat, media: data.chat.media, members: data.chat.users }
                 : chat,
             );
             return updatedChats;
@@ -282,6 +373,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     handleChatClick,
     handleCreateTemporaryChat,
     setSelectedChatId,
+    addContact,
+    deleteContact,
+    saveContact,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

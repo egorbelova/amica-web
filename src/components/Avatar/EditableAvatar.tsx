@@ -39,7 +39,8 @@ export default function EditableAvatar({
   };
 
   const handleFile = (file: File) => {
-    if (!file.type.startsWith('image/')) return;
+    if (!file.type.startsWith('image/') && !file.type.startsWith('video/'))
+      return;
     setSelectedFile(file);
     setIsCropOpen(true);
   };
@@ -97,7 +98,7 @@ export default function EditableAvatar({
           <input
             ref={fileInputRef}
             type='file'
-            accept='image/*'
+            accept='image/*,video/*'
             hidden
             onChange={handleFileChange}
             className={styles.profileMediaInput}
@@ -106,7 +107,7 @@ export default function EditableAvatar({
           {selectedFile && (
             <AvatarCropModal
               isOpen={isCropOpen}
-              type='photo'
+              type={selectedFile.type.startsWith('image/') ? 'photo' : 'video'}
               file={selectedFile}
               objectId={objectId}
               contentType={contentType}

@@ -75,6 +75,8 @@ export interface User {
   preferred_session_lifetime_days: number;
   active_wallpaper?: any | null;
   last_seen: string | null;
+  is_contact?: boolean;
+  contact_id?: number;
 }
 
 export interface Contact {
