@@ -117,7 +117,7 @@
   align-items: center;
   gap: 0.25rem;
   cursor: pointer;
-  color: #6b7280;
+  color: #fff;
   font-weight: 500;
   background: transparent;
   border: none;
@@ -141,8 +141,15 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  grid-template-columns: repeat(3, 1fr); /* 3 колонки одинаковой ширины */
+  gap: 1px;
+}
+
+.mediaWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
 }
 
 .mediaItem {

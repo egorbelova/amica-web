@@ -134,10 +134,6 @@ const MainChatWindow: React.FC = () => {
             <SendArea />
           </div>
           <SideBarMedia
-            {...(selectedChat.type === 'G'
-              ? { members: selectedChat.members }
-              : {})}
-            files={[]}
             visible={sideBarVisible}
             onClose={() => setSideBarVisible(false)}
           />

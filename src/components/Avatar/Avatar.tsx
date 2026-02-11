@@ -70,15 +70,6 @@ const Avatar: React.FC<AvatarProps> = ({
     return () => obs.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!displayMedia) return;
-
-    const id = Date.now();
-    const newLayer: MediaLayer = { id, media: displayMedia };
-
-    setLayers((prev) => [...prev, newLayer]);
-  }, [displayMedia]);
-
   const [url, setUrl] = useState<string | null>(null);
 
   async function fetchPrivateMedia(url: string) {
@@ -91,7 +82,7 @@ const Avatar: React.FC<AvatarProps> = ({
   useEffect(() => {
     if (!displayMedia) return;
 
-    const id = Date.now();
+    const id = crypto.randomUUID();
     const newLayer: MediaLayerWithUrl = {
       id,
       media: displayMedia,

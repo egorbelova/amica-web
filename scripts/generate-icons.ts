@@ -16,7 +16,7 @@ function fixSvgAttributes(svg: string) {
   return svg.replace(/([a-zA-Z0-9:-]+)="([^"]*)"/g, (full, attr, value) => {
     if (!attr.includes('-')) return `${attr}="${value}"`;
     return `${attr.replace(/-([a-z])/g, (_: string, c: string) =>
-      c.toUpperCase()
+      c.toUpperCase(),
     )}="${value}"`;
   });
 }
@@ -43,7 +43,7 @@ files.forEach((file) => {
   const isAnimated = /<animate|<animateTransform/.test(svgContent);
 
   if (isAnimated) {
-    animatedComponents[name] = { inner: svgContent, viewBox };
+    animatedComponents[name] = { inner: fixSvgAttributes(inner), viewBox };
   } else {
     symbols.push({ name, inner, viewBox });
   }
@@ -67,7 +67,7 @@ ${symbols
     (s) =>
       `    <symbol id="icon-${s.name}" viewBox="${
         s.viewBox
-      }">${fixSvgAttributes(s.inner)}</symbol>`
+      }">${fixSvgAttributes(s.inner)}</symbol>`,
   )
   .join('\n')}
   </svg>
@@ -81,18 +81,13 @@ ${symbols.map((s) => `  "${s.name}": "${s.viewBox}"`).join(',\n')}
 export const Icon: React.FC<IconProps> = ({ name, ...props }) => {
   const animated = ${JSON.stringify(animatedComponents)}[name];
   if (animated) {
-
-    return (${Object.keys(animatedComponents)
-      .map(
-        (n) =>
-          `name === "${n}" ? ${animatedComponents[n].inner.replace(
-            '<svg',
-            '<svg {...props}'
-          )} : null`
-      )
-      .join(' : ')}
+    return (
+      <svg viewBox={animated.viewBox} {...props}>
+        <g dangerouslySetInnerHTML={{ __html: animated.inner }} />
+      </svg>
     );
   }
+  
 
   return <svg viewBox={staticViewBoxes[name]} {...props}><use href={\`#icon-\${name}\`} /></svg>;
 };
@@ -111,5 +106,5 @@ console.log(
   symbols.length,
   'static,',
   Object.keys(animatedComponents).length,
-  'animated'
+  'animated',
 );

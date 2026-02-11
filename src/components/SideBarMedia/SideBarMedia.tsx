@@ -12,50 +12,52 @@ import EditableAvatar from '@/components/Avatar/EditableAvatar';
 import MorphingIcon from '@/utils/morphSVG';
 import type { File } from '@/types';
 import type { User } from '@/types';
+import AudioLayout from '@/components/Message/AudioLayout';
+import VideoLayout from '../Message/VideoLayout';
 
 interface SideBarMediaProps {
-  files: File[];
   visible: boolean;
-  members?: User[];
   onClose?: () => void;
 }
 
-const SideBarMedia: React.FC<SideBarMediaProps> = ({
-  files,
-  onClose,
-  visible,
-  members,
-}) => {
-  const hasImages = files.some((f) => f.category === 'image');
-  const hasVideos = files.some((f) => f.category === 'video');
-  const { selectedChat, addContact, deleteContact, saveContact }: any =
-    useChat();
+const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
+  const {
+    selectedChat,
+    addContact,
+    deleteContact,
+    saveContact,
+    messages,
+  }: any = useChat();
   const { user } = useUser();
   const { t, locale }: { t: any; locale: Locale } = useTranslation();
+  console.log(selectedChat);
+  const mediaFiles = messages
+    ?.flatMap((msg) => msg.files || [])
+    .filter((f) => f.category === 'image' || f.category === 'video')
+    .reverse();
+  const audioFiles = messages
+    ?.flatMap((msg) => msg.files || [])
+    .filter((f) => f.category === 'audio')
+    .reverse();
 
-  const initialTab = hasImages
-    ? 'images'
-    : hasVideos
-      ? 'videos'
-      : members?.length
-        ? 'members'
-        : null;
+  const initialTab = mediaFiles?.length ? 'media' : audioFiles?.length;
+
   const [activeTab, setActiveTab] = useState<
-    'images' | 'videos' | 'members' | null
+    'media' | 'audio' | 'members' | null
   >(initialTab);
 
-  const filterFiles = () => {
-    switch (activeTab) {
-      case 'images':
-        return files.filter((f) => f.category === 'image');
-      case 'videos':
-        return files.filter((f) => f.category === 'video');
-      default:
-        return [];
-    }
-  };
+  // const filterFiles = () => {
+  //   switch (activeTab) {
+  //     case 'media':
+  //       return files.filter((f) => f.category === 'image');
+  //     case 'audio':
+  //       return files.filter((f) => f.category === 'audio');
+  //     default:
+  //       return [];
+  //   }
+  // };
 
-  const displayedFiles = filterFiles();
+  // const displayedFiles = filterFiles();
 
   const [interlocutorEditVisible, setInterlocutorEditVisible] = useState(false);
 
@@ -217,7 +219,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
 
         {selectedChat &&
           selectedChat.chat_type === 'D' &&
-          selectedChat.members && (
+          selectedChat?.members && (
             <>
               {selectedChat.members[0].is_contact ? (
                 <div
@@ -343,7 +345,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
         }`}
       >
         <div className={styles.tabs}>
-          {members && (
+          {selectedChat?.members && selectedChat.chat_type === 'G' && (
             <button
               className={`${styles.tab} ${
                 activeTab === 'members' ? styles.active : ''
@@ -353,32 +355,32 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
               Members
             </button>
           )}
-          {hasImages && (
+          {mediaFiles.length > 0 && (
             <button
               className={`${styles.tab} ${
-                activeTab === 'images' ? styles.active : ''
+                activeTab === 'media' ? styles.active : ''
               }`}
-              onClick={() => setActiveTab('images')}
+              onClick={() => setActiveTab('media')}
             >
-              Images
+              Media
             </button>
           )}
-          {hasVideos && (
+          {audioFiles.length > 0 && (
             <button
               className={`${styles.tab} ${
-                activeTab === 'videos' ? styles.active : ''
+                activeTab === 'audio' ? styles.active : ''
               }`}
-              onClick={() => setActiveTab('videos')}
+              onClick={() => setActiveTab('audio')}
             >
-              Videos
+              Audio
             </button>
           )}
         </div>
 
         <div className={styles.content}>
-          {activeTab === 'members' && members && (
+          {activeTab === 'members' && selectedChat.chat_type === 'G' && (
             <div className={styles.membersList}>
-              {members.map((member) => (
+              {selectedChat?.members.map((member) => (
                 <div key={member.id} className={styles.memberItem}>
                   <Avatar
                     className={styles.memberAvatar}
@@ -395,34 +397,43 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({
             </div>
           )}
 
-          {(activeTab === 'images' || activeTab === 'videos') &&
-            displayedFiles.length > 0 && (
-              <div className={styles.grid}>
-                {displayedFiles.map((file) => {
-                  if (file.category === 'image') {
-                    return (
-                      <ProgressiveImage
-                        key={file.id}
-                        small={file.thumbnail_small_url}
-                        full={file.thumbnail_medium_url || file.file_url}
-                        dominant_color='#eee'
-                      />
-                    );
-                  }
-                  if (file.category === 'video') {
-                    return (
-                      <video
-                        key={file.id}
-                        src={file.file_url}
-                        className={styles.mediaItem}
-                        controls
-                      />
-                    );
-                  }
-                  return null;
-                })}
-              </div>
-            )}
+          {activeTab === 'media' && mediaFiles.length > 0 && (
+            <div className={styles.grid}>
+              {mediaFiles.map((file) => (
+                <div key={file.id} className={styles.mediaWrapper}>
+                  {file.category === 'image' && (
+                    <ProgressiveImage
+                      small={file.thumbnail_small_url}
+                      full={file.thumbnail_medium_url || file.file_url}
+                      dominant_color='#eee'
+                    />
+                  )}
+                  {file.category === 'video' && (
+                    <VideoLayout
+                      full={file.file_url}
+                      has_audio={file.has_audio}
+                      // className={styles.mediaItem}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'audio' && audioFiles.length > 0 && (
+            <div className={styles.grid2}>
+              {audioFiles.map((file) => (
+                <AudioLayout
+                  key={file.id}
+                  full={file.file_url}
+                  waveform={file.waveform}
+                  duration={file.duration}
+                  id={file.id}
+                  cover_url={file.cover_url}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
       {interlocutorEditVisible && (

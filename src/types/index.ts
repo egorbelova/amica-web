@@ -50,7 +50,7 @@ export interface VideoMedia {
 }
 
 export interface MediaLayer {
-  id: number;
+  id: string;
   media: DisplayMedia | null;
 }
 
