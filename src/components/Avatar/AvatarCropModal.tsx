@@ -407,18 +407,18 @@ export default function AvatarCropModal({
       return;
     } else {
       const sel = selectionRef.current;
-
-      const canvas = document.createElement('canvas');
-      canvas.width = sel.size;
-      canvas.height = sel.size;
-      const ctx = canvas.getContext('2d')!;
-
       const img = imageRef.current;
+
       const sx = (sel.x - imgPosRef.current.x) / imgScaleRef.current;
       const sy = (sel.y - imgPosRef.current.y) / imgScaleRef.current;
       const sSize = sel.size / imgScaleRef.current;
 
-      ctx.drawImage(img, sx, sy, sSize, sSize, 0, 0, sel.size, sel.size);
+      const canvas = document.createElement('canvas');
+      canvas.width = sSize;
+      canvas.height = sSize;
+
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, sx, sy, sSize, sSize, 0, 0, sSize, sSize);
 
       const blob = await new Promise<Blob>((resolve) =>
         canvas.toBlob((b) => resolve(b as Blob), 'image/webp', 0.95),
@@ -435,13 +435,10 @@ export default function AvatarCropModal({
           `/api/media_files/primary-media/?content_type=${contentType}&object_id=${objectId}`,
           formData,
         );
-        console.log('Upload success:', data);
 
-        if (data) {
-          onUploadSuccess(data);
-        } else {
-          onUploadSuccess(null);
-        }
+        if (data) onUploadSuccess(data);
+        else onUploadSuccess(null);
+
         onClose();
       } catch (e) {
         console.error('Upload failed:', e);
