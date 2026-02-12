@@ -295,8 +295,8 @@ const MessageInput: React.FC = () => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
-  const handleFiles = (files) => {
-    setFiles(files);
+  const handleFiles = (newFiles: File[]) => {
+    setFiles((prev) => [...prev, ...newFiles]);
   };
 
   function formatFileSize(bytes: number): string {

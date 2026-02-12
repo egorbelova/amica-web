@@ -1,4 +1,5 @@
-const CACHE_NAME = 'app-cache-v5';
+const CACHE_NAME = 'app-cache-' + '__BUILD_HASH__';
+
 const STATIC_ASSETS = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {

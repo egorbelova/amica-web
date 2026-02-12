@@ -29,7 +29,7 @@ interface ChatContextType {
   updateChatUnreadCount: (chatId: number, unreadCount: number) => void;
 
   fetchChats: () => Promise<void>;
-  fetchMessages: (chatId: number) => Promise<void>;
+  fetchChat: (chatId: number) => Promise<void>;
   handleChatClick: (chatId: number) => Promise<void>;
   handleCreateTemporaryChat: (user: User) => void;
   setSelectedChatId: (chatId: number | null) => void;
@@ -270,7 +270,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         : null;
       if (hashRoomId) {
         setSelectedChatId(hashRoomId);
-        fetchMessages(hashRoomId);
+        fetchChat(hashRoomId);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -293,24 +293,28 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     };
   }, []);
 
-  const fetchMessages = useCallback(
+  const fetchChat = useCallback(
     async (chatId: number) => {
       try {
         const res = await apiFetch(`/api/get_chat/${chatId}/`);
         if (!res.ok) throw new Error(`Failed: ${res.status}`);
         const data = await res.json();
-        // console.log('Fetched chat:', data.chat);
-        if (data.chat.media) {
+        // console.log('fetchChat', data);
+        if (data.media) {
           setChats((prevChats) => {
             const updatedChats = prevChats.map((chat) =>
               chat.id === chatId
-                ? { ...chat, media: data.chat.media, members: data.chat.users }
+                ? {
+                    ...chat,
+                    media: data.media,
+                    members: data.members,
+                  }
                 : chat,
             );
             return updatedChats;
           });
         }
-        updateMessages(data.chat.messages || [], chatId);
+        updateMessages(data.messages || [], chatId);
       } catch (err) {
         console.error(err);
         updateMessages([], chatId);
@@ -348,10 +352,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       setSelectedChatId(chatId);
 
       startTransition(() => {
-        fetchMessages(chatId);
+        fetchChat(chatId);
       });
     },
-    [selectedChatId, fetchMessages],
+    [selectedChatId, fetchChat],
   );
 
   const value: ChatContextType = {
@@ -369,7 +373,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     updateChatLastMessage,
     updateChatUnreadCount,
     fetchChats,
-    fetchMessages,
+    fetchChat,
     handleChatClick,
     handleCreateTemporaryChat,
     setSelectedChatId,

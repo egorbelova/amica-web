@@ -6,6 +6,7 @@ import compression from 'vite-plugin-compression';
 export default defineConfig({
   plugins: [
     react(),
+
     compression({
       algorithm: 'brotliCompress',
       ext: '.br',
@@ -24,6 +25,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  define: {
+    __BUILD_HASH__: JSON.stringify(Date.now()),
+  },
+
   server: {
     host: '0.0.0.0',
     // host: '192.168.1.68',
