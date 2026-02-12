@@ -98,7 +98,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     .reverse();
 
   const initialTab: 'media' | 'audio' | 'members' | null =
-    selectedChat?.chat_type === 'G'
+    selectedChat?.type === 'G'
       ? 'members'
       : mediaFiles.length > 0
         ? 'media'
@@ -111,7 +111,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   >(null);
 
   useEffect(() => {
-    if (selectedChat?.chat_type === 'G') {
+    if (selectedChat?.type === 'G') {
       setActiveTab('members');
     } else if (mediaFiles.length > 0) {
       setActiveTab('media');
@@ -229,7 +229,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   const [subtitle, setSubtitle] = useState('');
 
   useEffect(() => {
-    if (selectedChat.chat_type === 'G') {
+    if (selectedChat.type === 'G') {
       setSubtitle(`${selectedChat.info} members`);
     } else {
       setSubtitle(formatLastSeen(selectedChat.info));
@@ -299,7 +299,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
           </div>
 
           {selectedChat &&
-            selectedChat.chat_type === 'D' &&
+            selectedChat.type === 'D' &&
             selectedChat?.members &&
             !attachmentsActive && (
               <>
@@ -449,7 +449,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
         >
           <div className={styles.tabs}>
             <div className={styles['tabs-inner']}>
-              {selectedChat?.members && selectedChat.chat_type === 'G' && (
+              {selectedChat?.members && selectedChat.type === 'G' && (
                 <button
                   className={`${styles.tab} ${
                     activeTab === 'members' ? styles.active : ''
@@ -483,7 +483,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
           </div>
 
           <div className={styles.content}>
-            {activeTab === 'members' && selectedChat.chat_type === 'G' && (
+            {activeTab === 'members' && selectedChat.type === 'G' && (
               <div className={styles.membersList}>
                 {selectedChat?.members?.map((member) => (
                   <div key={member.id} className={styles.memberItem}>
