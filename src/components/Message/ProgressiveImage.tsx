@@ -47,6 +47,7 @@ export default function ProgressiveImage({
           className={`${styles['mes_img']} ${styles['progressive-image']}`}
           alt='Attachment placeholder'
           decoding='async'
+          draggable={false}
         />
       )}
 
@@ -57,6 +58,7 @@ export default function ProgressiveImage({
           onClick={onClick}
           alt='Attachment'
           decoding='async'
+          draggable={false}
         />
       )}
 

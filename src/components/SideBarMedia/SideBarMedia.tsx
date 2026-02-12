@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useLayoutEffect, useRef } from 'react';
 import ProgressiveImage from '../Message/ProgressiveImage';
 import styles from './SideBarMedia.module.scss';
 import Avatar from '../Avatar/Avatar';
@@ -31,6 +31,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   const { t, locale }: { t: any; locale: Locale } = useTranslation();
   const tabsRef = useRef<HTMLDivElement>(null);
   const [attachmentsActive, setAttachmentsActive] = useState(false);
+  const sidebarInnerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!tabsRef.current) return;
@@ -97,18 +98,9 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     .filter((f) => f.category === 'audio')
     .reverse();
 
-  const initialTab: 'media' | 'audio' | 'members' | null =
-    selectedChat?.type === 'G'
-      ? 'members'
-      : mediaFiles.length > 0
-        ? 'media'
-        : audioFiles.length > 0
-          ? 'audio'
-          : null;
-
-  const [activeTab, setActiveTab] = useState<
-    'media' | 'audio' | 'members' | null
-  >(null);
+  const [activeTab, setActiveTab] = useState<'media' | 'audio' | 'members'>(
+    null,
+  );
 
   useEffect(() => {
     if (selectedChat?.type === 'G') {
@@ -264,6 +256,210 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     hasPhotos ? { label: 'Photos', value: 3 } : null,
   ].filter(Boolean);
 
+  const membersRef = useRef(null);
+  const mediaRef = useRef(null);
+  const audioRef = useRef(null);
+
+  const [indicatorPosition, setIndicatorPosition] = useState(0);
+  const [indicatorWidth, setIndicatorWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const updateIndicator = () => {
+      let ref;
+      if (activeTab === 'members') ref = membersRef;
+      if (activeTab === 'media') ref = mediaRef;
+      if (activeTab === 'audio') ref = audioRef;
+
+      if (ref?.current) {
+        setIndicatorPosition(ref.current.offsetLeft);
+        setIndicatorWidth(ref.current.offsetWidth);
+      }
+    };
+
+    updateIndicator();
+  }, [activeTab, mediaFiles.length, audioFiles.length, selectedChat]);
+
+  useEffect(() => {
+    const sidebar = gridRef.current;
+    if (!sidebar) return;
+
+    let pointerStartX = 0;
+    let isSwiping = false;
+
+    const handlePointerDown = (e: PointerEvent) => {
+      pointerStartX = e.clientX;
+      isSwiping = true;
+    };
+
+    const handlePointerMove = (e: PointerEvent) => {};
+
+    const handlePointerUp = (e: PointerEvent) => {
+      if (!isSwiping) return;
+
+      const pointerEndX = e.clientX;
+      const deltaX = pointerEndX - pointerStartX;
+
+      if (Math.abs(deltaX) > 50) {
+        const tabsOrder: Array<'members' | 'media' | 'audio'> = [];
+        if (selectedChat?.type === 'G') tabsOrder.push('members');
+        if (mediaFiles.length > 0) tabsOrder.push('media');
+        if (audioFiles.length > 0) tabsOrder.push('audio');
+
+        const currentIndex = tabsOrder.indexOf(activeTab as any);
+
+        if (deltaX < 0) {
+          const nextIndex = Math.min(currentIndex + 1, tabsOrder.length - 1);
+          setActiveTab(tabsOrder[nextIndex]);
+        } else {
+          const prevIndex = Math.max(currentIndex - 1, 0);
+          setActiveTab(tabsOrder[prevIndex]);
+        }
+      }
+
+      isSwiping = false;
+    };
+
+    sidebar.addEventListener('pointerdown', handlePointerDown);
+    sidebar.addEventListener('pointermove', handlePointerMove);
+    sidebar.addEventListener('pointerup', handlePointerUp);
+    sidebar.addEventListener('pointercancel', handlePointerUp);
+
+    return () => {
+      sidebar.removeEventListener('pointerdown', handlePointerDown);
+      sidebar.removeEventListener('pointermove', handlePointerMove);
+      sidebar.removeEventListener('pointerup', handlePointerUp);
+      sidebar.removeEventListener('pointercancel', handlePointerUp);
+    };
+  }, [activeTab, selectedChat, mediaFiles, audioFiles]);
+
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  const [rowScale, setRowScale] = useState(3);
+
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+
+    const pinchThreshold = 1;
+    const minColumns = 1;
+    const maxColumns = 20;
+
+    let pointers = new Map<number, PointerEvent>();
+    let initialColumns = rowScale;
+    let initialPositions = new Map<number, { x: number; y: number }>();
+
+    const handlePointerDown = (e: PointerEvent) => {
+      pointers.set(e.pointerId, e);
+      initialPositions.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (pointers.size === 2) {
+        initialColumns = rowScale;
+      }
+    };
+
+    const handlePointerMove = (e: PointerEvent) => {
+      if (pointers.size !== 2) return;
+
+      pointers.set(e.pointerId, e);
+      const [p1, p2] = Array.from(pointers.values());
+      const pos1 = initialPositions.get(p1.pointerId)!;
+      const pos2 = initialPositions.get(p2.pointerId)!;
+
+      const averageDeltaX = (p1.clientX - pos1.x + (p2.clientX - pos2.x)) / 2;
+      if (Math.abs(averageDeltaX) < 1) return;
+
+      const container = gridRef.current!;
+      const containerRect = container.getBoundingClientRect();
+
+      const cursorXInContainerBefore =
+        e.clientX - containerRect.left + container.scrollLeft;
+
+      let newColumns = Math.round(initialColumns + averageDeltaX);
+      newColumns = Math.max(minColumns, Math.min(maxColumns, newColumns));
+      const prevColumns = rowScale;
+      if (newColumns === prevColumns) return;
+
+      setRowScale(newColumns);
+
+      requestAnimationFrame(() => {
+        const ratio = newColumns / prevColumns;
+        const cursorXInContainerAfter = cursorXInContainerBefore * ratio;
+
+        const targetScrollLeft =
+          cursorXInContainerAfter - (e.clientX - containerRect.left);
+
+        container.scrollLeft = targetScrollLeft;
+      });
+    };
+
+    const handlePointerUp = (e: PointerEvent) => {
+      pointers.delete(e.pointerId);
+      initialPositions.delete(e.pointerId);
+
+      if (pointers.size < 2) {
+        initialColumns = rowScale;
+      }
+    };
+
+    let wheelStart = 0;
+    const handleWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+
+      if (Math.abs(e.deltaY) < 1) return;
+
+      const container = sidebarInnerRef.current!;
+      const containerRect = container.getBoundingClientRect();
+
+      const cursorXInContainerBefore =
+        e.clientX - containerRect.left + container.scrollLeft;
+
+      const prevColumns = rowScale;
+      const deltaColumns = e.deltaY / 10;
+      let newColumns = Math.round(rowScale + deltaColumns);
+      newColumns = Math.max(minColumns, Math.min(maxColumns, newColumns));
+
+      if (newColumns === prevColumns) return;
+
+      setRowScale(newColumns);
+
+      requestAnimationFrame(() => {
+        const ratio = newColumns / prevColumns;
+        const cursorXInContainerAfter = cursorXInContainerBefore * ratio;
+
+        const targetScrollLeft =
+          cursorXInContainerAfter - (e.clientX - containerRect.left);
+
+        container.scrollLeft = targetScrollLeft;
+      });
+    };
+
+    const handleWheelEnd = () => {
+      wheelStart = 0;
+      initialColumns = rowScale;
+    };
+
+    grid.addEventListener('pointerdown', handlePointerDown);
+    grid.addEventListener('pointermove', handlePointerMove);
+    grid.addEventListener('pointerup', handlePointerUp);
+    grid.addEventListener('pointercancel', handlePointerUp);
+    grid.addEventListener('wheel', handleWheel, { passive: false });
+
+    window.addEventListener('keyup', handleWheelEnd);
+    window.addEventListener('mouseup', handleWheelEnd);
+
+    return () => {
+      grid.removeEventListener('pointerdown', handlePointerDown);
+      grid.removeEventListener('pointermove', handlePointerMove);
+      grid.removeEventListener('pointerup', handlePointerUp);
+      grid.removeEventListener('pointercancel', handlePointerUp);
+      grid.removeEventListener('wheel', handleWheel);
+
+      window.removeEventListener('keyup', handleWheelEnd);
+      window.removeEventListener('mouseup', handleWheelEnd);
+    };
+  }, [gridRef, rowScale]);
+
   return (
     <div
       className={`${styles.container} ${visible ? styles.visible : ''}`}
@@ -279,7 +475,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
           styles.maskBlur + ' ' + (attachmentsActive ? styles.visible : '')
         }
       />
-      <div className={`${styles.sidebar}`}>
+      <div className={`${styles.sidebar}`} ref={sidebarInnerRef}>
         <div className={styles.header}>
           <div
             onClick={interlocutorEditVisible ? onInterlocutorEditBack : onClose}
@@ -449,18 +645,27 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
         >
           <div className={styles.tabs}>
             <div className={styles['tabs-inner']}>
+              <div
+                className={styles.indicator}
+                style={{
+                  transform: `translateX(${indicatorPosition}px)`,
+                  width: `${indicatorWidth - 4}px`,
+                }}
+              />
+
               {selectedChat?.members && selectedChat.type === 'G' && (
                 <button
-                  className={`${styles.tab} ${
-                    activeTab === 'members' ? styles.active : ''
-                  }`}
+                  ref={membersRef}
+                  className={`${styles.tab}`}
                   onClick={() => setActiveTab('members')}
                 >
                   Members
                 </button>
               )}
+
               {mediaFiles.length > 0 && (
                 <button
+                  ref={mediaRef}
                   className={`${styles.tab} ${
                     activeTab === 'media' ? styles.active : ''
                   }`}
@@ -469,8 +674,10 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                   Media
                 </button>
               )}
+
               {audioFiles.length > 0 && (
                 <button
+                  ref={audioRef}
                   className={`${styles.tab} ${
                     activeTab === 'audio' ? styles.active : ''
                   }`}
@@ -482,7 +689,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
             </div>
           </div>
 
-          <div className={styles.content}>
+          <div className={styles.content} ref={gridRef}>
             {activeTab === 'members' && selectedChat.type === 'G' && (
               <div className={styles.membersList}>
                 {selectedChat?.members?.map((member) => (
@@ -505,7 +712,12 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
             )}
 
             {activeTab === 'media' && mediaFiles.length > 0 && (
-              <div className={styles.grid}>
+              <div
+                className={styles.grid}
+                style={{
+                  gridTemplateColumns: `repeat(${rowScale}, 1fr)`,
+                }}
+              >
                 {filteredMediaFiles.map((file) => (
                   <div key={file.id} className={styles.mediaWrapper}>
                     {file.category === 'image' && (

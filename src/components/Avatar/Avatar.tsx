@@ -108,7 +108,7 @@ const Avatar: React.FC<AvatarProps> = ({
     }
 
     loadUrl();
-  }, [displayMedia]);
+  }, [displayMedia, size]);
 
   const renderMedia = (media: DisplayMedia, url?: string) => {
     if (!media || !url) return null;
@@ -130,6 +130,7 @@ const Avatar: React.FC<AvatarProps> = ({
         className={styles.avatarImage}
         src={url}
         alt={`${displayName} avatar`}
+        draggable={false}
       />
     );
   };

@@ -36,7 +36,8 @@
   border-left: 0.5px solid rgba(127, 127, 127, 0.5);
 
   &__media {
-    display: block;
+    display: flex;
+    flex-direction: column;
     flex-shrink: 0;
     min-height: 100%;
     &.hidden {
@@ -166,14 +167,27 @@
   }
 }
 
+.indicator {
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  background: #4f8cff;
+  border-radius: inherit;
+  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  transition-duration: 0.5s;
+  transition-property: transform, width;
+}
+
 .tabs-inner {
+  overflow: hidden;
   display: flex;
   gap: 8px;
   margin: 0 auto;
   min-width: max-content;
   border-radius: 24px;
   background-color: rgba(127, 127, 127, 0.3);
-  backdrop-filter: blur(5px);
+  // backdrop-filter: blur(5px);
+  position: relative;
 }
 
 .tab {
@@ -191,13 +205,13 @@
   border-radius: 24px;
 }
 
-.active {
-  border-bottom: 2px solid #3b82f6;
-  background-color: #374151;
-}
+// .active {
+//   border-bottom: 2px solid #3b82f6;
+//   background-color: #374151;
+// }
 
 .content {
-  flex: 1;
+  height: 100%;
   overflow-y: auto;
   position: sticky;
   top: calc(110px + var(--sat));
@@ -211,7 +225,6 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 колонки одинаковой ширины */
   gap: 1px;
 }
 

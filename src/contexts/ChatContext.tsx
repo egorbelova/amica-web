@@ -263,7 +263,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       });
       if (!res.ok) throw new Error(`Failed: ${res.status}`);
       const data = await res.json();
-      console.log(data);
+      // console.log(data);
       setChats(Array.isArray(data.chats) ? data.chats : []);
       const hashRoomId = location.hash
         ? Number(location.hash.substring(1))
