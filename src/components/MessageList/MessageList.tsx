@@ -343,6 +343,21 @@ const MessageList: React.FC = () => {
     }, 0);
   };
 
+  const handleDragStart = (e: React.MouseEvent, msg: any) => {
+    timerRef.current = setTimeout(() => {
+      setIsLongPress(true);
+      handleMessageContextMenu(e, msg);
+    }, 200);
+  };
+
+  const handleDragEnd = (e) => {
+    clearTimeout(timerRef.current);
+    if (!isLongPress) {
+      // return;
+    }
+    setIsLongPress(false);
+  };
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   const mergedRef = useMergedRefs([containerRef, jumpContainerRef]);
@@ -405,21 +420,6 @@ const MessageList: React.FC = () => {
   const [isLongPress, setIsLongPress] = useState(false);
   const timerRef = useRef(null);
 
-  const handleDragStart = (e) => {
-    timerRef.current = setTimeout(() => {
-      setIsLongPress(true);
-      handleMessageContextMenu(e, messages[messages.length - 1]);
-    }, 200);
-  };
-
-  const handleDragEnd = (e) => {
-    clearTimeout(timerRef.current);
-    if (!isLongPress) {
-      // return;
-    }
-    setIsLongPress(false);
-  };
-
   return (
     <div className='room_div' ref={mergedRef}>
       {menuVisible && (
@@ -447,8 +447,8 @@ const MessageList: React.FC = () => {
             key={message.id}
             message={message}
             onContextMenu={(e) => handleMessageContextMenu(e, message)}
-            onPointerDown={handleDragStart}
-            onPointerUp={handleDragEnd}
+            onPointerDown={(e) => handleDragStart(e, message)}
+            onPointerUp={(e) => handleDragEnd(e)}
             // isLastMessage={message.id === lastMessageWithImage?.id}
             isLastMessage={false}
           />
