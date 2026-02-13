@@ -9,6 +9,7 @@ import { useJump } from '@/contexts/JumpContext';
 import { useMergedRefs } from '@/hooks/useMergedRefs';
 import type { MenuItem } from '../ContextMenu/ContextMenu';
 import type { IconName } from '../Icons/AutoIcons';
+import { apiFetch } from '@/utils/apiFetch';
 
 const MessageList: React.FC = () => {
   const { messages, updateMessages, selectedChat } = useChat();
@@ -108,44 +109,41 @@ const MessageList: React.FC = () => {
 
   const handleCopyMedia = async (msg: any) => {
     if (!msg?.files?.length) return;
-    const firstFile = msg.files.find((file: any) =>
-      ['image'].includes(file.category),
-    );
+
+    const firstFile = msg.files.find((file: any) => file.category === 'image');
     if (!firstFile) return;
 
     try {
-      const response = await fetch(firstFile.file_url);
+      const response = await apiFetch(firstFile.file_url);
       const blob = await response.blob();
+      console.log(blob);
 
       try {
-        const clipboardItem = new ClipboardItem({ [blob.type]: blob });
+        const imageBlob = new Blob([blob], { type: 'image/png' });
+        const clipboardItem = new ClipboardItem({ 'image/png': imageBlob });
         await navigator.clipboard.write([clipboardItem]);
-      } catch (err: any) {
-        if (err.name === 'NotAllowedError' && blob.type.startsWith('image/')) {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          img.src = firstFile.file_url;
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-          });
+      } catch (err) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = firstFile.file_url;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
 
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0);
 
-          const pngBlob = await new Promise<Blob | null>((resolve) =>
-            canvas.toBlob(resolve, 'image/png'),
-          );
-          if (!pngBlob) throw new Error('Failed to convert to PNG');
+        const pngBlob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob(resolve, 'image/png'),
+        );
+        if (!pngBlob) throw new Error('Failed to convert to PNG');
 
-          const clipboardItemPNG = new ClipboardItem({ 'image/png': pngBlob });
-          await navigator.clipboard.write([clipboardItemPNG]);
-        } else {
-          throw err;
-        }
+        const clipboardItemPNG = new ClipboardItem({ 'image/png': pngBlob });
+        await navigator.clipboard.write([clipboardItemPNG]);
       }
     } catch (err) {
       console.error('Clipboard error:', err);
@@ -203,7 +201,7 @@ const MessageList: React.FC = () => {
     if (!firstFile) return;
 
     try {
-      const response = await fetch(firstFile.file_url);
+      const response = await apiFetch(firstFile.file_url);
       const blob = await response.blob();
 
       const filename =
@@ -404,6 +402,24 @@ const MessageList: React.FC = () => {
     return () => observer.disconnect();
   }, [messages]);
 
+  const [isLongPress, setIsLongPress] = useState(false);
+  const timerRef = useRef(null);
+
+  const handleDragStart = (e) => {
+    timerRef.current = setTimeout(() => {
+      setIsLongPress(true);
+      handleMessageContextMenu(e, messages[messages.length - 1]);
+    }, 200);
+  };
+
+  const handleDragEnd = (e) => {
+    clearTimeout(timerRef.current);
+    if (!isLongPress) {
+      // return;
+    }
+    setIsLongPress(false);
+  };
+
   return (
     <div className='room_div' ref={mergedRef}>
       {menuVisible && (
@@ -431,6 +447,8 @@ const MessageList: React.FC = () => {
             key={message.id}
             message={message}
             onContextMenu={(e) => handleMessageContextMenu(e, message)}
+            onPointerDown={handleDragStart}
+            onPointerUp={handleDragEnd}
             // isLastMessage={message.id === lastMessageWithImage?.id}
             isLastMessage={false}
           />

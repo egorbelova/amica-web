@@ -10,10 +10,17 @@ import Avatar from '../Avatar/Avatar.tsx';
 interface MessageProps {
   message: MessageType;
   onContextMenu?: (e: React.MouseEvent) => void;
+  onPointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerUp?: (e: React.PointerEvent<HTMLDivElement>) => void;
   isLastMessage?: boolean;
 }
 
-const Message: React.FC<MessageProps> = ({ message, onContextMenu }) => {
+const Message: React.FC<MessageProps> = ({
+  message,
+  onContextMenu,
+  onPointerDown,
+  onPointerUp,
+}) => {
   const { user } = useUser();
   const currentUserId = user?.id || 0;
   const isOwnMessage = (): boolean => {
@@ -42,6 +49,8 @@ const Message: React.FC<MessageProps> = ({ message, onContextMenu }) => {
       onClick={handleMessageClick}
       onDoubleClick={handleDoubleClick}
       onContextMenu={onContextMenu}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
     >
       {/* {!isOwnMessage() && (
         <Avatar
