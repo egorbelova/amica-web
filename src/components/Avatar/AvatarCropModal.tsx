@@ -421,7 +421,7 @@ export default function AvatarCropModal({
       ctx.drawImage(img, sx, sy, sSize, sSize, 0, 0, sSize, sSize);
 
       const blob = await new Promise<Blob>((resolve) =>
-        canvas.toBlob((b) => resolve(b as Blob), 'image/webp', 0.95),
+        canvas.toBlob((b) => resolve(b as Blob), 'image/webp', 1),
       );
 
       const formData = new FormData();

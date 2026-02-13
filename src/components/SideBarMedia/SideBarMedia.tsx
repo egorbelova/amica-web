@@ -147,14 +147,16 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   };
 
   useEffect(() => {
-    const sidebar = sidebarRef.current;
-    if (!sidebar || interlocutorEditVisible || !selectedChat.media?.length)
+    const sidebar = sidebarInnerRef.current;
+    if (!sidebar || interlocutorEditVisible || !selectedChat.primary_media)
       return;
 
     let touchStartY = 0;
     let isTrackingTouch = false;
 
     const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) return;
+
       if (e.deltaY > 0 && isAvatarRollerOpen) {
         setIsAvatarRollerOpen(false);
         setRollPosition(0);
@@ -209,7 +211,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     isAvatarRollerOpen,
     setIsAvatarRollerOpen,
     setRollPosition,
-    sidebarRef,
+    sidebarInnerRef,
     selectedChat,
     interlocutorEditVisible,
   ]);

@@ -211,8 +211,8 @@
 // }
 
 .content {
-  height: 100%;
-  overflow-y: auto;
+  min-height: calc(100% - 110px - var(--sat));
+  overflow: hidden;
   position: sticky;
   top: calc(110px + var(--sat));
 }
