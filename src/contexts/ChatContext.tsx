@@ -36,6 +36,7 @@ interface ChatContextType {
   addContact: (userId: number) => void;
   deleteContact: (contactId: number) => void;
   saveContact: (contactId: number, name: string) => void;
+  handleNewMessage: (data: any) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -62,41 +63,42 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     setSelectedChatId(chatId);
   }, []);
 
+  const handleNewMessage = (data: any) => {
+    console.log('New message received:', data);
+    if (data.type === 'chat_message' && data.chat_id && data.data) {
+      const roomId = data.chat_id;
+      const newMessage = data.data;
+
+      // console.log('New message received for room:', data);
+
+      setChats((prevChats) => {
+        return prevChats.map((chat) =>
+          chat.id === roomId
+            ? {
+                ...chat,
+                last_message: newMessage,
+              }
+            : chat,
+        );
+      });
+
+      setMessagesCache((prevCache) => {
+        const existingMessages = prevCache[roomId] || [];
+
+        const isDuplicate = existingMessages.some(
+          (msg) => msg.id === newMessage.id,
+        );
+        if (isDuplicate) return prevCache;
+
+        return {
+          ...prevCache,
+          [roomId]: [...existingMessages, newMessage],
+        };
+      });
+    }
+  };
+
   useEffect(() => {
-    const handleNewMessage = (data: any) => {
-      if (data.type === 'chat_message' && data.chat_id && data.data) {
-        const roomId = data.chat_id;
-        const newMessage = data.data;
-
-        console.log('New message received for room:', data);
-
-        setChats((prevChats) => {
-          return prevChats.map((chat) =>
-            chat.id === roomId
-              ? {
-                  ...chat,
-                  last_message: newMessage,
-                }
-              : chat,
-          );
-        });
-
-        setMessagesCache((prevCache) => {
-          const existingMessages = prevCache[roomId] || [];
-
-          const isDuplicate = existingMessages.some(
-            (msg) => msg.id === newMessage.id,
-          );
-          if (isDuplicate) return prevCache;
-
-          return {
-            ...prevCache,
-            [roomId]: [...existingMessages, newMessage],
-          };
-        });
-      }
-    };
-
     websocketManager.on('chat_message', handleNewMessage);
     return () => {
       websocketManager.off('chat_message', handleNewMessage);
@@ -380,6 +382,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     addContact,
     deleteContact,
     saveContact,
+    handleNewMessage,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

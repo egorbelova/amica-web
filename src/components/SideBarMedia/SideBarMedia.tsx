@@ -13,6 +13,7 @@ import MorphingIcon from '@/utils/morphSVG';
 import AudioLayout from '@/components/Message/AudioLayout';
 import VideoLayout from '../Message/VideoLayout';
 import { Dropdown } from '../Dropdown/Dropdown';
+import { useSnackbar } from '@/contexts/snackbar/SnackbarContext';
 
 interface SideBarMediaProps {
   visible: boolean;
@@ -32,6 +33,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   const tabsRef = useRef<HTMLDivElement>(null);
   const [attachmentsActive, setAttachmentsActive] = useState(false);
   const sidebarInnerRef = useRef<HTMLDivElement>(null);
+  const { showSnackbar } = useSnackbar();
 
   useEffect(() => {
     if (!tabsRef.current) return;
@@ -462,6 +464,17 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     };
   }, [gridRef, rowScale]);
 
+  const handleCopyEmail = async () => {
+    if (!interlocutor?.email) return;
+
+    try {
+      await navigator.clipboard.writeText(interlocutor.email);
+      showSnackbar('Email copied');
+    } catch (err) {
+      console.error('Copy failed', err);
+    }
+  };
+
   return (
     <div
       className={`${styles.container} ${visible ? styles.visible : ''}`}
@@ -639,6 +652,19 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
           </div>
           <span className={styles['sidebar__subtitle']}>{subtitle}</span>
         </div>
+        {!interlocutorEditVisible && selectedChat.type === 'D' && (
+          <div className={styles['sidebar__info-secondary']}>
+            {selectedChat.type === 'D' && (
+              <button
+                className={styles['sidebar__info-secondary__item']}
+                type='button'
+                onClick={handleCopyEmail}
+              >
+                {interlocutor?.email}
+              </button>
+            )}
+          </div>
+        )}
 
         <div
           className={`${styles.sidebar__media} ${
@@ -698,6 +724,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                   <div key={member.id} className={styles.memberItem}>
                     <Avatar
                       className={styles.memberAvatar}
+                      displayMedia={member.profile.primary_avatar}
                       displayName={member.username}
                     />
                     <div className={styles.memberInfo}>
@@ -742,7 +769,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
             )}
 
             {activeTab === 'audio' && audioFiles.length > 0 && (
-              <div className={styles.grid2}>
+              <div className={styles.audioGrid}>
                 {audioFiles.map((file) => (
                   <AudioLayout
                     key={file.id}

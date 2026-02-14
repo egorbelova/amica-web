@@ -20,7 +20,7 @@ const MessageInput: React.FC = () => {
   const editableRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { selectedChat } = useChat();
+  const { selectedChat, handleNewMessage } = useChat();
   const { user } = useUser();
   const { setTerm, setResults } = useSearchContext();
 
@@ -165,6 +165,46 @@ const MessageInput: React.FC = () => {
 
       try {
         if (files.length > 0) {
+          // const tempMessage = {
+          //   chat_id: roomId,
+          //   type: 'chat_message',
+          //   data: {
+          //     id: `temp-${Date.now()}`,
+          //     value: message.trim(),
+          //     date: new Date().toISOString(),
+          //     user: {
+          //       id: user.id,
+          //       username: user.username,
+          //     },
+          //     files: files.map((file, index) => ({
+          //       id: `temp-file-${index}`,
+          //       file_url: URL.createObjectURL(file),
+          //       thumbnail_medium_url: URL.createObjectURL(file),
+          //       thumbnail_small_url: URL.createObjectURL(file),
+
+          //       extension: file.name.split('.').pop(),
+          //       category: file.type.startsWith('image')
+          //         ? 'image'
+          //         : file.type.startsWith('video')
+          //           ? 'video'
+          //           : file.type.startsWith('audio')
+          //             ? 'audio'
+          //             : 'other',
+          //       original_name: file.name,
+          //       file_size: file.size,
+          //       uploaded_at: new Date().toISOString(),
+          //       duration: null,
+          //       waveform: [],
+          //       cover_url: null,
+          //     })),
+          //     is_own: true,
+          //     is_viewed: false,
+          //     viewers: [],
+          //     uploading: true,
+          //   },
+          // };
+
+          // handleNewMessage(tempMessage);
           const success = await sendFilesViaHttp(files, message.trim());
           if (success) {
             setFiles([]);

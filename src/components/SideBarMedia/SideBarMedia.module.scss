@@ -36,6 +36,17 @@
   overflow-x: hidden;
   border-left: 0.5px solid rgba(127, 127, 127, 0.5);
 
+  &__info-secondary {
+    display: flex;
+    margin: 10px 20px 0 20px;
+    border-radius: 32px;
+    background-color: rgba(127, 127, 127, 0.3);
+
+    &__item {
+      padding: 10px;
+    }
+  }
+
   &__media {
     display: flex;
     flex-direction: column;
@@ -464,4 +475,9 @@
       color: #999;
     }
   }
+}
+
+.audioGrid {
+  padding: 0 20px;
+  position: relative;
 }

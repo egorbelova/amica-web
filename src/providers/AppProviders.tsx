@@ -10,6 +10,7 @@ import { SettingsProvider } from '@/contexts/settings/Settings';
 import { SearchProvider } from '@/contexts/search/SearchContext';
 import { JumpProvider } from '@/contexts/JumpContext';
 import { apiFetch } from '@/utils/apiFetch';
+import { SnackbarProvider } from '@/contexts/snackbar/SnackbarContext';
 import type { User } from '../types';
 
 interface AppProvidersProps {
@@ -41,6 +42,7 @@ const GlobalSearchProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => <SearchProvider searchFn={searchGlobal}>{children}</SearchProvider>;
 
 const AppProvidersComponent = composeProviders(
+  SnackbarProvider,
   MediaModalProvider,
   AuthProvider,
   SettingsProvider,

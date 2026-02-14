@@ -1,6 +1,6 @@
 const CACHE_NAME = 'app-cache-' + '__BUILD_HASH__';
 
-const STATIC_ASSETS = ['/', '/index.html'];
+const STATIC_ASSETS = ['/'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -55,7 +55,17 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
 
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).catch(() => caches.match('/index.html')));
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put('/index.html', clone);
+          });
+          return response;
+        })
+        .catch(() => caches.match('/index.html')),
+    );
     return;
   }
 

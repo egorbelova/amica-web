@@ -130,7 +130,9 @@ export default function AudioLayout({
 
     updateTime(getClientX(e));
     const onMouseMove = (moveEvent) => {
+      console.log('onMouseMove');
       moveEvent.preventDefault();
+      moveEvent.stopPropagation();
 
       updateTime(getClientX(moveEvent));
     };
@@ -142,7 +144,7 @@ export default function AudioLayout({
       document.removeEventListener('touchend', onMouseUp);
     };
 
-    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mousemove', onMouseMove, { passive: false });
     document.addEventListener('mouseup', onMouseUp);
     document.addEventListener('touchmove', onMouseMove, { passive: false });
     document.addEventListener('touchend', onMouseUp);
