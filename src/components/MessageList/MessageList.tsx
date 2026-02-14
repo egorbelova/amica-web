@@ -249,7 +249,7 @@ const MessageList: React.FC = () => {
       ? [
           {
             label: 'Copy Media',
-            icon: 'CopyMedia' as IconName,
+            icon: 'Photo' as IconName,
             onClick: () => handleCopyMedia(menuMessage),
           },
         ]

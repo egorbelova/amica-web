@@ -28,11 +28,11 @@ self.addEventListener('activate', (event) => {
 });
 
 const STATIC_EXTENSIONS = [
-  '.js',
-  'tsx',
-  'ts',
-  '.css',
-  '.scss',
+  // '.js',
+  // 'tsx',
+  // 'ts',
+  // '.css',
+  // '.scss',
   '.png',
   '.jpg',
   '.jpeg',
@@ -41,12 +41,12 @@ const STATIC_EXTENSIONS = [
   '.woff2',
   '.woff',
   '.ttf',
-  '.html',
+  // '.html',
   '.json',
   '.xml',
   '.txt',
   '.ico',
-  '.webmanifest',
+  // '.webmanifest',
 ];
 
 const STATIC_PATHS = ['/assets/'];

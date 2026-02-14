@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './Dropdown.module.scss';
+import { Icon, type IconName } from '../Icons/AutoIcons';
 
-type DropdownItem<T> = {
+export type DropdownItem<T> = {
   label: string;
   value: T;
-  icon?: React.ReactNode;
+  icon?: IconName;
 };
 
 type DropdownProps<T> = {
@@ -86,16 +87,32 @@ export function Dropdown<T extends string | number>({
     );
   };
 
+  const rafRef = useRef<number | null>(null);
+
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     // if (!isPointerDown.current) return;
 
-    if (!isPointerInsideMenu(e.clientX, e.clientY)) {
-      resetIndicator();
-      return;
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
     }
 
-    updateIndicatorByPointer(e.clientY);
+    rafRef.current = requestAnimationFrame(() => {
+      if (!isPointerInsideMenu(e.clientX, e.clientY)) {
+        resetIndicator();
+        return;
+      }
+      updateIndicatorByPointer(e.clientY);
+      rafRef.current = null;
+    });
   };
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     isPointerDown.current = true;
@@ -199,7 +216,7 @@ export function Dropdown<T extends string | number>({
         {selected ? (
           <>
             {selected.icon && (
-              <span className={styles.icon}>{selected.icon}</span>
+              <Icon name={selected.icon} className={styles.icon} />
             )}
             {selected.label}
           </>
@@ -249,6 +266,7 @@ export function Dropdown<T extends string | number>({
                     ref={(el) => {
                       itemRefs.current[index] = el;
                     }}
+
                     // onClick={(e) => {
                     //   e.stopPropagation();
                     //   onChange(item.value);
@@ -256,7 +274,7 @@ export function Dropdown<T extends string | number>({
                     // }}
                   >
                     {item.icon && (
-                      <span className={styles.icon}>{item.icon}</span>
+                      <Icon className={styles.icon} name={item.icon} />
                     )}
                     {item.label}
                   </li>

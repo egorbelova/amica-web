@@ -14,6 +14,8 @@ import AudioLayout from '@/components/Message/AudioLayout';
 import VideoLayout from '../Message/VideoLayout';
 import { Dropdown } from '../Dropdown/Dropdown';
 import { useSnackbar } from '@/contexts/snackbar/SnackbarContext';
+import type { IconName } from '../Icons/AutoIcons';
+import type { DropdownItem } from '../Dropdown/Dropdown';
 
 interface SideBarMediaProps {
   visible: boolean;
@@ -71,8 +73,6 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
 
   const [mediaFiles, setMediaFiles] = useState<any[]>([]);
   const [filterType, setFilterType] = useState<string>('All');
-  const hasVideos = mediaFiles.some((f) => f.category === 'video');
-  const hasPhotos = mediaFiles.some((f) => f.category === 'image');
 
   const [filteredMediaFiles, setFilteredMediaFiles] = useState<any[]>([]);
 
@@ -255,12 +255,29 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   }, []);
 
   const interlocutor = selectedChat?.members?.[0];
+  const [items, setItems] = useState<DropdownItem<number>[]>([]);
 
-  const items = [
-    { label: 'All', value: 1 },
-    hasVideos ? { label: 'Videos', value: 2 } : null,
-    hasPhotos ? { label: 'Photos', value: 3 } : null,
-  ].filter(Boolean);
+  useEffect(() => {
+    const hasVideos = mediaFiles.some((f) => f.category === 'video');
+    const hasPhotos = mediaFiles.some((f) => f.category === 'image');
+    const newItems: DropdownItem<number>[] = [
+      { label: 'All', value: 1, icon: 'Circle' as IconName },
+      hasVideos
+        ? { label: 'Videos', value: 2, icon: 'Video' as IconName }
+        : null,
+      hasPhotos
+        ? { label: 'Photos', value: 3, icon: 'Photo' as IconName }
+        : null,
+    ].filter(Boolean);
+
+    setItems(newItems);
+    if (
+      (filterType === 'Videos' && !hasVideos) ||
+      (filterType === 'Photos' && !hasPhotos)
+    ) {
+      setFilterType('All');
+    }
+  }, [mediaFiles, selectedChat]);
 
   const membersRef = useRef(null);
   const mediaRef = useRef(null);

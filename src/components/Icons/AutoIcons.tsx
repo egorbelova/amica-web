@@ -1,6 +1,6 @@
 import React from "react";
 
-export type IconName = "AddPlus" | "Appearance" | "Arrow" | "Attachment" | "Chats" | "ContactHeart" | "CopyMedia" | "CopyText" | "Cross" | "Delete" | "Edit" | "Forward" | "Language" | "Logout" | "Notification" | "Passkey" | "Pause" | "Play" | "Privacy" | "Read" | "Reply" | "SaveAs" | "Search" | "Select" | "Selfie" | "SendDestkop" | "SendMobile" | "Sessions" | "Sound" | "SoundMaxFill" | "SoundMinFill" | "SoundMuteFill" | "Unread" | "Wallpaper" | "Spinner";
+export type IconName = "AddPlus" | "Appearance" | "Arrow" | "Attachment" | "Chats" | "Circle" | "ContactHeart" | "CopyText" | "Cross" | "Delete" | "Edit" | "Forward" | "Language" | "Logout" | "Notification" | "Passkey" | "Pause" | "Photo" | "Play" | "Privacy" | "Read" | "Reply" | "SaveAs" | "Search" | "Select" | "Selfie" | "SendDestkop" | "SendMobile" | "Sessions" | "Sound" | "SoundMaxFill" | "SoundMinFill" | "SoundMuteFill" | "Unread" | "Video" | "Wallpaper" | "Spinner";
 export type IconProps = React.SVGProps<SVGSVGElement> & { name: IconName };
 
 
@@ -24,8 +24,8 @@ export const IconsSprite = () => (
 />
 </symbol>
     <symbol id="icon-Chats" viewBox="0 0 256 256"><path d="M232.07 186.76a80 80 0 0 0-62.5-114.17a80 80 0 1 0-145.64 66.17l-7.27 24.71a16 16 0 0 0 19.87 19.87l24.71-7.27a80.39 80.39 0 0 0 25.18 7.35a80 80 0 0 0 108.34 40.65l24.71 7.27a16 16 0 0 0 19.87-19.86Zm-16.25 1.47L224 216l-27.76-8.17a8 8 0 0 0-6 .63a64.05 64.05 0 0 1-85.87-24.88a79.93 79.93 0 0 0 70.33-93.87a64 64 0 0 1 41.75 92.48a8 8 0 0 0-.63 6.04"/></symbol>
+    <symbol id="icon-Circle" viewBox="0 0 24 24"><title>Dummy-circle-small SVG Icon</title><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8a4 4 0 1 0 0 8a4 4 0 0 0 0-8"/></symbol>
     <symbol id="icon-ContactHeart" viewBox="0 0 2048 2048"><title>Contact-heart SVG Icon</title><path fill="currentColor" d="M2048 1484q0 54-20 102t-58 87l-370 369l-370-369q-38-38-58-86t-20-103t21-104t57-85t84-58t105-21q50 0 97 17t84 53q38-35 84-52t97-18q56 0 104 21t85 57t57 86t21 104m-128 0q0-29-11-54t-30-45t-44-30t-55-11q-57 0-98 41l-82 82l-82-82q-20-20-45-30t-53-11q-29 0-54 11t-45 30t-30 44t-11 55q0 57 41 98l279 279l279-279q41-41 41-98m-768-332q-87-65-181-96t-203-32q-134 0-251 49t-203 136t-136 204t-50 251H0q0-121 35-232t100-206t156-166t206-115q-55-34-99-82t-76-104t-49-119t-17-128q0-106 40-199t110-162T569 41T768 0t199 40t162 110t110 163t41 199q0 65-17 127t-48 119t-76 105t-100 82q66 23 121 58t109 82q-33 11-61 28t-56 39m0-640q0-79-30-148t-83-122t-122-83t-149-31q-79 0-148 30t-122 83t-83 122t-31 149q0 79 30 148t83 122t122 83t149 31q79 0 148-30t122-83t83-122t31-149"/></symbol>
-    <symbol id="icon-CopyMedia" viewBox="0 0 24 24"><title>Image SVG Icon</title><g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M2 6a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v12a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/><circle cx="8.5" cy="8.5" r="2.5"/><path d="M14.526 12.621L6 22h12.133A3.867 3.867 0 0 0 22 18.133V18c0-.466-.175-.645-.49-.99l-4.03-4.395a2 2 0 0 0-2.954.006"/></g></symbol>
     <symbol id="icon-CopyText" viewBox="0 0 24 24"><title>Copy SVG Icon</title><g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2"/><path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"/></g></symbol>
     <symbol id="icon-Cross" viewBox="0 0 24 24"><title>Cross SVG Icon</title><path fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" d="M20 20L4 4m16 0L4 20"/></symbol>
     <symbol id="icon-Delete" viewBox="0 0 16 16"><title>Delete-16-regular SVG Icon</title><path fill="currentColor" d="M7 3h2a1 1 0 0 0-2 0M6 3a2 2 0 1 1 4 0h4a.5.5 0 0 1 0 1h-.564l-1.205 8.838A2.5 2.5 0 0 1 9.754 15H6.246a2.5 2.5 0 0 1-2.477-2.162L2.564 4H2a.5.5 0 0 1 0-1zm1 3.5a.5.5 0 0 0-1 0v5a.5.5 0 0 0 1 0zM9.5 6a.5.5 0 0 1 .5.5v5a.5.5 0 0 1-1 0v-5a.5.5 0 0 1 .5-.5m-4.74 6.703A1.5 1.5 0 0 0 6.246 14h3.508a1.5 1.5 0 0 0 1.487-1.297L12.427 4H3.573z"/></symbol>
@@ -36,6 +36,7 @@ export const IconsSprite = () => (
     <symbol id="icon-Notification" viewBox="0 0 24 24"><title>Notification-on-outline SVG Icon</title><path fill="currentColor" d="M6.429 2.413a.75.75 0 0 0-1.13-.986l-1.292 1.48a4.75 4.75 0 0 0-1.17 3.024L2.78 8.65a.75.75 0 1 0 1.5.031l.056-2.718a3.25 3.25 0 0 1 .801-2.069z"/><path fill="currentColor" fillRule="evenodd" d="M6.237 7.7a4.214 4.214 0 0 1 4.206-3.95H11V3a1 1 0 1 1 2 0v.75h.557a4.214 4.214 0 0 1 4.206 3.95l.221 3.534a7.376 7.376 0 0 0 1.308 3.754a1.617 1.617 0 0 1-1.135 2.529l-3.407.408V19a2.75 2.75 0 1 1-5.5 0v-1.075l-3.407-.409a1.617 1.617 0 0 1-1.135-2.528a7.377 7.377 0 0 0 1.308-3.754zm4.206-2.45a2.714 2.714 0 0 0-2.709 2.544l-.22 3.534a8.877 8.877 0 0 1-1.574 4.516a.117.117 0 0 0 .082.183l3.737.449c1.489.178 2.993.178 4.482 0l3.737-.449a.117.117 0 0 0 .082-.183a8.876 8.876 0 0 1-1.573-4.516l-.221-3.534a2.714 2.714 0 0 0-2.709-2.544zm1.557 15c-.69 0-1.25-.56-1.25-1.25v-.75h2.5V19c0 .69-.56 1.25-1.25 1.25" clipRule="evenodd"/><path fill="currentColor" d="M17.643 1.355a.75.75 0 0 0-.072 1.058l1.292 1.48a3.25 3.25 0 0 1 .8 2.07l.057 2.717a.75.75 0 0 0 1.5-.031l-.057-2.718a4.75 4.75 0 0 0-1.17-3.024l-1.292-1.48a.75.75 0 0 0-1.058-.072"/></symbol>
     <symbol id="icon-Passkey" viewBox="0 0 20 21"><title>Person-passkey-20-regular SVG Icon</title><path fill="currentColor" d="M10 2a4 4 0 1 0 0 8a4 4 0 0 0 0-8M7 6a3 3 0 1 1 6 0a3 3 0 0 1-6 0m-1.991 5A2 2 0 0 0 3 13c0 1.691.833 2.966 2.135 3.797C6.417 17.614 8.145 18 10 18s3.583-.386 4.865-1.203q.143-.091.278-.19v-1.33a4 4 0 0 1-.816.676C13.257 16.636 11.735 17 10 17s-3.257-.364-4.327-1.047C4.623 15.283 4 14.31 4 13c0-.553.448-1 1.009-1h8.264a4 4 0 0 1-.13-1zm8.99 0a3 3 0 0 0 1.917 2.798l.084.031v5.029c0 .1.035.196.098.272l.599.728c.162.197.459.21.637.028l1.534-1.565a.43.43 0 0 0-.02-.62L17.5 16.5l1.351-1.177a.43.43 0 0 0 0-.646l-.939-.818A3.001 3.001 0 0 0 17 8a3 3 0 0 0-3 3m4-1a1 1 0 1 1-2 0a1 1 0 0 1 2 0"/></symbol>
     <symbol id="icon-Pause" viewBox="0 0 24 24"><title>Pause SVG Icon</title><path fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" d="M7 5v14M17 5v14"/></symbol>
+    <symbol id="icon-Photo" viewBox="0 0 24 24"><title>Image SVG Icon</title><g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M2 6a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v12a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/><circle cx="8.5" cy="8.5" r="2.5"/><path d="M14.526 12.621L6 22h12.133A3.867 3.867 0 0 0 22 18.133V18c0-.466-.175-.645-.49-.99l-4.03-4.395a2 2 0 0 0-2.954.006"/></g></symbol>
     <symbol id="icon-Play" viewBox="0 0 24 24"><title>Play SVG Icon</title><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 4v16m14-8L6 20m14-8L6 4"/></symbol>
     <symbol id="icon-Privacy" viewBox="0 0 24 24"><title>Privacy-tip-outline-rounded SVG Icon</title><path fill="currentColor" d="M12 16.23q.213 0 .357-.143t.143-.356v-4.654q0-.213-.144-.356q-.144-.144-.357-.144t-.356.144t-.143.356v4.654q0 .212.144.356t.357.144M12 9q.262 0 .438-.177q.177-.177.177-.438t-.177-.439T12 7.77t-.438.177t-.177.439t.177.438T12 9m0 11.842q-.137 0-.287-.025t-.28-.075Q8.48 19.617 6.74 16.926T5 11.1V6.817q0-.514.293-.926t.757-.597l5.385-2q.292-.106.565-.106t.565.106l5.385 2q.464.185.757.597t.293.926V11.1q0 3.135-1.74 5.826t-4.692 3.816q-.131.05-.281.075t-.287.025m0-.942q2.6-.825 4.3-3.3t1.7-5.5V6.798q0-.192-.106-.346t-.298-.23l-5.384-2q-.097-.04-.212-.04t-.212.04l-5.384 2q-.192.076-.298.23T6 6.798V11.1q0 3.025 1.7 5.5t4.3 3.3m0-7.862"/></symbol>
     <symbol id="icon-Read" viewBox="0 0 16 11"><title>msg-dblcheck</title><path d="M11.0714 0.652832C10.991 0.585124 10.8894 0.55127 10.7667 0.55127C10.6186 0.55127 10.4916 0.610514 10.3858 0.729004L4.19688 8.36523L1.79112 6.09277C1.7488 6.04622 1.69802 6.01025 1.63877 5.98486C1.57953 5.95947 1.51817 5.94678 1.45469 5.94678C1.32351 5.94678 1.20925 5.99544 1.11192 6.09277L0.800883 6.40381C0.707784 6.49268 0.661235 6.60482 0.661235 6.74023C0.661235 6.87565 0.707784 6.98991 0.800883 7.08301L3.79698 10.0791C3.94509 10.2145 4.11224 10.2822 4.29844 10.2822C4.40424 10.2822 4.5058 10.259 4.60313 10.2124C4.70046 10.1659 4.78086 10.1003 4.84434 10.0156L11.4903 1.59863C11.5623 1.5013 11.5982 1.40186 11.5982 1.30029C11.5982 1.14372 11.5348 1.01888 11.4078 0.925781L11.0714 0.652832ZM8.6212 8.32715C8.43077 8.20866 8.2488 8.09017 8.0753 7.97168C7.99489 7.89128 7.8891 7.85107 7.75791 7.85107C7.6098 7.85107 7.4892 7.90397 7.3961 8.00977L7.10411 8.33984C7.01947 8.43717 6.97715 8.54508 6.97715 8.66357C6.97715 8.79476 7.0237 8.90902 7.1168 9.00635L8.1959 10.0791C8.33132 10.2145 8.49636 10.2822 8.69102 10.2822C8.79681 10.2822 8.89838 10.259 8.99571 10.2124C9.09304 10.1659 9.17556 10.1003 9.24327 10.0156L15.8639 1.62402C15.9358 1.53939 15.9718 1.43994 15.9718 1.32568C15.9718 1.1818 15.9125 1.05697 15.794 0.951172L15.4386 0.678223C15.3582 0.610514 15.2587 0.57666 15.1402 0.57666C14.9964 0.57666 14.8715 0.635905 14.7657 0.754395L8.6212 8.32715Z"></path></symbol>
@@ -63,6 +64,7 @@ export const IconsSprite = () => (
     <symbol id="icon-SoundMinFill" viewBox="0 0 24 24"><title>Sound-min-fill SVG Icon</title><g fill="none"><path fill="#ffffff" d="M4.158 13.93a3.752 3.752 0 0 1 0-3.86a1.5 1.5 0 0 1 .993-.7l1.693-.339a.45.45 0 0 0 .258-.153L9.17 6.395c1.182-1.42 1.774-2.129 2.301-1.938C12 4.648 12 5.572 12 7.42v9.162c0 1.847 0 2.77-.528 2.962c-.527.19-1.119-.519-2.301-1.938L7.1 15.122a.45.45 0 0 0-.257-.153L5.15 14.63a1.5 1.5 0 0 1-.993-.7"/><path stroke="currentColor" strokeLinecap="round" strokeWidth="2" d="M14.536 8.464a5 5 0 0 1 .027 7.044"/></g></symbol>
     <symbol id="icon-SoundMuteFill" viewBox="0 0 24 24"><title>Sound-mute-fill SVG Icon</title><g fill="none"><path fill="#ffffff" d="M4.158 13.93a3.752 3.752 0 0 1 0-3.86a1.5 1.5 0 0 1 .993-.7l1.693-.339a.45.45 0 0 0 .258-.153L9.17 6.395c1.182-1.42 1.774-2.129 2.301-1.938C12 4.648 12 5.572 12 7.42v9.162c0 1.847 0 2.77-.528 2.962c-.527.19-1.119-.519-2.301-1.938L7.1 15.122a.45.45 0 0 0-.257-.153L5.15 14.63a1.5 1.5 0 0 1-.993-.7"/><path stroke="currentColor" strokeLinecap="round" strokeWidth="2" d="m15 15l6-6m0 6l-6-6"/></g></symbol>
     <symbol id="icon-Unread" viewBox="0 0 12 11"><title>msg-check</title><path d="M11.1549 0.652832C11.0745 0.585124 10.9729 0.55127 10.8502 0.55127C10.7021 0.55127 10.5751 0.610514 10.4693 0.729004L4.28038 8.36523L1.87461 6.09277C1.8323 6.04622 1.78151 6.01025 1.72227 5.98486C1.66303 5.95947 1.60166 5.94678 1.53819 5.94678C1.407 5.94678 1.29275 5.99544 1.19541 6.09277L0.884379 6.40381C0.79128 6.49268 0.744731 6.60482 0.744731 6.74023C0.744731 6.87565 0.79128 6.98991 0.884379 7.08301L3.88047 10.0791C4.02859 10.2145 4.19574 10.2822 4.38194 10.2822C4.48773 10.2822 4.58929 10.259 4.68663 10.2124C4.78396 10.1659 4.86436 10.1003 4.92784 10.0156L11.5738 1.59863C11.6458 1.5013 11.6817 1.40186 11.6817 1.30029C11.6817 1.14372 11.6183 1.01888 11.4913 0.925781L11.1549 0.652832Z"></path></symbol>
+    <symbol id="icon-Video" viewBox="0 0 24 24"><title>Video SVG Icon</title><g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><rect width="20" height="16" x="2" y="4" rx="4"/><path d="m15 12l-5-3v6z"/></g></symbol>
     <symbol id="icon-Wallpaper" viewBox="0 0 20 20"><title>Wallpaper-20-regular SVG Icon</title><path fill="#ffffff" d="M3 6a3 3 0 0 1 3-3h2.5a.5.5 0 0 1 0 1H6a2 2 0 0 0-2 2v2.5a.5.5 0 0 1-1 0zm8-2.5a.5.5 0 0 1 .5-.5H14a3 3 0 0 1 3 3v2.5a.5.5 0 0 1-1 0V6a2 2 0 0 0-2-2h-2.5a.5.5 0 0 1-.5-.5M3.5 11a.5.5 0 0 1 .5.5V14c0 .37.101.718.277 1.016l4.486-4.486a1.75 1.75 0 0 1 2.474 0l4.486 4.486C15.9 14.718 16 14.371 16 14v-2.5a.5.5 0 0 1 1 0V14a3 3 0 0 1-3 3h-2.5a.5.5 0 0 1 0-1H14c.37 0 .718-.101 1.016-.277l-4.486-4.486a.75.75 0 0 0-1.06 0l-4.486 4.486C5.282 15.9 5.629 16 6 16h2.5a.5.5 0 0 1 0 1H6a3 3 0 0 1-3-3v-2.5a.5.5 0 0 1 .5-.5m9-4a.5.5 0 1 0 0 1a.5.5 0 0 0 0-1m-1.5.5a1.5 1.5 0 1 1 3 0a1.5 1.5 0 0 1-3 0"/></symbol>
   </svg>
 );
@@ -73,8 +75,8 @@ const staticViewBoxes: Record<string, string> = {
   "Arrow": "0 0 24 24",
   "Attachment": "0 0 24 24",
   "Chats": "0 0 256 256",
+  "Circle": "0 0 24 24",
   "ContactHeart": "0 0 2048 2048",
-  "CopyMedia": "0 0 24 24",
   "CopyText": "0 0 24 24",
   "Cross": "0 0 24 24",
   "Delete": "0 0 16 16",
@@ -85,6 +87,7 @@ const staticViewBoxes: Record<string, string> = {
   "Notification": "0 0 24 24",
   "Passkey": "0 0 20 21",
   "Pause": "0 0 24 24",
+  "Photo": "0 0 24 24",
   "Play": "0 0 24 24",
   "Privacy": "0 0 24 24",
   "Read": "0 0 16 11",
@@ -101,6 +104,7 @@ const staticViewBoxes: Record<string, string> = {
   "SoundMinFill": "0 0 24 24",
   "SoundMuteFill": "0 0 24 24",
   "Unread": "0 0 12 11",
+  "Video": "0 0 24 24",
   "Wallpaper": "0 0 20 20"
 };
 
@@ -125,8 +129,8 @@ export const iconsList = {
   "Arrow": "icon-Arrow",
   "Attachment": "icon-Attachment",
   "Chats": "icon-Chats",
+  "Circle": "icon-Circle",
   "ContactHeart": "icon-ContactHeart",
-  "CopyMedia": "icon-CopyMedia",
   "CopyText": "icon-CopyText",
   "Cross": "icon-Cross",
   "Delete": "icon-Delete",
@@ -137,6 +141,7 @@ export const iconsList = {
   "Notification": "icon-Notification",
   "Passkey": "icon-Passkey",
   "Pause": "icon-Pause",
+  "Photo": "icon-Photo",
   "Play": "icon-Play",
   "Privacy": "icon-Privacy",
   "Read": "icon-Read",
@@ -153,6 +158,7 @@ export const iconsList = {
   "SoundMinFill": "icon-SoundMinFill",
   "SoundMuteFill": "icon-SoundMuteFill",
   "Unread": "icon-Unread",
+  "Video": "icon-Video",
   "Wallpaper": "icon-Wallpaper",
   "Spinner": "icon-Spinner"
 };
