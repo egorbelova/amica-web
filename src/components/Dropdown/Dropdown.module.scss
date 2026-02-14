@@ -45,23 +45,40 @@
   z-index: 1000;
 
   transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
+    opacity 0.2s ease,
+    scale 0.2s ease;
+
   position: absolute;
   opacity: 0;
-  transform: translateY(-4px);
   pointer-events: none;
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 6px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  scale: 1;
+}
+
+.menu:active {
+  scale: 1.05 !important;
 }
 
 .menu.open {
   opacity: 1;
-  transform: translateY(0);
+  scale: 1;
   pointer-events: auto;
+  animation: open 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.08);
+}
+
+@keyframes open {
+  0% {
+    opacity: 0;
+    scale: 0;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
 }
 
 .item {

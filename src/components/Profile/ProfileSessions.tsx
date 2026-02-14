@@ -102,8 +102,8 @@ export default function ProfileSessions() {
 
   useEffect(() => {
     loadSessions();
-    const interval = setInterval(loadSessions, 30_000);
-    return () => clearInterval(interval);
+    // const interval = setInterval(loadSessions, 30_000);
+    // return () => clearInterval(interval);
   }, [loadSessions]);
 
   const updateSessionLifetime = async (value: number) => {

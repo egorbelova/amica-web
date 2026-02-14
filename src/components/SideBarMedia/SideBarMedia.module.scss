@@ -173,6 +173,8 @@
   overflow-x: auto;
   flex-shrink: 0;
   z-index: 99;
+  position: sticky;
+  top: calc(65px + var(--sat));
   &.hidden {
     display: none;
   }
