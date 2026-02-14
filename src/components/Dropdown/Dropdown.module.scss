@@ -1,5 +1,5 @@
 :root {
-  --color-bg: #66666666;
+  --color-bg: #33333333;
   --color-selected: #99999999;
   --color-hover: #99999933;
 }
@@ -28,7 +28,6 @@
   transform: rotate(180deg);
 }
 .menu {
-  position: absolute;
   top: 100%;
   left: 0;
   width: max-content;
@@ -39,8 +38,6 @@
   overflow-y: auto;
   backdrop-filter: blur(12px);
   background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   z-index: 1000;
 
@@ -52,11 +49,16 @@
   opacity: 0;
   pointer-events: none;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 6px;
+  border-radius: 24px;
+  padding: 8px;
+  scale: 1;
+}
+
+.menuInner {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  scale: 1;
 }
 
 .menu:active {
@@ -87,7 +89,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  border-radius: calc(16px - 6px);
+  border-radius: 16px;
   transition: background 0.2s ease;
 }
 
@@ -103,13 +105,13 @@
 .indicator {
   position: absolute;
   left: 0;
-  left: 3px;
-  width: calc(100% - 6px);
+  left: 0;
+  width: 100%;
   height: 20px;
   background: var(--color-hover);
   transition:
     top 0.2s ease,
     height 0.2s ease;
-  border-radius: 10px;
+  border-radius: 16px;
   z-index: -1;
 }

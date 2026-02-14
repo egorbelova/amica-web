@@ -30,12 +30,18 @@ export function Dropdown<T extends string | number>({
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const menuRef = useRef<HTMLUListElement>(null);
-  const itemRefs = useRef<Array<HTMLLIElement | null>>([]);
+  const menuInnerRef = useRef<HTMLDivElement>(null);
 
-  const [indicatorPos, setIndicatorPos] = useState({ top: 0, height: 0 });
+  const itemRefs = useRef<Array<HTMLLIElement | null>>([]);
+  const isPointerDown = useRef(false);
+
+  const [indicatorPos, setIndicatorPos] = useState<{
+    top: number;
+    height: number;
+  } | null>(null);
 
   const updateIndicatorByPointer = (clientY: number) => {
-    const menu = menuRef.current;
+    const menu = menuInnerRef.current;
     if (!menu) return null;
 
     const rect = menu.getBoundingClientRect();
@@ -67,15 +73,44 @@ export function Dropdown<T extends string | number>({
     return closestIndex;
   };
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLUListElement>) => {
+  const isPointerInsideMenu = (clientX: number, clientY: number) => {
+    const menu = menuRef.current;
+    if (!menu) return false;
+
+    const rect = menu.getBoundingClientRect();
+    return (
+      clientX >= rect.left &&
+      clientX <= rect.right &&
+      clientY >= rect.top &&
+      clientY <= rect.bottom
+    );
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    // if (!isPointerDown.current) return;
+
+    if (!isPointerInsideMenu(e.clientX, e.clientY)) {
+      resetIndicator();
+      return;
+    }
+
     updateIndicatorByPointer(e.clientY);
   };
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLUListElement>) => {
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    isPointerDown.current = true;
     updateIndicatorByPointer(e.clientY);
   };
 
-  const handlePointerUp = (e: React.PointerEvent<HTMLUListElement>) => {
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDown.current) return;
+    isPointerDown.current = false;
+
+    if (!isPointerInsideMenu(e.clientX, e.clientY)) {
+      resetIndicator();
+      return;
+    }
+
     const index = updateIndicatorByPointer(e.clientY);
     if (index !== null) {
       const selectedItem = items[index];
@@ -117,6 +152,17 @@ export function Dropdown<T extends string | number>({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const resetIndicator = () => {
+    const index = items.findIndex((item) => item.value === value);
+    const el = itemRefs.current[index];
+    if (el) {
+      setIndicatorPos({
+        top: el.offsetTop,
+        height: el.offsetHeight,
+      });
+    }
+  };
+
   useEffect(() => {
     if (open && btnRef.current && menuRef.current) {
       const btnRect = btnRef.current.getBoundingClientRect();
@@ -136,6 +182,11 @@ export function Dropdown<T extends string | number>({
   }, [open, items.length]);
 
   const selected = items.find((item) => item.value === value);
+  useEffect(() => {
+    if (open) {
+      itemRefs.current = [];
+    }
+  }, [open]);
 
   return (
     <div className={styles.dropdown} ref={containerRef}>
@@ -172,46 +223,45 @@ export function Dropdown<T extends string | number>({
                 top: position.top,
                 left: position.left,
               }}
-              onPointerMove={handlePointerMove}
-              onPointerDown={handlePointerDown}
-              onPointerUp={handlePointerUp}
-              onPointerLeave={() => {
-                const index = items.findIndex((item) => item.value === value);
-                const el = itemRefs.current[index];
-                if (el) {
-                  setIndicatorPos({
-                    top: el.offsetTop,
-                    height: el.offsetHeight,
-                  });
-                }
-              }}
             >
-              <span
-                className={styles.indicator}
-                style={{
-                  top: indicatorPos.top,
-                  height: indicatorPos.height,
-                }}
-              />
-              {items.map((item, index) => (
-                <li
-                  key={String(item.value)}
-                  className={styles.item}
-                  ref={(el) => {
-                    itemRefs.current[index] = el;
-                  }}
-                  // onClick={(e) => {
-                  //   e.stopPropagation();
-                  //   onChange(item.value);
-                  //   setOpen(false);
-                  // }}
-                >
-                  {item.icon && (
-                    <span className={styles.icon}>{item.icon}</span>
-                  )}
-                  {item.label}
-                </li>
-              ))}
+              <div
+                className={styles.menuInner}
+                onPointerMove={handlePointerMove}
+                onPointerDown={handlePointerDown}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={resetIndicator}
+                ref={menuInnerRef}
+              >
+                {' '}
+                {indicatorPos && (
+                  <span
+                    className={styles.indicator}
+                    style={{
+                      top: indicatorPos.top,
+                      height: indicatorPos.height,
+                    }}
+                  />
+                )}
+                {items.map((item, index) => (
+                  <li
+                    key={String(item.value)}
+                    className={styles.item}
+                    ref={(el) => {
+                      itemRefs.current[index] = el;
+                    }}
+                    // onClick={(e) => {
+                    //   e.stopPropagation();
+                    //   onChange(item.value);
+                    //   setOpen(false);
+                    // }}
+                  >
+                    {item.icon && (
+                      <span className={styles.icon}>{item.icon}</span>
+                    )}
+                    {item.label}
+                  </li>
+                ))}
+              </div>
             </ul>
           </>,
           document.body,
