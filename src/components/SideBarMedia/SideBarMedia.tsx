@@ -39,23 +39,25 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     if (!tabsRef.current) return;
 
     const tabs = tabsRef.current;
+    const parent = tabs.parentElement;
+
+    if (!parent) return;
 
     const sentinel = document.createElement('div');
-    sentinel.style.top = `${tabs.offsetTop}px`;
-    sentinel.style.width = '0px';
-    sentinel.style.height = '0px';
-    tabs.parentElement?.insertBefore(sentinel, tabs);
+    sentinel.style.height = '1px';
+
+    parent.insertBefore(sentinel, tabs);
+
+    const stickyTop = getComputedStyle(tabs).top;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting) {
-          setAttachmentsActive(true);
-        } else {
-          setAttachmentsActive(false);
-        }
+        setAttachmentsActive(!entry.isIntersecting);
       },
       {
-        threshold: [0],
+        root: null,
+        threshold: 0,
+        rootMargin: `-${stickyTop} 0px 0px 0px`,
       },
     );
 
@@ -652,25 +654,25 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
           </div>
           <span className={styles['sidebar__subtitle']}>{subtitle}</span>
         </div>
+        {!interlocutorEditVisible && selectedChat.type === 'D' && (
+          <div className={styles['sidebar__info-secondary']}>
+            {selectedChat.type === 'D' && (
+              <button
+                className={styles['sidebar__info-secondary__item']}
+                type='button'
+                onClick={handleCopyEmail}
+              >
+                {interlocutor?.email}
+              </button>
+            )}
+          </div>
+        )}
 
         <div
           className={`${styles.sidebar__media} ${
             interlocutorEditVisible ? styles.hidden : ''
           }`}
         >
-          {!interlocutorEditVisible && selectedChat.type === 'D' && (
-            <div className={styles['sidebar__info-secondary']}>
-              {selectedChat.type === 'D' && (
-                <button
-                  className={styles['sidebar__info-secondary__item']}
-                  type='button'
-                  onClick={handleCopyEmail}
-                >
-                  {interlocutor?.email}
-                </button>
-              )}
-            </div>
-          )}
           <div className={styles.tabs}>
             <div className={styles['tabs-inner']}>
               <div

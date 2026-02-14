@@ -1,3 +1,9 @@
+:root {
+  --color-bg: #66666666;
+  --color-selected: #99999999;
+  --color-hover: #99999933;
+}
+
 .dropdown {
   position: relative;
   display: inline-block;
@@ -10,7 +16,7 @@
   padding: 6px 10px;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: 16px;
   cursor: pointer;
   font-size: 14px;
 }
@@ -26,22 +32,30 @@
   top: 100%;
   left: 0;
   width: max-content;
-  min-width: max-content;
+  min-width: min(120px, calc(100% - 20px));
+  max-width: 100%;
   text-wrap: nowrap;
   max-height: 240px;
   overflow-y: auto;
   backdrop-filter: blur(12px);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   z-index: 1000;
 
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
   position: absolute;
   opacity: 0;
   transform: translateY(-4px);
   pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .menu.open {
@@ -56,10 +70,29 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  border-radius: calc(16px - 6px);
+  transition: background 0.2s ease;
 }
-.item:hover {
+
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999;
+}
+
+.indicator {
+  position: absolute;
+  left: 0;
+  left: 3px;
+  width: calc(100% - 6px);
+  height: 20px;
   background: var(--color-hover);
-}
-.item.active {
-  background: var(--color-selected);
+  transition:
+    top 0.2s ease,
+    height 0.2s ease;
+  border-radius: 10px;
+  z-index: -1;
 }

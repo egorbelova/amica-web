@@ -22,11 +22,59 @@ export function Dropdown<T extends string | number>({
   placeholder = 'Select...',
 }: DropdownProps<T>) {
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [position, setPosition] = useState({
+    top: 0,
+    left: 0,
+  });
   const containerRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const menuRef = useRef<HTMLUListElement>(null);
+  const itemRefs = useRef<Array<HTMLLIElement | null>>([]);
+
+  const [indicatorPos, setIndicatorPos] = useState({ top: 0, height: 0 });
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLUListElement>) => {
+    const menu = menuRef.current;
+    if (!menu) return;
+
+    const rect = menu.getBoundingClientRect();
+    const pointerY = e.clientY - rect.top;
+
+    let closestIndex = 0;
+    let minDistance = Infinity;
+
+    itemRefs.current.forEach((el, index) => {
+      if (!el) return;
+
+      const center = el.offsetTop + el.offsetHeight / 2;
+      const distance = Math.abs(pointerY - center);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = index;
+      }
+    });
+
+    const el = itemRefs.current[closestIndex];
+    if (el) {
+      setIndicatorPos({
+        top: el.offsetTop,
+        height: el.offsetHeight,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      const index = items.findIndex((item) => item.value === value);
+      const el = itemRefs.current[index];
+      if (el) {
+        const { offsetTop, offsetHeight } = el;
+        setIndicatorPos({ top: offsetTop, height: offsetHeight });
+      }
+    }
+  }, [value, open, items.length]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -46,19 +94,20 @@ export function Dropdown<T extends string | number>({
   }, []);
 
   useEffect(() => {
-    if (open && btnRef.current) {
-      const rect = btnRef.current.getBoundingClientRect();
-      const listHeight = Math.min(items.length * 36, 240);
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const openUp = spaceBelow < listHeight;
+    if (open && btnRef.current && menuRef.current) {
+      const btnRect = btnRef.current.getBoundingClientRect();
+      const menuWidth = menuRef.current.offsetWidth;
+      const viewportWidth = window.innerWidth;
 
-      setPosition({
-        top: openUp
-          ? rect.top + window.scrollY - listHeight
-          : rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX,
-        width: rect.width,
-      });
+      let left = btnRect.left + window.scrollX;
+
+      if (left + menuWidth > viewportWidth) {
+        left = Math.max(window.scrollX, viewportWidth - menuWidth - 8);
+      }
+
+      const top = btnRect.bottom + window.scrollY;
+
+      setPosition({ top, left });
     }
   }, [open, items.length]);
 
@@ -87,33 +136,59 @@ export function Dropdown<T extends string | number>({
 
       {open &&
         createPortal(
-          <ul
-            ref={menuRef}
-            className={`${styles.menu} ${open ? styles.open : ''}`}
-            style={{
-              top: position.top,
-              left: position.left,
-              width: position.width,
-            }}
-          >
-            {items.map((item) => (
-              <li
-                key={String(item.value)}
-                className={`${styles.item} ${
-                  item.value === value ? styles.active : ''
-                }`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChange(item.value);
-                  setOpen(false);
+          <>
+            <div
+              className={styles.backdrop}
+              onClick={() => setOpen(false)}
+            ></div>
+            <ul
+              ref={menuRef}
+              className={`${styles.menu} ${open ? styles.open : ''}`}
+              style={{
+                top: position.top,
+                left: position.left,
+              }}
+              onPointerMove={handlePointerMove}
+              onPointerLeave={() => {
+                const index = items.findIndex((item) => item.value === value);
+                const el = itemRefs.current[index];
+                if (el) {
+                  setIndicatorPos({
+                    top: el.offsetTop,
+                    height: el.offsetHeight,
+                  });
+                }
+              }}
+            >
+              <span
+                className={styles.indicator}
+                style={{
+                  top: indicatorPos.top,
+                  height: indicatorPos.height,
                 }}
-              >
-                {item.icon && <span className={styles.icon}>{item.icon}</span>}
-                {item.label}
-              </li>
-            ))}
-          </ul>,
-          document.body
+              />
+              {items.map((item, index) => (
+                <li
+                  key={String(item.value)}
+                  className={styles.item}
+                  ref={(el) => {
+                    itemRefs.current[index] = el;
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange(item.value);
+                    setOpen(false);
+                  }}
+                >
+                  {item.icon && (
+                    <span className={styles.icon}>{item.icon}</span>
+                  )}
+                  {item.label}
+                </li>
+              ))}
+            </ul>
+          </>,
+          document.body,
         )}
     </div>
   );
