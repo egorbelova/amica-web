@@ -43,9 +43,6 @@
     line-height: var(--line-height);
     min-height: calc(var(--line-height) * 2);
     max-height: calc(var(--line-height) * 2);
-    text-indent: 0;
-    -webkit-line-break: after-white-space;
-    line-break: after-white-space;
     white-space: pre-line;
   }
 
@@ -169,11 +166,11 @@
   }
 
   &__attachments {
-    float: left;
-    display: flex;
+    display: inline-flex;
     gap: 3px;
     height: 20px;
     margin-right: 4px;
+    vertical-align: top;
   }
 
   &__attachment {

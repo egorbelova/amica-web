@@ -122,17 +122,18 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
           <div className={styles['chat-list-item__message-row']}>
             <div className={styles['chat-list-item__message-text']}>
               {lastMessageFiles.length > 0 && (
-                <div className={styles['chat-list-item__attachments']}>
+                <span className={styles['chat-list-item__attachments']}>
                   {lastMessageFiles.map((file, index) => (
                     <AttachmentPreview key={file.id || index} file={file} />
                   ))}
-                </div>
+                </span>
               )}
-
+              {/* <span className={styles['chat-list-item__message-text-content']}> */}
               {lastMessage &&
                 (lastMessageText
                   ? lastMessageText
                   : `${lastMessageFiles.length === 1 ? '' : lastMessage.files.length} ${attachment_text}`)}
+              {/* </span> */}
             </div>
             {unread_count > 0 && (
               <span className={styles['chat-list-item__unread']}>

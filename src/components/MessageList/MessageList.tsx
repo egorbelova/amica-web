@@ -10,12 +10,14 @@ import { useMergedRefs } from '@/hooks/useMergedRefs';
 import type { MenuItem } from '../ContextMenu/ContextMenu';
 import type { IconName } from '../Icons/AutoIcons';
 import { apiFetch } from '@/utils/apiFetch';
+import { useSnackbar } from '@/contexts/snackbar/SnackbarContext';
 
 const MessageList: React.FC = () => {
   const { messages, updateMessages, selectedChat } = useChat();
   const selectedChatRef = useRef(selectedChat);
   const messagesRef = useRef(messages);
   const { containerRef: jumpContainerRef, setIsVisible } = useJump();
+  const { showSnackbar } = useSnackbar();
 
   useEffect(() => {
     selectedChatRef.current = selectedChat;
@@ -122,6 +124,7 @@ const MessageList: React.FC = () => {
         const imageBlob = new Blob([blob], { type: 'image/png' });
         const clipboardItem = new ClipboardItem({ 'image/png': imageBlob });
         await navigator.clipboard.write([clipboardItem]);
+        showSnackbar('Media copied');
       } catch (err) {
         const img = new Image();
         img.crossOrigin = 'anonymous';
@@ -215,6 +218,7 @@ const MessageList: React.FC = () => {
       link.download = filename;
       document.body.appendChild(link);
       link.click();
+      showSnackbar('File downloaded');
       document.body.removeChild(link);
 
       URL.revokeObjectURL(blobUrl);
@@ -299,15 +303,20 @@ const MessageList: React.FC = () => {
   const handleCopyMessage = (msg: any) => {
     if (!msg?.value) return;
 
-    console.log(msg);
+    // console.log(msg);
 
     const text = msg.value;
 
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(text).catch((err) => {
-        console.error('Clipboard error:', err);
-        fallbackCopy(text);
-      });
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          showSnackbar('Message copied');
+        })
+        .catch((err) => {
+          console.error('Clipboard error:', err);
+          fallbackCopy(text);
+        });
     } else {
       fallbackCopy(text);
     }

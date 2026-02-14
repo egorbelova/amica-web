@@ -652,25 +652,25 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
           </div>
           <span className={styles['sidebar__subtitle']}>{subtitle}</span>
         </div>
-        {!interlocutorEditVisible && selectedChat.type === 'D' && (
-          <div className={styles['sidebar__info-secondary']}>
-            {selectedChat.type === 'D' && (
-              <button
-                className={styles['sidebar__info-secondary__item']}
-                type='button'
-                onClick={handleCopyEmail}
-              >
-                {interlocutor?.email}
-              </button>
-            )}
-          </div>
-        )}
 
         <div
           className={`${styles.sidebar__media} ${
             interlocutorEditVisible ? styles.hidden : ''
           }`}
         >
+          {!interlocutorEditVisible && selectedChat.type === 'D' && (
+            <div className={styles['sidebar__info-secondary']}>
+              {selectedChat.type === 'D' && (
+                <button
+                  className={styles['sidebar__info-secondary__item']}
+                  type='button'
+                  onClick={handleCopyEmail}
+                >
+                  {interlocutor?.email}
+                </button>
+              )}
+            </div>
+          )}
           <div className={styles.tabs}>
             <div className={styles['tabs-inner']}>
               <div
