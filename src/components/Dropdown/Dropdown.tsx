@@ -35,6 +35,7 @@ export function Dropdown<T extends string | number>({
 
   const itemRefs = useRef<Array<HTMLLIElement | null>>([]);
   const isPointerDown = useRef(false);
+  const isScrolling = useRef(false);
 
   const [indicatorPos, setIndicatorPos] = useState<{
     top: number;
@@ -92,6 +93,8 @@ export function Dropdown<T extends string | number>({
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     // if (!isPointerDown.current) return;
 
+    if (isScrolling.current && isPointerDown.current) return;
+
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
     }
@@ -116,11 +119,12 @@ export function Dropdown<T extends string | number>({
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     isPointerDown.current = true;
+    isScrolling.current = false;
     updateIndicatorByPointer(e.clientY);
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isPointerDown.current) return;
+    if (!isPointerDown.current || isScrolling.current) return;
     isPointerDown.current = false;
 
     if (!isPointerInsideMenu(e.clientX, e.clientY)) {
@@ -170,14 +174,15 @@ export function Dropdown<T extends string | number>({
   }, []);
 
   const resetIndicator = () => {
-    const index = items.findIndex((item) => item.value === value);
-    const el = itemRefs.current[index];
-    if (el) {
-      setIndicatorPos({
-        top: el.offsetTop,
-        height: el.offsetHeight,
-      });
-    }
+    setIndicatorPos(null);
+    // const index = items.findIndex((item) => item.value === value);
+    // const el = itemRefs.current[index];
+    // if (el) {
+    //   setIndicatorPos({
+    //     top: el.offsetTop,
+    //     height: el.offsetHeight,
+    //   });
+    // }
   };
 
   useEffect(() => {
@@ -239,6 +244,11 @@ export function Dropdown<T extends string | number>({
               style={{
                 top: position.top,
                 left: position.left,
+              }}
+              onScroll={(e) => {
+                // e.stopPropagation();
+                isScrolling.current = true;
+                resetIndicator();
               }}
             >
               <div
