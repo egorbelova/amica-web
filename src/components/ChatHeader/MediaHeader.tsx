@@ -11,7 +11,7 @@ export const MediaHeader: React.FC = () => {
     togglePlay,
     coverUrl,
   } = useAudio();
-  console.log(coverUrl);
+  //   console.log(coverUrl);
 
   const currentTrack = currentAudioId
     ? playlist.find((f) => f.id === currentAudioId)

@@ -100,7 +100,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   useEffect(() => {
-    console.log('currentTime', currentTime);
+    // console.log('currentTime', currentTime);
 
     const audio = audioRef.current;
     if (!audio) return;

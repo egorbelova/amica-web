@@ -145,7 +145,7 @@ export default function AudioLayout({
 
     updateTime(getClientX(e));
     const onMouseMove = (moveEvent) => {
-      console.log('onMouseMove');
+      // console.log('onMouseMove');
       moveEvent.preventDefault();
       moveEvent.stopPropagation();
 
