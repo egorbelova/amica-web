@@ -7,4 +7,7 @@
   );
 
   // transition: padding-bottom 0.2s ease;
+  @media screen and (max-width: 768px) {
+    padding-top: calc(env(safe-area-inset-top, 20px));
+  }
 }

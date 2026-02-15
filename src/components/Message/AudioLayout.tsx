@@ -3,6 +3,8 @@ import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import styles from './SmartMediaLayout.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 import { apiFetch } from '@/utils/apiFetch';
+import { useAudio } from '@/contexts/AudioContext';
+import { useChat } from '@/contexts/ChatContext';
 
 const SPEEDS = [0.5, 1, 1.5, 2];
 
@@ -13,11 +15,19 @@ export default function AudioLayout({
   id,
   cover_url,
 }) {
-  const [objectUrl, setObjectUrl] = useState(null);
+  const {
+    setPlaylist,
+    currentChatId,
+    togglePlay: toggleAudio,
+    playlist,
+    isPlaying: isAudioPlaying,
+    currentAudioId,
+    setCoverUrl,
+    setCurrentTime,
+  } = useAudio();
+  const { selectedChat, messages } = useChat();
   const { objectUrl: cover } = usePrivateMedia(cover_url);
   const audioRef = useRef(null);
-
-  const [hasStarted, setHasStarted] = useState(false);
 
   const progressRef = useRef(null);
   const volumeRef = useRef(null);
@@ -75,33 +85,37 @@ export default function AudioLayout({
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('loadedmetadata', onLoaded);
     };
-  }, [objectUrl]);
+  }, []);
 
-  async function fetchPrivateMedia(url: string) {
-    const res = await apiFetch(url);
-    const blob = await res.blob();
-    const objectUrl = URL.createObjectURL(blob);
-    return objectUrl;
-  }
+  const [pendingAudioId, setPendingAudioId] = useState<number | null>(null);
 
-  const togglePlay = useCallback(async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (!hasStarted) {
-      setHasStarted(true);
-
-      const url = await fetchPrivateMedia(full);
-      setObjectUrl(url);
-
-      audio.onloadedmetadata = () => {
-        audio.play();
-        audio.onloadedmetadata = null;
-      };
+  const togglePlay = useCallback(() => {
+    if (currentChatId !== selectedChat.id) {
+      const newPlaylist = messages.flatMap((message) =>
+        (message.files ?? []).filter((file) => file.category === 'audio'),
+      );
+      setPlaylist(newPlaylist, selectedChat.id);
+      setPendingAudioId(id);
     } else {
-      audio.paused ? audio.play() : audio.pause();
+      toggleAudio(id);
     }
-  }, [full, hasStarted]);
+    setCoverUrl(cover);
+  }, [
+    messages,
+    selectedChat.id,
+    currentChatId,
+    id,
+    setPlaylist,
+    toggleAudio,
+    cover,
+  ]);
+
+  useEffect(() => {
+    if (pendingAudioId !== null) {
+      toggleAudio(pendingAudioId);
+      setPendingAudioId(null);
+    }
+  }, [playlist, pendingAudioId, toggleAudio]);
 
   const cycleSpeed = useCallback(() => {
     const audio = audioRef.current;
@@ -126,6 +140,7 @@ export default function AudioLayout({
 
       audioRef.current.currentTime = time;
       currentTimeRef.current = time;
+      setCurrentTime(time);
     };
 
     updateTime(getClientX(e));
@@ -191,7 +206,7 @@ export default function AudioLayout({
 
     const supported = checkVolumeSupport();
     setCanChangeVolume(supported);
-  }, [objectUrl]);
+  }, []);
 
   const formatTime = (time = 0) => {
     const minutes = Math.floor(time / 60);
@@ -258,10 +273,14 @@ export default function AudioLayout({
       onMouseOut={() => setIsControlsOpen(false)}
     >
       {cover && <img src={cover} alt='' className={styles.cover} />}
-      <audio ref={audioRef} src={objectUrl} preload='none' />
+      <audio ref={audioRef} preload='none' />
 
       <button onClick={togglePlay} className={styles.play}>
-        {isPlaying ? <Icon name='Pause' /> : <Icon name='Play' />}
+        {isAudioPlaying && currentAudioId === id ? (
+          <Icon name='Pause' />
+        ) : (
+          <Icon name='Play' />
+        )}
       </button>
 
       <div className={styles.timeline}>
