@@ -5,7 +5,7 @@ import Avatar from '@/components/Avatar/Avatar';
 import styles from './Tabs.module.scss';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { useSettings } from '@/contexts/settings/Settings';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 type TabValue = 'contacts' | 'chats' | 'profile';
 

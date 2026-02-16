@@ -146,7 +146,7 @@ body {
   will-change: transform;
   position: relative;
   border-radius: var(--device-corner-radius);
-  container-type: inline-size;
+  container: main_chat_window / inline-size;
 }
 
 .main_chat_window.swipe {
@@ -266,7 +266,7 @@ svg {
   margin-right: 384px;
 }
 
-@container (max-width: 900px) {
+@container main_chat_window (max-width: 900px) {
   .room_wrapper.shifted {
     margin-right: 0;
   }

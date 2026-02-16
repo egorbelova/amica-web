@@ -37,4 +37,8 @@ export interface SettingsContextValue {
   removeWallpaper: (id: string) => void;
   fetchWallpapers: () => Promise<void>;
   loading: boolean;
+  settingsFullWindow: boolean;
+  setSettingsFullWindow: (value: boolean) => void;
+  isResizingPermitted: boolean;
+  setIsResizingPermitted: (value: boolean) => void;
 }

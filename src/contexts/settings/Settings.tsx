@@ -13,6 +13,7 @@ import type {
 } from './types';
 import { websocketManager } from '@/utils';
 import { apiUpload, apiFetch } from '@/utils/apiFetch';
+import { usePageStack } from '@/contexts/useStackHistory';
 
 const defaultWallpapers: WallpaperSetting[] = [
   {
@@ -54,12 +55,37 @@ export const SettingsContext = createContext<SettingsContextValue | null>(null);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const saved = localStorage.getItem('app-settings');
-  let parsed: Partial<Settings & { autoplayVideos?: boolean }> = {};
+  let parsed: Partial<
+    Settings & { autoplayVideos?: boolean; settingsFullWindow?: boolean }
+  > = {};
   if (saved) {
     try {
       parsed = JSON.parse(saved);
     } catch {}
   }
+
+  const [isResizingPermitted, setIsResizingPermitted] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setIsResizingPermitted(true);
+      } else {
+        setIsResizingPermitted(false);
+        setSettingsFullWindow(false);
+      }
+    };
+
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const [settingsFullWindow, setSettingsFullWindow] = useState<boolean>(
+    parsed.settingsFullWindow ?? false,
+  );
 
   const [autoplayVideos, setAutoplayVideos] = useState<boolean>(
     parsed.autoplayVideos ?? false,
@@ -84,7 +110,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   });
 
   const [loading, setLoading] = useState(true);
-  const [activeProfileTab, setActiveProfileTab] = useState<SubTab>('account');
+  const [activeProfileTab, setActiveProfileTab] = useState<SubTab>(null);
+  // const { push } = usePageStack();
+
+  // useEffect(() => {
+  //   console.log('activeProfileTab', activeProfileTab);
+  //   push(activeProfileTab);
+  // }, [activeProfileTab]);
 
   useEffect(() => {
     const { activeWallpaper, ...rest } = settings;
@@ -248,6 +280,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         setActiveProfileTab,
         autoplayVideos,
         setAutoplayVideos,
+        settingsFullWindow,
+        setSettingsFullWindow,
+        isResizingPermitted,
+        setIsResizingPermitted,
       }}
     >
       {children}

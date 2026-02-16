@@ -50,10 +50,6 @@
   font-weight: 600;
 }
 
-.content {
-  padding: 0 10px;
-}
-
 .section {
   display: flex;
   flex-direction: column;
@@ -165,16 +161,24 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
+  justify-content: center;
 
-  // @media (max-width: 768px) {
-  //   grid-template-columns: repeat(2, 1fr);
-  //   gap: 8px;
-  // }
+  @container settingsContainer (min-width: 0px) {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  }
 
   // @media (max-width: 480px) {
   //   grid-template-columns: 1fr;
   //   gap: 6px;
   // }
+}
+
+.maximize {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  right: 10px;
+  top: 10px;
 }
 
 .wallpaperThumbnail {
@@ -207,6 +211,7 @@
 .wallpapersContainer {
   display: flex;
   flex-direction: column;
+  width: 100%;
   // margin: 0 10px;
 }
 
@@ -232,4 +237,18 @@
 
 .check.active {
   background: #4d8ddb;
+}
+
+.content {
+  padding: 10px;
+  height: 100%;
+  width: 100%;
+}
+
+// .settingsContainer {
+// }
+
+.close {
+  width: 24px;
+  height: 24px;
 }

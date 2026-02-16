@@ -11,6 +11,7 @@ import type { ReactNode } from 'react';
 import type { Message, Chat, User } from '@/types';
 import { websocketManager } from '@/utils/websocket-manager';
 import { apiFetch, apiUpload } from '@/utils/apiFetch';
+import { useSettings } from './settings/Settings';
 
 interface ChatContextType {
   selectedChat: Chat | null;
@@ -51,6 +52,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const [messagesCache, setMessagesCache] = useState<{
     [roomId: number]: Message[];
   }>({});
+  const { setActiveProfileTab } = useSettings();
 
   const messages = selectedChatId ? (messagesCache[selectedChatId] ?? []) : [];
 
@@ -285,6 +287,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setSelectedChatId(null);
+        setActiveProfileTab(null);
         location.hash = '';
       }
     };

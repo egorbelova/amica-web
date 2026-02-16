@@ -9,6 +9,9 @@ import styles from './MainChatWindow.module.scss';
 import { useTranslation, type Locale } from '@/contexts/LanguageContext';
 import { useSettings } from '@/contexts/settings/Settings';
 import wallpaperStyles from '@/pages/RoomPage.module.scss';
+import { usePageStack } from '@/contexts/useStackHistory';
+import { ActiveProfileTab } from '@/components/Profile/ActiveProfileTab';
+import { Icon } from '../Icons/AutoIcons';
 
 interface MainChatWindowProps {
   staticUrl?: string;
@@ -33,7 +36,12 @@ interface AttachmentTab {
 }
 
 const MainChatWindow: React.FC = () => {
-  const { settings } = useSettings();
+  const {
+    settings,
+    settingsFullWindow,
+    setSettingsFullWindow,
+    activeProfileTab,
+  } = useSettings();
   const { activeWallpaper } = settings;
 
   const { t, locale } = useTranslation();
@@ -43,6 +51,8 @@ const MainChatWindow: React.FC = () => {
   const [sideBarVisible, setSideBarVisible] = useState(false);
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  const { current } = usePageStack();
 
   const [isSwiped, setIsSwiped] = useState(false);
   useEffect(() => {
@@ -120,7 +130,18 @@ const MainChatWindow: React.FC = () => {
         </>
       )}
       {/* {windowWidth <= 768 && <BackgroundComponent />} */}
-      {selectedChat && (
+      {current === 'profile' && settingsFullWindow && activeProfileTab && (
+        <div className={styles.settingsContainer}>
+          <div
+            onClick={() => setSettingsFullWindow(false)}
+            className={styles.minimize}
+          >
+            <Icon name='FullscreenExit' />
+          </div>
+          <ActiveProfileTab />
+        </div>
+      )}
+      {selectedChat && (!settingsFullWindow || current === 'chats') && (
         <>
           <ChatHeader
             onChatInfoClick={handleHeaderClick}
@@ -139,45 +160,46 @@ const MainChatWindow: React.FC = () => {
           />
         </>
       )}
-      {!selectedChat && (
-        <div className={styles.noChatContainer}>
-          <div
-            className={styles.menuSwitch}
-            onClick={() => setAppearanceMenuVisible(!appearanceMenuVisible)}
-          >
-            {appearanceMenuVisible ? 'X' : '?'}
-          </div>
-          {!appearanceMenuVisible && (
-            <div className={styles.noChatText}>
-              Select a chat to start messaging
+      {!selectedChat &&
+        (!settingsFullWindow || current === 'chats' || !activeProfileTab) && (
+          <div className={styles.noChatContainer}>
+            <div
+              className={styles.menuSwitch}
+              onClick={() => setAppearanceMenuVisible(!appearanceMenuVisible)}
+            >
+              {appearanceMenuVisible ? 'X' : '?'}
             </div>
-          )}
-          {appearanceMenuVisible && (
-            <div className={styles.tipsMenu}>
-              {activeTab === 'appearance' && (
-                <div className={styles.mainContent}>
-                  <div className={styles.header}>
-                    {t('tipsMenu.appearance')}
+            {!appearanceMenuVisible && (
+              <div className={styles.noChatText}>
+                Select a chat to start messaging
+              </div>
+            )}
+            {appearanceMenuVisible && (
+              <div className={styles.tipsMenu}>
+                {activeTab === 'appearance' && (
+                  <div className={styles.mainContent}>
+                    <div className={styles.header}>
+                      {t('tipsMenu.appearance')}
+                    </div>
+                  </div>
+                )}
+                {activeTab === 'chats' && (
+                  <div className={styles.mainContent}>
+                    <div className={styles.header}>{t('tipsMenu.chats')}</div>
+                  </div>
+                )}
+                <div className={styles.pageSwitch}>
+                  <div className={styles.switchButton} onClick={handlePrevTab}>
+                    {'<'} {t('tipsMenu.previousTip')}
+                  </div>
+                  <div className={styles.switchButton} onClick={handleNextTab}>
+                    {t('tipsMenu.nextTip')} {'>'}
                   </div>
                 </div>
-              )}
-              {activeTab === 'chats' && (
-                <div className={styles.mainContent}>
-                  <div className={styles.header}>{t('tipsMenu.chats')}</div>
-                </div>
-              )}
-              <div className={styles.pageSwitch}>
-                <div className={styles.switchButton} onClick={handlePrevTab}>
-                  {'<'} {t('tipsMenu.previousTip')}
-                </div>
-                <div className={styles.switchButton} onClick={handleNextTab}>
-                  {t('tipsMenu.nextTip')} {'>'}
-                </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
     </div>
   );
 };

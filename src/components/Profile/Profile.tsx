@@ -3,19 +3,24 @@ import { Icon } from '../Icons/AutoIcons';
 import styles from './Profile.module.scss';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { availableLanguages } from '@/contexts/LanguageContext';
-import ProfileLanguage from './ProfileLanguage';
-import ProfilePrivacy from './ProfilePrivacy';
-import ProfileAccount from './ProfileAccount';
-import ProfileAppearance from './ProfileAppearance';
-import ProfileSessions from './ProfileSessions';
+
 import Avatar from '../Avatar/Avatar';
 import { useUser } from '@/contexts/UserContext';
 import { useSettings } from '@/contexts/settings/Settings';
+import { usePageStack } from '@/contexts/useStackHistory';
+import { ActiveProfileTab } from './ActiveProfileTab';
 
 export default function Profile() {
   const { t, locale } = useTranslation();
   const { user } = useUser();
-  const { activeProfileTab, setActiveProfileTab } = useSettings();
+  const {
+    activeProfileTab,
+    setActiveProfileTab,
+    settingsFullWindow,
+    setSettingsFullWindow,
+    isResizingPermitted,
+  } = useSettings();
+  const { current } = usePageStack();
 
   const tabs = [
     {
@@ -61,29 +66,37 @@ export default function Profile() {
 
   return (
     <div className={styles.container}>
-      <nav className={styles.tabs}>
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type='button'
-            onClick={() => setActiveProfileTab(tab.id)}
-            className={`${styles.tab} ${
-              activeProfileTab === tab.id ? styles.active : ''
-            }`}
-          >
-            {tab.icon}
-            <span>{tab.label}</span>
-          </button>
-        ))}
-      </nav>
+      {isResizingPermitted && activeProfileTab && !settingsFullWindow && (
+        <div
+          className={styles.maximize}
+          onClick={() => setSettingsFullWindow(true)}
+        >
+          <Icon name='Fullscreen' />
+        </div>
+      )}
 
-      <div className={styles.content}>
-        {activeProfileTab === 'language' && <ProfileLanguage />}
-        {activeProfileTab === 'privacy' && <ProfilePrivacy />}
-        {activeProfileTab === 'account' && <ProfileAccount />}
-        {activeProfileTab === 'appearance' && <ProfileAppearance />}
-        {activeProfileTab === 'active sessions' && <ProfileSessions />}
-      </div>
+      {(!activeProfileTab || settingsFullWindow) && (
+        <nav className={styles.tabs}>
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type='button'
+              onClick={() => setActiveProfileTab(tab.id)}
+              className={`${styles.tab} ${
+                activeProfileTab === tab.id ? styles.active : ''
+              }`}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+      )}
+      {current === 'profile' && !settingsFullWindow && (
+        <div className={styles.settingsContainer}>
+          <ActiveProfileTab />
+        </div>
+      )}
     </div>
   );
 }

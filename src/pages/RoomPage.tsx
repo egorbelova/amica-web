@@ -6,8 +6,15 @@ import './room.scss';
 import styles from './RoomPage.module.scss';
 import { useSettings } from '@/contexts/settings/Settings';
 import BackgroundComponent from '../components/BackgroundComponent/BackgroundComponent';
+import { usePageStack } from '@/contexts/useStackHistory';
 
 const RoomPage: React.FC = () => {
+  const { push } = usePageStack();
+
+  // useEffect(() => {
+  //   push('home');
+  // }, []);
+
   useEffect(() => {
     websocketManager.connect();
     return () => {
@@ -25,10 +32,12 @@ const RoomPage: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  if ('serviceWorker' in navigator) {
-    console.log('Service Worker registration');
-    navigator.serviceWorker.register('/sw.js');
-  }
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      console.log('Service Worker registration');
+      navigator.serviceWorker.register('/sw.js');
+    }
+  }, []);
 
   const videoRef = useRef<HTMLVideoElement>(null);
 

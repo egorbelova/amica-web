@@ -12,6 +12,7 @@ import { JumpProvider } from '@/contexts/JumpContext';
 import { apiFetch } from '@/utils/apiFetch';
 import { SnackbarProvider } from '@/contexts/snackbar/SnackbarContext';
 import type { User } from '../types';
+import { PageStackProvider } from '@/contexts/useStackHistory';
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -43,6 +44,7 @@ const GlobalSearchProvider: React.FC<{ children: React.ReactNode }> = ({
 
 const AppProvidersComponent = composeProviders(
   SnackbarProvider,
+  PageStackProvider,
   MediaModalProvider,
   AuthProvider,
   SettingsProvider,

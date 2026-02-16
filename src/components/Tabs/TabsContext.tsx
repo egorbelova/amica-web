@@ -5,6 +5,7 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
+import { usePageStack } from '@/contexts/useStackHistory';
 
 type TabValue = 'contacts' | 'chats' | 'profile';
 
@@ -18,10 +19,16 @@ const TabsContext = createContext<TabsContextType | null>(null);
 const LOCAL_STORAGE_KEY = 'activeTab';
 
 export function TabsProvider({ children }: { children: ReactNode }) {
+  const { push } = usePageStack();
+
   const [activeTab, setActiveTab] = useState<TabValue>(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY) as TabValue | null;
     return saved ?? 'chats';
   });
+
+  useEffect(() => {
+    push(activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, activeTab);
