@@ -58,7 +58,7 @@ export default function Profile() {
     //   icon: <Icon name='Notification' />,
     // },
     {
-      id: 'active sessions' as const,
+      id: 'active_sessions' as const,
       label: t('profileTabs.active_sessions'),
       icon: <Icon name='Sessions' />,
     },
@@ -66,14 +66,37 @@ export default function Profile() {
 
   return (
     <div className={styles.container}>
-      {isResizingPermitted && activeProfileTab && !settingsFullWindow && (
-        <div
-          className={styles.maximize}
-          onClick={() => setSettingsFullWindow(true)}
-        >
-          <Icon name='Fullscreen' />
-        </div>
-      )}
+      <div className={styles.title}>
+        {activeProfileTab && (
+          <div className={styles.titleText}>
+            {t(`profileTabs.${activeProfileTab}`)}
+          </div>
+        )}
+
+        {!activeProfileTab ? (
+          <>Settings</>
+        ) : (
+          <button
+            type='button'
+            className={styles.close}
+            onClick={() => setActiveProfileTab(null)}
+          >
+            <Icon
+              name='Arrow'
+              className={styles.close}
+              style={{ transform: 'rotate(180deg)' }}
+            />
+          </button>
+        )}
+        {isResizingPermitted && activeProfileTab && !settingsFullWindow && (
+          <div
+            className={styles.maximize}
+            onClick={() => setSettingsFullWindow(true)}
+          >
+            <Icon name='Fullscreen' />
+          </div>
+        )}
+      </div>
 
       {(!activeProfileTab || settingsFullWindow) && (
         <nav className={styles.tabs}>
@@ -86,8 +109,11 @@ export default function Profile() {
                 activeProfileTab === tab.id ? styles.active : ''
               }`}
             >
-              {tab.icon}
-              <span>{tab.label}</span>
+              <div className={styles['tab__content']}>
+                {tab.icon}
+                <span>{tab.label}</span>
+              </div>
+              <Icon name='Arrow' className={styles.arrow} />
             </button>
           ))}
         </nav>

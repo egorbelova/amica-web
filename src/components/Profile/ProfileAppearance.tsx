@@ -52,8 +52,6 @@ export default function ProfileAppearance() {
 
   return (
     <div className={styles.section}>
-      <h3>{t('profileTabs.appearance')}</h3>
-
       <div className={styles.optionRow}>
         <div>{t('language.time.timeFormat')}</div>
         <Toggle

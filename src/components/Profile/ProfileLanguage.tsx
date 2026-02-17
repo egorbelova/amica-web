@@ -6,8 +6,6 @@ export default function ProfileLanguage() {
 
   return (
     <div className={styles.section}>
-      <h3>{t('profileTabs.language')}</h3>
-
       {availableLanguages.map((lang) => (
         <div
           key={lang.code}

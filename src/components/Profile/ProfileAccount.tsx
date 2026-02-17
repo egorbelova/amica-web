@@ -10,8 +10,6 @@ export default function ProfileAccount() {
 
   return (
     <div className={styles.section}>
-      <h3>{t('profileTabs.account')}</h3>
-
       <EditableAvatar
         displayName={user.username}
         avatar={user?.profile?.primary_avatar}
@@ -28,6 +26,10 @@ export default function ProfileAccount() {
         }}
         isEditable={true}
       />
+      <div className={styles.info}>
+        <div className={styles.username}>{user.username}</div>
+        <div className={styles.email}>{user.email}</div>
+      </div>
 
       <div tabIndex={0} onClick={logout} className={styles.logoutBtn}>
         <Icon name='Logout' className={styles.logoutIcon} />

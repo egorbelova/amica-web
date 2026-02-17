@@ -36,7 +36,7 @@ const LeftSideBar: React.FC<ChooseListProps> = () => {
           </Tab>
           <Tab id='profile'>
             <div
-              className={styles['tab-content']}
+              className={`${styles['tab-content']} ${styles['tab-content--profile']}`}
               style={
                 {
                   '--offset-bottom':

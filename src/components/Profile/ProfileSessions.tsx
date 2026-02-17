@@ -149,8 +149,6 @@ export default function ProfileSessions() {
 
   return (
     <div className={styles.section}>
-      <h3>Active sessions</h3>
-
       {error && <div className={styles.error}>⚠️ {error}</div>}
       <div className={styles.sessionLifetime}>
         <label>Session lifetime: </label>

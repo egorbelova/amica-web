@@ -44,7 +44,7 @@ export default {
     },
   },
   profile: {
-    signOut: 'Log Out',
+    signOut: 'Sign Out',
   },
   privacy: {},
   contacts: {

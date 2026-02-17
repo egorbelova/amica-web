@@ -22,7 +22,7 @@ export type SubTab =
   | 'privacy'
   | 'notifications'
   | 'appearance'
-  | 'active sessions';
+  | 'active_sessions';
 
 export interface SettingsContextValue {
   settings: Settings;

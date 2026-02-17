@@ -95,11 +95,26 @@
   flex-direction: column;
   transition: all 0.2s;
   container: settingsContainer / inline-size;
+  animation: settingsContainerShow 0.4s;
+  transform-origin: right top;
+}
+
+@keyframes settingsContainerShow {
+  0% {
+    scale: 0;
+    opacity: 0;
+    translate: -150% 0;
+  }
+  100% {
+    scale: 1;
+    opacity: 1;
+    translate: 0 0;
+  }
 }
 
 .minimize {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   position: absolute;
   right: 10px;
   top: 10px;

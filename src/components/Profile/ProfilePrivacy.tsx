@@ -7,7 +7,6 @@ export default function ProfilePrivacy() {
   const { t } = useTranslation();
   return (
     <div className={styles.section}>
-      <h3>{t('profileTabs.privacy')}</h3>
       <PasskeyRegisterButton />
     </div>
   );

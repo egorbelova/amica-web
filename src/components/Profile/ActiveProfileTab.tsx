@@ -15,20 +15,11 @@ export const ActiveProfileTab = () => {
   }
   return (
     <div className={styles.content}>
-      {!settingsFullWindow && (
-        <button
-          type='button'
-          className={styles.close}
-          onClick={() => setActiveProfileTab(null)}
-        >
-          <Icon name='Cross' className={styles.close} />
-        </button>
-      )}
       {activeProfileTab === 'language' && <ProfileLanguage />}
       {activeProfileTab === 'privacy' && <ProfilePrivacy />}
       {activeProfileTab === 'account' && <ProfileAccount />}
       {activeProfileTab === 'appearance' && <ProfileAppearance />}
-      {activeProfileTab === 'active sessions' && <ProfileSessions />}
+      {activeProfileTab === 'active_sessions' && <ProfileSessions />}
     </div>
   );
 };
