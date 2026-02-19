@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "gen:icons": "node scripts/generate-icons.ts",
-    "prepare": "husky"
+    "test": "echo \"No tests yet\""
   },
   "dependencies": {
     "react": "^19.1.1",
@@ -29,6 +29,7 @@
     "eslint-plugin-react-refresh": "^0.4.22",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "sass-embedded": "^1.97.1",
     "stylelint": "^17.1.1",
     "stylelint-config-standard": "^40.0.0",
@@ -36,5 +37,14 @@
     "typescript-eslint": "^8.45.0",
     "vite": "^7.1.7",
     "vite-plugin-compression": "^0.5.1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "pnpm dlx eslint --fix",
+      "pnpm dlx prettier --write"
+    ],
+    "*.{json,css,scss,md}": [
+      "pnpm dlx prettier --write"
+    ]
   }
 }
