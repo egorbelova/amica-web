@@ -1,9 +1,16 @@
 import { createContext, useContext, useRef, useState, useEffect } from 'react';
 
-const JumpContext = createContext(null);
+const JumpContext = createContext<JumpContextValue | null>(null);
 
-export function JumpProvider({ children }) {
-  const containerRef = useRef(null);
+interface JumpContextValue {
+  containerRef: React.RefObject<HTMLDivElement>;
+  isVisible: boolean;
+  jumpToBottom: () => void;
+  setIsVisible: (isVisible: boolean) => void;
+}
+
+export function JumpProvider({ children }: { children: React.ReactNode }) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   const jumpToBottom = () => {
@@ -14,7 +21,14 @@ export function JumpProvider({ children }) {
 
   return (
     <JumpContext.Provider
-      value={{ containerRef, isVisible, jumpToBottom, setIsVisible }}
+      value={
+        {
+          containerRef,
+          isVisible,
+          jumpToBottom,
+          setIsVisible,
+        } as JumpContextValue
+      }
     >
       {children}
     </JumpContext.Provider>

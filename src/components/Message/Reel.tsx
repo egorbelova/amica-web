@@ -190,7 +190,7 @@ const Reel: React.FC<ReelProps> = ({ items, onClose }) => {
       const urls: string[] = [];
       for (const file of item.files) {
         try {
-          const res = await apiFetch(file.thumbnail_medium_url);
+          const res = await apiFetch(file.thumbnail_medium_url || '');
           const blob = await res.blob();
           urls.push(URL.createObjectURL(blob));
         } catch (err) {
@@ -261,10 +261,10 @@ const Reel: React.FC<ReelProps> = ({ items, onClose }) => {
           <AudioLayout
             key={file.id}
             full={file.file_url}
-            waveform={file.waveform}
-            duration={file.duration}
+            waveform={file.waveform || null}
+            duration={file.duration || null}
             id={file.id}
-            cover_url={file.cover_url}
+            cover_url={file.cover_url || null}
           />
         </div>
       );

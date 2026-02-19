@@ -1,13 +1,25 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import Snackbar from '@/components/Snackbar/Snackbar';
 
-const SnackbarContext = createContext(null);
+const SnackbarContext = createContext<SnackbarContextType | null>(null);
 
-export const SnackbarProvider = ({ children }) => {
-  const [snackbar, setSnackbar] = useState(null);
+type SnackbarType = {
+  message: string;
+} | null;
+
+type SnackbarContextType = {
+  showSnackbar: (message: string, duration?: number) => void;
+};
+
+export const SnackbarProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const [snackbar, setSnackbar] = useState<SnackbarType>(null);
   const [open, setOpen] = useState(false);
 
-  const showSnackbar = useCallback((message, duration = 2000) => {
+  const showSnackbar = useCallback((message: string, duration = 2000) => {
     setSnackbar({ message });
     setOpen(true);
 

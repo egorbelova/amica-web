@@ -3,7 +3,7 @@ import { lastMessageDateFormat, unreadCountFormat } from '../../utils/index';
 import Avatar from '../Avatar/Avatar';
 import styles from './ChatListItem.module.scss';
 // import { SquircleContainer } from '../SquircleContainer/SquircleContainer';
-import type { DisplayMedia } from '@/types';
+import type { DisplayMedia, File } from '@/types';
 import AttachmentPreview from './AttachmentPreview';
 
 export interface ChatListItemProps {
@@ -39,7 +39,7 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
 
     const lastMessageFiles = (lastMessage?.files || [])
       .filter(
-        (file) =>
+        (file: File) =>
           file.category === 'video' ||
           file.category === 'image' ||
           file.category === 'audio',
@@ -67,11 +67,11 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
         ripple.remove();
       });
     };
-    const getAttachmentText = (files = []) => {
+    const getAttachmentText = (files: File[] = []) => {
       if (!files.length) return '';
-      const isImage = (f) => f.category === 'image';
-      const isVideo = (f) => f.category === 'video';
-      const isAudio = (f) => f.category === 'audio';
+      const isImage = (f: File) => f.category === 'image';
+      const isVideo = (f: File) => f.category === 'video';
+      const isAudio = (f: File) => f.category === 'audio';
 
       const allImages = files.every(isImage);
       const allVideos = files.every(isVideo);
@@ -86,7 +86,7 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
       }
 
       if (allAudios) {
-        return files.length === 1 ? files[0].original_name : 'Audio';
+        return files.length === 1 ? files[0].original_name || '' : 'Audio';
       }
 
       return 'Media';
@@ -123,7 +123,7 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
             <div className={styles['chat-list-item__message-text']}>
               {lastMessageFiles.length > 0 && (
                 <span className={styles['chat-list-item__attachments']}>
-                  {lastMessageFiles.map((file, index) => (
+                  {lastMessageFiles.map((file: File, index: number) => (
                     <AttachmentPreview key={file.id || index} file={file} />
                   ))}
                 </span>

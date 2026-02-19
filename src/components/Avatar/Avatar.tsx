@@ -92,13 +92,13 @@ const Avatar: React.FC<AvatarProps> = ({
 
     async function loadUrl() {
       const protectedUrl =
-        displayMedia.type === 'photo'
+        displayMedia?.type === 'photo'
           ? size === 'medium' && (displayMedia as PhotoMedia).medium
             ? (displayMedia as PhotoMedia).medium
             : (displayMedia as PhotoMedia).small
           : (displayMedia as VideoMedia).url;
 
-      const objectUrl = await fetchPrivateMedia(protectedUrl);
+      const objectUrl = await fetchPrivateMedia(protectedUrl || '');
       setUrl(objectUrl);
       setLayers((prev) =>
         prev.map((layer) =>
@@ -110,7 +110,7 @@ const Avatar: React.FC<AvatarProps> = ({
     loadUrl();
   }, [displayMedia, size]);
 
-  const renderMedia = (media: DisplayMedia, url?: string) => {
+  const renderMedia = (media: DisplayMedia | null, url?: string) => {
     if (!media || !url) return null;
     if (media.type === 'video') {
       return (
@@ -144,7 +144,7 @@ const Avatar: React.FC<AvatarProps> = ({
       onClick={onClick}
     >
       <div className={styles.avatarLayer}>
-        {renderMedia(currentMedia, url) || (
+        {renderMedia(currentMedia || null, url || undefined) || (
           <span className={styles.avatarInitials} style={{ fontSize }}>
             {initials}
           </span>

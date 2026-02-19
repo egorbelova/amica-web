@@ -1,33 +1,37 @@
 import { useState, useEffect } from 'react';
 import styles from './DropZone.module.scss';
 
-export default function DropZone({ onFiles }) {
+export default function DropZone({
+  onFiles,
+}: {
+  onFiles: (files: File[]) => void;
+}) {
   const [dragging, setDragging] = useState(false);
   let dragCounter = 0;
 
   useEffect(() => {
-    const handleDragOver = (e) => {
+    const handleDragOver = (e: DragEvent) => {
       e.preventDefault();
     };
 
-    const handleDragEnter = (e) => {
+    const handleDragEnter = (e: DragEvent) => {
       e.preventDefault();
       dragCounter++;
       setDragging(true);
     };
 
-    const handleDragLeave = (e) => {
+    const handleDragLeave = (e: DragEvent) => {
       e.preventDefault();
       dragCounter--;
       if (dragCounter <= 0) setDragging(false);
     };
 
-    const handleDrop = (e) => {
+    const handleDrop = (e: DragEvent) => {
       e.preventDefault();
       dragCounter = 0;
       setDragging(false);
 
-      const files = Array.from(e.dataTransfer.files);
+      const files = Array.from(e.dataTransfer?.files || []) as File[];
       if (files.length > 0 && onFiles) {
         onFiles(files);
       }

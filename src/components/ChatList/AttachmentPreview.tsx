@@ -1,8 +1,9 @@
 import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import styles from './ChatListItem.module.scss';
 import { useSettings } from '@/contexts/settings/Settings';
+import type { File } from '@/types';
 
-function AttachmentPreview({ file }) {
+function AttachmentPreview({ file }: { file: File }) {
   const { objectUrl } = usePrivateMedia(
     file.thumbnail_small_url || file.cover_url || file.file_url,
   );

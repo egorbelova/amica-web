@@ -8,13 +8,21 @@ import { useChat } from '@/contexts/ChatContext';
 
 const SPEEDS = [0.5, 1, 1.5, 2];
 
+interface AudioLayoutProps {
+  full: string | null;
+  waveform: number[] | null;
+  duration: number | null;
+  id: number;
+  cover_url: string | null;
+}
+
 export default function AudioLayout({
   full,
   waveform,
   duration,
   id,
   cover_url,
-}) {
+}: AudioLayoutProps) {
   const {
     setPlaylist,
     currentChatId,
@@ -27,10 +35,10 @@ export default function AudioLayout({
   } = useAudio();
   const { selectedChat, messages } = useChat();
   const { objectUrl: cover } = usePrivateMedia(cover_url);
-  const audioRef = useRef(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const progressRef = useRef(null);
-  const volumeRef = useRef(null);
+  const progressRef = useRef<HTMLDivElement | null>(null);
+  const volumeRef = useRef<HTMLDivElement | null>(null);
   const currentTimeRef = useRef(0);
   const [visualTime, setVisualTime] = useState(0);
 
@@ -45,13 +53,15 @@ export default function AudioLayout({
 
   const safeDuration = durationState || 1;
 
-  const getClientX = (e) => (e.touches ? e.touches[0].clientX : e.clientX);
+  const getClientX = (
+    e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent,
+  ) => ('touches' in e ? e.touches?.[0]?.clientX || 0 : e.clientX || 0);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    let animationFrameId;
+    let animationFrameId: number | null = null;
 
     const onPlay = () => {
       setIsPlaying(true);
@@ -79,7 +89,9 @@ export default function AudioLayout({
     audio.addEventListener('loadedmetadata', onLoaded);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
       audio.removeEventListener('play', onPlay);
       audio.removeEventListener('pause', onPause);
       audio.removeEventListener('ended', onEnded);
@@ -90,11 +102,11 @@ export default function AudioLayout({
   const [pendingAudioId, setPendingAudioId] = useState<number | null>(null);
 
   const togglePlay = useCallback(() => {
-    if (currentChatId !== selectedChat.id) {
+    if (currentChatId !== selectedChat?.id) {
       const newPlaylist = messages.flatMap((message) =>
         (message.files ?? []).filter((file) => file.category === 'audio'),
       );
-      setPlaylist(newPlaylist, selectedChat.id);
+      setPlaylist(newPlaylist, selectedChat?.id || 0);
       setPendingAudioId(id);
     } else {
       toggleAudio(id);
@@ -102,7 +114,7 @@ export default function AudioLayout({
     setCoverUrl(cover);
   }, [
     messages,
-    selectedChat.id,
+    selectedChat?.id,
     currentChatId,
     id,
     setPlaylist,
@@ -129,22 +141,22 @@ export default function AudioLayout({
     audio.playbackRate = nextSpeed;
   }, [speed]);
 
-  const startSeek = (e) => {
+  const startSeek = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
 
-    const updateTime = (clientX) => {
-      const rect = progressRef.current.getBoundingClientRect();
-      const percent = (clientX - rect.left) / rect.width;
+    const updateTime = (clientX: number) => {
+      const rect = progressRef.current!.getBoundingClientRect();
+      const percent = (clientX - rect!.left) / rect!.width;
       const clampedPercent = Math.max(0, Math.min(1, percent));
       const time = clampedPercent * durationState;
 
-      audioRef.current.currentTime = time;
+      audioRef.current!.currentTime = time;
       currentTimeRef.current = time;
       setCurrentTime(time);
     };
 
     updateTime(getClientX(e));
-    const onMouseMove = (moveEvent) => {
+    const onMouseMove = (moveEvent: MouseEvent | TouchEvent) => {
       // console.log('onMouseMove');
       moveEvent.preventDefault();
       moveEvent.stopPropagation();
@@ -152,16 +164,18 @@ export default function AudioLayout({
       updateTime(getClientX(moveEvent));
     };
 
-    const onMouseUp = () => {
+    const onMouseUp = (e: MouseEvent | TouchEvent) => {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
-      document.removeEventListener('touchmove', onMouseMove);
+      document.removeEventListener('touchmove', onMouseMove as EventListener);
       document.removeEventListener('touchend', onMouseUp);
     };
 
     document.addEventListener('mousemove', onMouseMove, { passive: false });
     document.addEventListener('mouseup', onMouseUp);
-    document.addEventListener('touchmove', onMouseMove, { passive: false });
+    document.addEventListener('touchmove', onMouseMove as EventListener, {
+      passive: false,
+    });
     document.addEventListener('touchend', onMouseUp);
   };
 
@@ -224,21 +238,21 @@ export default function AudioLayout({
     return 'SoundMaxFill';
   };
 
-  const setVolumeByClientX = (clientX) => {
-    const rect = volumeRef.current.getBoundingClientRect();
-    const percent = (clientX - rect.left) / rect.width;
+  const setVolumeByClientX = (clientX: number) => {
+    const rect = volumeRef.current?.getBoundingClientRect();
+    const percent = (clientX - rect!.left) / rect!.width;
     const value = Math.max(0, Math.min(1, percent));
 
-    audioRef.current.volume = value;
+    audioRef.current!.volume = value;
     setVolume(value);
   };
 
-  const startVolumeDrag = (e) => {
+  const startVolumeDrag = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     setVolumeByClientX(getClientX(e));
 
-    const onMouseMove = (moveEvent) => {
-      setVolumeByClientX(moveEvent.clientX);
+    const onMouseMove = (moveEvent: MouseEvent | TouchEvent) => {
+      setVolumeByClientX(getClientX(moveEvent));
     };
 
     const onMouseUp = () => {
@@ -304,7 +318,7 @@ export default function AudioLayout({
             <svg width={svgWidth} height={height}>
               <defs>
                 <mask
-                  id={id}
+                  id={id.toString()}
                   maskUnits='userSpaceOnUse'
                   x='0'
                   y='0'

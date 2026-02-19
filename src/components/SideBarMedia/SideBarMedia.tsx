@@ -16,6 +16,7 @@ import { Dropdown } from '../Dropdown/Dropdown';
 import { useSnackbar } from '@/contexts/snackbar/SnackbarContext';
 import type { IconName } from '../Icons/AutoIcons';
 import type { DropdownItem } from '../Dropdown/Dropdown';
+import type { Message, File, User, DisplayMedia } from '@/types';
 
 interface SideBarMediaProps {
   visible: boolean;
@@ -79,8 +80,8 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   useEffect(() => {
     setMediaFiles(
       messages
-        ?.flatMap((msg) => msg.files || [])
-        .filter((f) => f.category === 'image' || f.category === 'video')
+        ?.flatMap((msg: Message) => msg.files || [])
+        .filter((f: File) => f.category === 'image' || f.category === 'video')
         .reverse(),
     );
   }, [messages]);
@@ -88,7 +89,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   useEffect(() => {
     setFilteredMediaFiles(
       mediaFiles.filter(
-        (f) =>
+        (f: File) =>
           (f.category === 'image' &&
             (filterType === 'Photos' || filterType === 'All')) ||
           (f.category === 'video' &&
@@ -98,13 +99,13 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   }, [mediaFiles, filterType]);
 
   const audioFiles = messages
-    ?.flatMap((msg) => msg.files || [])
-    .filter((f) => f.category === 'audio')
+    ?.flatMap((msg: Message) => msg.files || [])
+    .filter((f: File) => f.category === 'audio')
     .reverse();
 
-  const [activeTab, setActiveTab] = useState<'media' | 'audio' | 'members'>(
-    null,
-  );
+  const [activeTab, setActiveTab] = useState<
+    'media' | 'audio' | 'members' | null
+  >(null);
 
   useEffect(() => {
     if (selectedChat?.type === 'G') {
@@ -260,7 +261,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   useEffect(() => {
     const hasVideos = mediaFiles.some((f) => f.category === 'video');
     const hasPhotos = mediaFiles.some((f) => f.category === 'image');
-    const newItems: DropdownItem<number>[] = [
+    const newItems: (DropdownItem<number> | null)[] = [
       { label: 'All', value: 1, icon: 'Circle' as IconName },
       hasVideos
         ? { label: 'Videos', value: 2, icon: 'Video' as IconName }
@@ -270,7 +271,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
         : null,
     ].filter(Boolean);
 
-    setItems(newItems);
+    setItems(newItems as DropdownItem<number>[]);
     if (
       (filterType === 'Videos' && !hasVideos) ||
       (filterType === 'Photos' && !hasPhotos)
@@ -288,7 +289,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
 
   useLayoutEffect(() => {
     const updateIndicator = () => {
-      let ref;
+      let ref: { current: HTMLButtonElement | null } | null = null;
       if (activeTab === 'members') ref = membersRef;
       if (activeTab === 'media') ref = mediaRef;
       if (activeTab === 'audio') ref = audioRef;
@@ -569,7 +570,9 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
               <Dropdown
                 items={items}
                 placeholder=''
-                value={items.find((item) => item.label === filterType)?.value}
+                value={
+                  items.find((item) => item.label === filterType)?.value || 0
+                }
                 onChange={(value) => {
                   const selected = items.find((item) => item.value === value);
                   if (selected) setFilterType(selected.label);
@@ -639,11 +642,11 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
           /> */}
             {selectedChat.media && selectedChat.media.length > 0 && (
               <>
-                {selectedChat.media.map((media) => (
+                {selectedChat.media.map((media: File) => (
                   <Avatar
                     key={media.id}
                     displayName={selectedChat.name}
-                    displayMedia={media}
+                    displayMedia={media as unknown as DisplayMedia}
                     size={isAvatarRollerOpen ? 'medium' : 'small'}
                     className={`${styles['sidebar__avatar']} ${
                       isAvatarRollerOpen && !interlocutorEditVisible
@@ -739,8 +742,8 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
           <div className={styles.content} ref={gridRef}>
             {activeTab === 'members' && selectedChat.type === 'G' && (
               <div className={styles.membersList}>
-                {selectedChat?.members?.map((member) => (
-                  <div key={member.id} className={styles.memberItem}>
+                {selectedChat?.members?.map((member: User) => (
+                  <div key={member?.id} className={styles.memberItem}>
                     <Avatar
                       className={styles.memberAvatar}
                       displayMedia={member.profile.primary_avatar}
@@ -789,14 +792,14 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
 
             {activeTab === 'audio' && audioFiles.length > 0 && (
               <div className={styles.audioGrid}>
-                {audioFiles.map((file) => (
+                {audioFiles.map((file: File) => (
                   <AudioLayout
                     key={file.id}
-                    full={file.file_url}
-                    waveform={file.waveform}
-                    duration={file.duration}
-                    id={file.id}
-                    cover_url={file.cover_url}
+                    full={file.file_url || null}
+                    waveform={file.waveform || null}
+                    duration={file.duration || 0}
+                    id={file.id || 0}
+                    cover_url={file.cover_url || null}
                   />
                 ))}
               </div>

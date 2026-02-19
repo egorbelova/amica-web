@@ -79,7 +79,7 @@ const RoomPage: React.FC = () => {
       video.removeEventListener('canplay', playVideo);
       document.removeEventListener('touchstart', unlock);
     };
-  }, [activeWallpaper.url]);
+  }, [activeWallpaper?.url]);
 
   return (
     <>

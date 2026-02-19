@@ -14,7 +14,7 @@ export const MediaHeader: React.FC = () => {
   //   console.log(coverUrl);
 
   const currentTrack = currentAudioId
-    ? playlist.find((f) => f.id === currentAudioId)
+    ? playlist?.find((f) => f.id === currentAudioId)
     : undefined;
 
   if (!currentAudioId) return null;

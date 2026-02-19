@@ -43,7 +43,7 @@ export default function ProfileSessions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sessionLifetime, setSessionLifetime] = useState<number>(
-    user.preferred_session_lifetime_days,
+    user?.preferred_session_lifetime_days || 0,
   );
   const [savingLifetime, setSavingLifetime] = useState(false);
 

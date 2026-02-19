@@ -359,8 +359,10 @@ const MessageList: React.FC = () => {
     }, 200);
   };
 
-  const handleDragEnd = (e) => {
-    clearTimeout(timerRef.current);
+  const handleDragEnd = (e: React.MouseEvent) => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
     if (!isLongPress) {
       // return;
     }
@@ -427,14 +429,14 @@ const MessageList: React.FC = () => {
   }, [messages]);
 
   const [isLongPress, setIsLongPress] = useState(false);
-  const timerRef = useRef(null);
+  const timerRef = useRef<number | null>(null);
 
   return (
     <div className='room_div' ref={mergedRef}>
       {menuVisible && (
         <ContextMenu
           items={menuItems}
-          position={menuPos}
+          position={menuPos || { x: 0, y: 0 }}
           onClose={handleClose}
           onAnimationEnd={handleAnimationEnd}
           isHiding={isMenuHiding}

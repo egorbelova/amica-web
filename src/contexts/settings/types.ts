@@ -22,8 +22,8 @@ export type SubTab =
   | 'privacy'
   | 'notifications'
   | 'appearance'
-  | 'active_sessions';
-
+  | 'active_sessions'
+  | null;
 export interface SettingsContextValue {
   settings: Settings;
   setSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void;

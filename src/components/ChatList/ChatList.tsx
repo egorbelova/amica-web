@@ -10,7 +10,7 @@ import React, {
 import ChatListItem from './ChatListItem';
 import { useChat } from '../../contexts/ChatContext';
 import { useUser } from '../../contexts/UserContext';
-import type { Chat } from '../../types';
+import type { Chat, DisplayMedia } from '../../types';
 import styles from './ChatList.module.scss';
 import { useSearchContext } from '@/contexts/search/SearchContext';
 
@@ -154,8 +154,8 @@ const ChatList: React.FC = () => {
           <MemoizedChatListItem
             key={chat.id}
             chatId={chat.id}
-            displayPrimaryMedia={chat.primary_media}
-            displayName={chat.name}
+            displayPrimaryMedia={chat.primary_media as DisplayMedia}
+            displayName={chat.name || ''}
             lastMessage={chat.last_message}
             unread_count={chat.unread_count}
             isActive={selectedChat?.id === chat.id}

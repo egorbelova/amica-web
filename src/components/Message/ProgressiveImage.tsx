@@ -4,7 +4,7 @@ import styles from './SmartMediaLayout.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 
 interface ProgressiveImageProps {
-  small: string;
+  small: string | null;
   full: string;
   dominant_color?: string;
   onClick?: () => void;

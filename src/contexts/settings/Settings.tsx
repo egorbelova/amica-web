@@ -131,13 +131,16 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setSettings((prev) => ({ ...prev, [key]: value }));
 
   const setBlur = (value: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      activeWallpaper: {
-        ...prev.activeWallpaper,
-        blur: value,
-      },
-    }));
+    setSettings(
+      (prev: Settings) =>
+        ({
+          ...prev,
+          activeWallpaper: {
+            ...prev.activeWallpaper,
+            blur: value,
+          },
+        }) as Settings,
+    );
   };
 
   const setActiveWallpaper = (wallpaper: WallpaperSetting) => {
@@ -189,7 +192,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       const apiWallpapers = Array.isArray(data) ? data : data.wallpapers || [];
       const combinedWallpapers = [
         ...defaultWallpapers.filter(
-          (df) => !apiWallpapers.some((w) => w.id === df.id),
+          (df) => !apiWallpapers.some((w: WallpaperSetting) => w.id === df.id),
         ),
         ...apiWallpapers,
       ];

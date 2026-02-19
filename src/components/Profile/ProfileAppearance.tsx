@@ -107,7 +107,7 @@ export default function ProfileAppearance() {
                 >
                   {wall.type === 'video' ? (
                     <video
-                      src={wall.url}
+                      src={wall.url || ''}
                       className={`${styles.wallpaperThumbnail}`}
                       onClick={() => handleSelectWallpaper(wall)}
                       autoPlay
@@ -117,7 +117,7 @@ export default function ProfileAppearance() {
                     />
                   ) : (
                     <img
-                      src={wall.url}
+                      src={wall.url || ''}
                       alt={`Wallpaper ${wall.id}`}
                       className={`${styles.wallpaperThumbnail}`}
                       onClick={() => handleSelectWallpaper(wall)}
@@ -125,7 +125,7 @@ export default function ProfileAppearance() {
                   )}
                   <div
                     className={styles.removeWallpaper}
-                    onClick={removeWallpaper.bind(null, wall.id)}
+                    onClick={removeWallpaper.bind(null, wall.id as string)}
                   >
                     <Icon name='Cross' />
                   </div>

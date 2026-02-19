@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 
-export function useJumpToBottom(containerRef, offset = 50) {
+export function useJumpToBottom(
+  containerRef: React.RefObject<HTMLDivElement>,
+  offset = 50,
+) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {

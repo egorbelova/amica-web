@@ -22,10 +22,10 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   const [avatarModalVisible, setAvatarModalVisible] = useState(false);
 
   useEffect(() => {
-    if (selectedChat.type === 'G') {
-      setSubtitle(`${selectedChat.info} members`);
+    if (selectedChat?.type === 'G') {
+      setSubtitle(`${selectedChat?.info || ''} members`);
     } else {
-      setSubtitle(formatLastSeen(selectedChat.info));
+      setSubtitle(formatLastSeen(selectedChat?.info || ''));
     }
   }, [selectedChat, user]);
 
@@ -63,7 +63,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
 
         <Avatar
           key={selectedChat.id}
-          displayName={selectedChat.name}
+          displayName={selectedChat.name || ''}
           displayMedia={selectedChat.primary_media}
           className={styles['chat-header__avatar']}
           onClick={avatarClick}

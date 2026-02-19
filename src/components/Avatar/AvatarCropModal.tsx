@@ -395,8 +395,6 @@ export default function AvatarCropModal({
 
         if (data) {
           onUploadSuccess(data);
-        } else {
-          onUploadSuccess(null);
         }
 
         onClose();
@@ -437,7 +435,7 @@ export default function AvatarCropModal({
         );
 
         if (data) onUploadSuccess(data);
-        else onUploadSuccess(null);
+        else onUploadSuccess(null as unknown as File);
 
         onClose();
       } catch (e) {
@@ -574,7 +572,7 @@ export default function AvatarCropModal({
 
       const edge = detectEdge(x, y);
 
-      const cursorMap: Record<Edge, string> = {
+      const cursorMap: Record<Exclude<Edge, null>, string> = {
         inside: activeEdgeRef.current ? 'none' : 'all-scroll',
         topLeft: 'nwse-resize',
         topRight: 'nesw-resize',

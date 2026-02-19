@@ -29,14 +29,17 @@ const Input: React.FC<InputProps> = ({
     const handleAnimationStart = (e: AnimationEvent) => {
       if (e.animationName === 'autofill') setAutofocusActive(true);
     };
-    const handleAnimationCancel = (e: AnimationEvent) =>
+    const handleAnimationCancel = (e: TransitionEvent) =>
       setAutofocusActive(false);
 
     input.addEventListener('animationstart', handleAnimationStart);
     input.addEventListener('transitioncancel', handleAnimationCancel);
     return () => {
       input.removeEventListener('animationstart', handleAnimationStart);
-      input.removeEventListener('transitioncancel', handleAnimationCancel);
+      input.removeEventListener(
+        'transitioncancel',
+        handleAnimationCancel as EventListener,
+      );
     };
   }, []);
 

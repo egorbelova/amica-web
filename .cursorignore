@@ -1,0 +1,50 @@
+# Node / package
+node_modules/
+.pnpm-store/
+.pnpm-debug.log
+pnpm-lock.yaml
+
+# Build / output
+dist/
+dist-*/
+build/
+.out/
+*.js.map
+*.tsbuildinfo
+
+# Vite / cache
+.vite/
+.vscode/.cache/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Tests / CI artifacts
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+playwright/.auth/
+
+# Runtime / temp
+tmp/
+temp/
+.cache/
+*.local
+*.log
+
+# Large assets (optional if you have lots of generated images)
+public/assets/
+dist/assets/
+dist/SVG/
+
+# Cursor / terminals (local runtime state)
+.terminals/

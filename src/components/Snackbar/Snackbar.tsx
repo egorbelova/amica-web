@@ -2,11 +2,19 @@ import React, { useEffect, useState } from 'react';
 import styles from './Snackbar.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 
-const Snackbar = ({ message, open, onExited }) => {
+const Snackbar = ({
+  message,
+  open,
+  onExited,
+}: {
+  message: string;
+  open: boolean;
+  onExited: () => void;
+}) => {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    let timeout;
+    let timeout: number;
 
     if (open) {
       setShow(true);

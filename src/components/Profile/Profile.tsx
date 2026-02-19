@@ -9,6 +9,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useSettings } from '@/contexts/settings/Settings';
 import { usePageStack } from '@/contexts/useStackHistory';
 import { ActiveProfileTab } from './ActiveProfileTab';
+import Button from '@/components/ui/button/Button';
 
 export default function Profile() {
   const { t, locale } = useTranslation();
@@ -25,12 +26,12 @@ export default function Profile() {
   const tabs = [
     {
       id: 'account' as const,
-      label: user.username,
+      label: user?.username || '',
       icon: (
         <Avatar
           className={styles.avatar}
-          displayName={user.username}
-          displayMedia={user.profile.primary_avatar}
+          displayName={user?.username || ''}
+          displayMedia={user?.profile?.primary_avatar || null}
         />
       ),
     },
@@ -38,8 +39,9 @@ export default function Profile() {
       id: 'language' as const,
       label:
         t('profileTabs.language') +
-        '>' +
-        availableLanguages.find((l) => l.code === locale)?.name,
+        ' (' +
+        availableLanguages.find((l) => l.code === locale)?.name +
+        ')',
       icon: <Icon name='Language' />,
     },
     {
@@ -76,17 +78,27 @@ export default function Profile() {
         {!activeProfileTab ? (
           <>Settings</>
         ) : (
-          <button
-            type='button'
-            className={styles.close}
+          <Button
             onClick={() => setActiveProfileTab(null)}
+            className={styles.close}
           >
             <Icon
               name='Arrow'
               className={styles.close}
               style={{ transform: 'rotate(180deg)' }}
             />
-          </button>
+          </Button>
+          // <button
+          //   type='button'
+          //   className={styles.close}
+          //   onClick={() => setActiveProfileTab(null)}
+          // >
+          //   <Icon
+          //     name='Arrow'
+          //     className={styles.close}
+          //     style={{ transform: 'rotate(180deg)' }}
+          //   />
+          // </button>
         )}
         {isResizingPermitted && activeProfileTab && !settingsFullWindow && (
           <div

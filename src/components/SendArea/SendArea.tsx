@@ -220,7 +220,10 @@ const MessageInput: React.FC = () => {
             chat_id: roomId,
             data: {
               value: message.trim(),
-              user_id: roomId < 0 ? selectedChat.members[0].id : undefined,
+              user_id:
+                roomId && roomId < 0
+                  ? selectedChat?.members[0]?.id || 0
+                  : undefined,
             },
           });
 
@@ -250,7 +253,7 @@ const MessageInput: React.FC = () => {
 
       const newFiles = Array.from(fileList);
 
-      const validFiles = [];
+      const validFiles: File[] = [];
       for (const file of newFiles) {
         if (file.size > MAX_FILE_SIZE) {
           continue;
@@ -471,7 +474,7 @@ const MessageInput: React.FC = () => {
                   <div key={index} className={styles['file-preview-item']}>
                     {fileType === 'image' && (
                       <img
-                        src={previewUrl}
+                        src={previewUrl || ''}
                         alt={file.name}
                         className={styles['file-preview-image']}
                       />
@@ -479,7 +482,7 @@ const MessageInput: React.FC = () => {
 
                     {fileType === 'video' && (
                       <video
-                        src={previewUrl}
+                        src={previewUrl || ''}
                         muted
                         autoPlay
                         playsInline

@@ -19,7 +19,7 @@ function bufferToBase64Url(buffer: ArrayBuffer): string {
 import { Icon } from '@/components/Icons/AutoIcons';
 import React from 'react';
 interface PasskeyLoginButtonProps {
-  styles?: React.CSSProperties;
+  styles?: Record<string, string>;
 }
 
 export function PasskeyLoginButton({ styles }: PasskeyLoginButtonProps) {
@@ -91,8 +91,8 @@ export function PasskeyLoginButton({ styles }: PasskeyLoginButtonProps) {
   };
 
   return (
-    <div onClick={handleLogin} className={styles['passkey-login-button']}>
-      <Icon name='Passkey' className={styles['passkey-icon']} />
+    <div onClick={handleLogin} className={styles?.['passkey-login-button']}>
+      <Icon name='Passkey' className={styles?.['passkey-icon']} />
       Sign in with Passkey
     </div>
   );

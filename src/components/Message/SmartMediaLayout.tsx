@@ -109,8 +109,8 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
             )} */}
             {layout[0].file.category === 'image' && (
               <ProgressiveImage
-                small={layout[0].file.thumbnail_small_url}
-                full={layout[0].file.thumbnail_small_url}
+                small={layout[0].file.thumbnail_small_url || null}
+                full={layout[0].file.thumbnail_small_url || ''}
                 dominant_color={layout[0].file.dominant_color}
               />
             )}
@@ -137,14 +137,14 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
                 {item.file.category === 'video' && (
                   <VideoLayout
                     full={item.file.file_url}
-                    has_audio={item.file.has_audio}
+                    has_audio={item.file.has_audio || false}
                   />
                 )}
 
                 {item.file.category === 'image' && (
                   <ProgressiveImage
-                    small={item.file.thumbnail_small_url}
-                    full={item.file.thumbnail_medium_url}
+                    small={item.file.thumbnail_small_url || null}
+                    full={item.file.thumbnail_medium_url || ''}
                     dominant_color={item.file.dominant_color}
                   />
                 )}
@@ -160,10 +160,10 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
             <AudioLayout
               key={file.id}
               id={file.id}
-              full={file.file_url}
-              waveform={file.waveform}
-              duration={file.duration}
-              cover_url={file.cover_url}
+              full={file.file_url || null}
+              waveform={file.waveform || null}
+              duration={file.duration || null}
+              cover_url={file.cover_url || null}
             />
           ))}
         </div>

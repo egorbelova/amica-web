@@ -430,7 +430,7 @@ class StaticBackgroundFixedZoom {
   constructor(
     gradientCanvas: HTMLCanvasElement,
     patternCanvas: HTMLCanvasElement,
-    container: HTMLElement
+    container: HTMLElement,
   ) {
     this.gradientCanvas = gradientCanvas;
     this.patternCanvas = patternCanvas;
@@ -455,9 +455,9 @@ class StaticBackgroundFixedZoom {
       gradientColors = Array.from(generateGradientColors(room_BG_color_hex));
     }
 
-    this.FIXED_HEX_1 = pSBC(-0.2, room_BG_color_hex);
-    this.FIXED_HEX_2 = pSBC(0, room_BG_color_hex);
-    this.FIXED_HEX_3 = pSBC(-0.4, room_BG_color_hex);
+    this.FIXED_HEX_1 = pSBC(-0.2, room_BG_color_hex) || '';
+    this.FIXED_HEX_2 = pSBC(0, room_BG_color_hex) || '';
+    this.FIXED_HEX_3 = pSBC(-0.4, room_BG_color_hex) || '';
 
     this.FIXED_SHADOW = shadow_degree;
     this.FIXED_SCALE = 2;
@@ -487,12 +487,12 @@ class StaticBackgroundFixedZoom {
         clearTimeout(shadowTimeout);
         shadowTimeout = window.setTimeout(() => {
           const input = document.querySelector<HTMLInputElement>(
-            '#shadow_degree_chat'
+            '#shadow_degree_chat',
           )!;
           this.FIXED_SHADOW = parseInt(input.value, 10);
           document.documentElement.style.setProperty(
             '--shadow_degree',
-            `${this.FIXED_SHADOW}deg`
+            `${this.FIXED_SHADOW}deg`,
           );
 
           this.drawGradient();
@@ -510,9 +510,9 @@ class StaticBackgroundFixedZoom {
             document.querySelector<HTMLInputElement>('#color_chat_change')!;
           const newColor = input.value;
 
-          this.FIXED_HEX_1 = pSBC(-0.6, newColor);
-          this.FIXED_HEX_2 = pSBC(0, newColor);
-          this.FIXED_HEX_3 = pSBC(-0.8, newColor);
+          this.FIXED_HEX_1 = pSBC(-0.6, newColor) || '';
+          this.FIXED_HEX_2 = pSBC(0, newColor) || '';
+          this.FIXED_HEX_3 = pSBC(-0.8, newColor) || '';
 
           this.gradientCache.canvas = null;
           if (this.patternCache) this.patternCache.canvas = null;
@@ -620,7 +620,7 @@ class StaticBackgroundFixedZoom {
       0,
       0,
       Math.cos((this.FIXED_SHADOW * Math.PI) / 180) * width,
-      Math.sin((this.FIXED_SHADOW * Math.PI) / 180) * height
+      Math.sin((this.FIXED_SHADOW * Math.PI) / 180) * height,
     );
 
     gradient.addColorStop(0, this.FIXED_HEX_1);
@@ -644,7 +644,7 @@ class StaticBackgroundFixedZoom {
       0,
       0,
       Math.cos((this.FIXED_SHADOW * Math.PI) / 180) * width,
-      Math.sin((this.FIXED_SHADOW * Math.PI) / 180) * height
+      Math.sin((this.FIXED_SHADOW * Math.PI) / 180) * height,
     );
 
     gradient.addColorStop(0, this.FIXED_HEX_1);
@@ -695,7 +695,7 @@ class StaticBackgroundFixedZoom {
             posX,
             posY,
             patternWidth,
-            patternHeight
+            patternHeight,
           );
         } else {
           ctx.drawImage(
@@ -703,7 +703,7 @@ class StaticBackgroundFixedZoom {
             posX,
             posY,
             patternWidth,
-            patternHeight
+            patternHeight,
           );
         }
       }
