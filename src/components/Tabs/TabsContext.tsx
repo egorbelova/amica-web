@@ -1,22 +1,6 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  type ReactNode,
-} from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { usePageStack } from '@/contexts/useStackHistory';
-
-type TabValue = 'contacts' | 'chats' | 'profile';
-
-interface TabsContextType {
-  activeTab: TabValue;
-  setActiveTab: (tab: TabValue) => void;
-}
-
-const TabsContext = createContext<TabsContextType | null>(null);
-
-const LOCAL_STORAGE_KEY = 'activeTab';
+import { TabsContext, LOCAL_STORAGE_KEY, type TabValue } from './tabsShared';
 
 export function TabsProvider({ children }: { children: ReactNode }) {
   const { push } = usePageStack();
@@ -28,7 +12,7 @@ export function TabsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     push(activeTab);
-  }, [activeTab]);
+  }, [activeTab, push]);
 
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, activeTab);
@@ -40,9 +24,3 @@ export function TabsProvider({ children }: { children: ReactNode }) {
     </TabsContext.Provider>
   );
 }
-
-export const useTabs = () => {
-  const context = useContext(TabsContext);
-  if (!context) throw new Error('useTabs must be used within TabsProvider');
-  return context;
-};

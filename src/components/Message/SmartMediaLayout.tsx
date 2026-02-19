@@ -2,12 +2,10 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import styles from './SmartMediaLayout.module.scss';
 import { generateLayout } from './SmartMediaLayout';
 import ProgressiveImage from './ProgressiveImage';
-// import { useMediaModal } from '../../contexts/MediaModalContext';
 import VideoLayout from './VideoLayout';
 import AudioLayout from './AudioLayout';
-import { useChat } from '../../contexts/ChatContext';
+import { useChat } from '@/contexts/ChatContextCore';
 import Reel from './Reel';
-import { JWTVideo } from './JWTVideo';
 import type { File } from '@/types';
 
 interface Props {
@@ -15,7 +13,9 @@ interface Props {
   onClick?: (file: File) => void;
 }
 
-const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
+const SmartMediaLayout: React.FC<Props> = ({ files }) => {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
   const mediaFiles = useMemo(
     () => files.filter((f) => f.category !== 'audio'),
     [files],
@@ -57,8 +57,6 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
   const items = messages.filter(
     (message) => Array.isArray(message.files) && message.files.length > 0,
   );
-
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const MAX_W = Math.min(windowWidth - 60, 432);
   const MAX_H = 560;
@@ -160,7 +158,6 @@ const SmartMediaLayout: React.FC<Props> = ({ files, onClick }) => {
             <AudioLayout
               key={file.id}
               id={file.id}
-              full={file.file_url || null}
               waveform={file.waveform || null}
               duration={file.duration || null}
               cover_url={file.cover_url || null}

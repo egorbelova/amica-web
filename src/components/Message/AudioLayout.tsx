@@ -1,15 +1,19 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useLayoutEffect,
+} from 'react';
 import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import styles from './SmartMediaLayout.module.scss';
 import { Icon } from '../Icons/AutoIcons';
-import { apiFetch } from '@/utils/apiFetch';
-import { useAudio } from '@/contexts/AudioContext';
-import { useChat } from '@/contexts/ChatContext';
+import { useAudio } from '@/contexts/audioContext';
+import { useChat } from '@/contexts/ChatContextCore';
 
 const SPEEDS = [0.5, 1, 1.5, 2];
 
 interface AudioLayoutProps {
-  full: string | null;
   waveform: number[] | null;
   duration: number | null;
   id: number;
@@ -17,7 +21,6 @@ interface AudioLayoutProps {
 }
 
 export default function AudioLayout({
-  full,
   waveform,
   duration,
   id,
@@ -27,7 +30,6 @@ export default function AudioLayout({
     setPlaylist,
     currentChatId,
     togglePlay: toggleAudio,
-    playlist,
     isPlaying: isAudioPlaying,
     currentAudioId,
     setCoverUrl,
@@ -42,7 +44,7 @@ export default function AudioLayout({
   const currentTimeRef = useRef(0);
   const [visualTime, setVisualTime] = useState(0);
 
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [, setIsPlaying] = useState(false);
 
   const [volume, setVolume] = useState(1);
   const [speed, setSpeed] = useState(1);
@@ -99,15 +101,14 @@ export default function AudioLayout({
     };
   }, []);
 
-  const [pendingAudioId, setPendingAudioId] = useState<number | null>(null);
+  // removed pendingAudioId; autoplay on playlist change is handled by AudioContext
 
   const togglePlay = useCallback(() => {
     if (currentChatId !== selectedChat?.id) {
       const newPlaylist = messages.flatMap((message) =>
         (message.files ?? []).filter((file) => file.category === 'audio'),
       );
-      setPlaylist(newPlaylist, selectedChat?.id || 0);
-      setPendingAudioId(id);
+      setPlaylist(newPlaylist, selectedChat?.id || 0, { autoPlayId: id });
     } else {
       toggleAudio(id);
     }
@@ -120,14 +121,10 @@ export default function AudioLayout({
     setPlaylist,
     toggleAudio,
     cover,
+    setCoverUrl,
   ]);
 
-  useEffect(() => {
-    if (pendingAudioId !== null) {
-      toggleAudio(pendingAudioId);
-      setPendingAudioId(null);
-    }
-  }, [playlist, pendingAudioId, toggleAudio]);
+  // autoplay handled by AudioContext provider when setPlaylist is called with opts.autoPlayId
 
   const cycleSpeed = useCallback(() => {
     const audio = audioRef.current;
@@ -164,7 +161,7 @@ export default function AudioLayout({
       updateTime(getClientX(moveEvent));
     };
 
-    const onMouseUp = (e: MouseEvent | TouchEvent) => {
+    const onMouseUp = () => {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
       document.removeEventListener('touchmove', onMouseMove as EventListener);
@@ -179,18 +176,18 @@ export default function AudioLayout({
     document.addEventListener('touchend', onMouseUp);
   };
 
-  function isVolumeSupported(audio: HTMLAudioElement) {
-    const initial = audio.volume;
+  // function isVolumeSupported(audio: HTMLAudioElement) {
+  //   const initial = audio.volume;
 
-    try {
-      audio.volume = initial === 1 ? 0.5 : 1;
-      const supported = audio.volume !== initial;
-      audio.volume = initial;
-      return supported;
-    } catch {
-      return false;
-    }
-  }
+  //   try {
+  //     audio.volume = initial === 1 ? 0.5 : 1;
+  //     const supported = audio.volume !== initial;
+  //     audio.volume = initial;
+  //     return supported;
+  //   } catch {
+  //     return false;
+  //   }
+  // }
 
   const [canChangeVolume, setCanChangeVolume] = useState(false);
 
@@ -272,9 +269,33 @@ export default function AudioLayout({
   const gap = 1;
   const totalBars = waveform?.length || 0;
 
-  const svgWidth = progressRef.current
-    ? progressRef.current.clientWidth
-    : totalBars * (barWidth + gap);
+  const [svgWidth, setSvgWidth] = useState(() => totalBars * (barWidth + gap));
+
+  useLayoutEffect(() => {
+    const el = progressRef.current;
+    const fallback = totalBars * (barWidth + gap);
+
+    const update = () => {
+      if (el) setSvgWidth(el.clientWidth);
+      else setSvgWidth(fallback);
+    };
+
+    update();
+
+    let ro: ResizeObserver | null = null;
+    if (el && typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(update);
+      ro.observe(el);
+    } else {
+      // fallback to window resize if ResizeObserver not available
+      window.addEventListener('resize', update);
+    }
+
+    return () => {
+      if (ro) ro.disconnect();
+      else window.removeEventListener('resize', update);
+    };
+  }, [progressRef, totalBars, barWidth, gap]);
 
   const height = 40;
   const padding = 5;

@@ -1,7 +1,7 @@
-import { useTranslation } from '@/contexts/LanguageContext';
+import { useTranslation } from '@/contexts/languageCore';
 import Avatar from '@/components/Avatar/Avatar';
 import styles from './Contacts.module.scss';
-import { useChat } from '@/contexts/ChatContext';
+import { useChat } from '@/contexts/ChatContextCore';
 import { useContacts } from '@/contexts/contacts/useContacts';
 
 const Contacts = () => {

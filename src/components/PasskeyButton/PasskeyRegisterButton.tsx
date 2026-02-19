@@ -1,5 +1,4 @@
-import { use } from 'react';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../contexts/UserContextCore';
 import styles from './PasskeyButton.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 
@@ -38,7 +37,6 @@ export default function PasskeyRegisterButton() {
       }
 
       const options = await startRes.json();
-      console.log('Registration options:', options);
       const publicKey = {
         challenge: base64UrlToUint8Array(options.challenge),
         rp: options.rp,
@@ -64,11 +62,11 @@ export default function PasskeyRegisterButton() {
         response: {
           clientDataJSON: bufferToBase64Url(
             (credential.response as AuthenticatorAttestationResponse)
-              .clientDataJSON
+              .clientDataJSON,
           ),
           attestationObject: bufferToBase64Url(
             (credential.response as AuthenticatorAttestationResponse)
-              .attestationObject
+              .attestationObject,
           ),
         },
       };
@@ -85,8 +83,7 @@ export default function PasskeyRegisterButton() {
         return;
       }
 
-      const result = await finishRes.json();
-      console.log('Passkey registered:', result);
+      await finishRes.json();
     } catch (e) {
       console.error('Registration failed:', e);
     }

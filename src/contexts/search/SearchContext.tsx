@@ -1,16 +1,7 @@
 // contexts/search/SearchContext.tsx
-import { createContext, useContext, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { useSearch } from './useSearch';
-
-export const SearchContext = createContext<ReturnType<
-  typeof useSearch<any>
-> | null>(null);
-
-export const useSearchContext = () => {
-  const ctx = useContext(SearchContext);
-  if (!ctx) throw new Error('SearchContext missing');
-  return ctx;
-};
+import { SearchContext } from './SearchContextCore';
 
 interface SearchProviderProps<T> {
   searchFn: (query: string) => Promise<T[]>;
@@ -27,6 +18,8 @@ export function SearchProvider<T>({
 }: SearchProviderProps<T>) {
   const search = useSearch<T>({ searchFn, minLength, debounceMs });
   return (
-    <SearchContext.Provider value={search}>{children}</SearchContext.Provider>
+    <SearchContext.Provider value={search as any}>
+      {children}
+    </SearchContext.Provider>
   );
 }

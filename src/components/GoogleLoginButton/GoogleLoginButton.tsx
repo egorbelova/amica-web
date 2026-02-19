@@ -1,16 +1,33 @@
 import { useEffect, useCallback, useRef } from 'react';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../contexts/UserContextCore';
 
 interface GooglePopupLoginButtonProps {
   className?: string;
 }
 
+interface Window {
+  google?: {
+    accounts?: {
+      oauth2?: {
+        initTokenClient: (config: {
+          client_id: string;
+          scope: string;
+          callback: (response: { access_token: string }) => void;
+          hint: string;
+        }) => {
+          requestAccessToken: (options: { prompt: string }) => Promise<void>;
+        };
+      };
+    };
+  };
+}
+
 function GooglePopupLoginButton({ className }: GooglePopupLoginButtonProps) {
   const { loginWithGoogle } = useUser();
-  const tokenClientRef = useRef<any>(null);
+  const tokenClientRef = useRef<unknown>(null);
 
   const handleCredentialResponse = useCallback(
-    async (response: any) => {
+    async (response: { access_token: string }) => {
       const access_token = response?.access_token;
       if (!access_token) return;
 
@@ -35,7 +52,7 @@ function GooglePopupLoginButton({ className }: GooglePopupLoginButtonProps) {
     script.defer = true;
 
     script.onload = () => {
-      const g = (window as any).google;
+      const g = (window as Window).google;
       if (!g?.accounts?.oauth2) return;
 
       tokenClientRef.current = g.accounts.oauth2.initTokenClient({

@@ -7,7 +7,7 @@ import {
 
 export interface ApiError extends Error {
   status?: number;
-  data?: any;
+  data?: unknown;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
@@ -21,7 +21,7 @@ export const setApiFetchUnauthorizedHandler = (callback: () => void) => {
 async function retry<T>(
   fn: () => Promise<T>,
   retries = 3,
-  delay = 500
+  delay = 500,
 ): Promise<T> {
   try {
     return await fn();
@@ -33,13 +33,13 @@ async function retry<T>(
   }
 }
 
-function logFetchError(err: any, url: string) {
+function logFetchError(err: unknown, url: string) {
   console.error('[apiFetch error]', url, err);
 }
 
 async function fetchWithRetry(
   url: string,
-  options: RequestInit
+  options: RequestInit,
 ): Promise<Response> {
   return retry(() => fetch(url, options), 3, 500);
 }
@@ -51,9 +51,9 @@ async function fetchWithRetry(
 export async function apiFetch(
   url: string,
   options: RequestInit = {},
-  retried401 = false
+  retried401 = false,
 ): Promise<Response> {
-  let token: string | null = null;
+  let token: string | null;
 
   try {
     await refreshTokenIfNeeded();
@@ -85,9 +85,9 @@ export async function apiFetch(
       return apiFetch(
         url,
         { ...options, credentials: 'include', headers: newHeaders },
-        true
+        true,
       );
-    } catch (err) {
+    } catch {
       logFetchError('Retry after 401 failed', url);
     }
   }
@@ -106,11 +106,11 @@ export async function apiFetch(
 
 export async function apiJson<T>(
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   const res = await apiFetch(url, { ...options, credentials: 'include' });
 
-  let data: any;
+  let data: unknown;
   const contentType = res.headers.get('content-type') || '';
 
   try {
@@ -123,10 +123,10 @@ export async function apiJson<T>(
 
   if (!res.ok) {
     const err: ApiError = new Error(
-      (data as any)?.error ||
-        (data as any)?.detail ||
+      (data as unknown as { error: string })?.error ||
+        (data as unknown as { detail: string })?.detail ||
         (data as string) ||
-        res.statusText
+        res.statusText,
     ) as ApiError;
     err.status = res.status;
     err.data = data;
@@ -143,8 +143,8 @@ export async function apiJson<T>(
 export async function apiUpload(
   url: string,
   formData: FormData,
-  onProgress?: (percent: number) => void
-): Promise<any> {
+  onProgress?: (percent: number) => void,
+): Promise<unknown> {
   const token = await getCurrentToken();
   if (!token) throw new Error('No access token');
 

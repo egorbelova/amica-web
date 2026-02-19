@@ -8,6 +8,7 @@ import React, {
 import ReactDOM from 'react-dom';
 import styles from './AvatarCropModal.module.scss';
 import { apiUpload } from '@/utils/apiFetch';
+import type { File } from '@/types';
 
 interface AvatarCropModalProps {
   file: File;
@@ -143,7 +144,7 @@ export default function AvatarCropModal({
     };
 
     return () => URL.revokeObjectURL(url);
-  }, [file, isOpen]);
+  }, [file, isOpen, MIN_WIDTH]);
 
   const createMask = useCallback(() => {
     const canvas = canvasRef.current;
@@ -187,7 +188,7 @@ export default function AvatarCropModal({
     maskCtx.globalCompositeOperation = 'source-over';
 
     maskCanvasRef.current = maskCanvas;
-  }, [getRatio, canvasWidth]);
+  }, [getRatio, FRAME]);
 
   const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -296,24 +297,27 @@ export default function AvatarCropModal({
       cornerRadius,
     );
     ctx.fill();
-  }, []);
+  }, [FRAME, createMask, getRatio, isOpen]);
+
+  const rafLoop = useCallback(
+    function rafLoopInner() {
+      if (!needsRedrawRef.current) {
+        rafRef.current = 0;
+        return;
+      }
+      drawCanvas();
+      needsRedrawRef.current = false;
+      rafRef.current = requestAnimationFrame(rafLoopInner);
+    },
+    [drawCanvas],
+  );
 
   const scheduleRedraw = useCallback(() => {
     needsRedrawRef.current = true;
     if (!rafRef.current && canvasRef.current) {
       rafRef.current = requestAnimationFrame(rafLoop);
     }
-  }, []);
-
-  const rafLoop = useCallback(() => {
-    if (!needsRedrawRef.current) {
-      rafRef.current = 0;
-      return;
-    }
-    drawCanvas();
-    needsRedrawRef.current = false;
-    rafRef.current = requestAnimationFrame(rafLoop);
-  }, []);
+  }, [rafLoop]);
 
   const detectEdge = useCallback((x: number, y: number): Edge => {
     const sel = selectionRef.current;
@@ -372,7 +376,7 @@ export default function AvatarCropModal({
 
       requestAnimationFrame(() => drawCanvas());
     }
-  }, [isOpen, canvasWidth]);
+  }, [isOpen, canvasWidth, FRAME, drawCanvas, getRatio]);
 
   useEffect(() => {
     return () => {
@@ -442,7 +446,7 @@ export default function AvatarCropModal({
         console.error('Upload failed:', e);
       }
     }
-  }, [file.name, contentType, objectId, onUploadSuccess, onClose]);
+  }, [contentType, objectId, onUploadSuccess, onClose, type, file]);
 
   useEffect(() => {
     if (isOpen && type === 'video') {
@@ -475,7 +479,7 @@ export default function AvatarCropModal({
       pointerIdRef.current = e.pointerId;
       canvasRef.current.setPointerCapture(e.pointerId);
     },
-    [detectEdge],
+    [detectEdge, FRAME],
   );
 
   const onCanvasPointerMove = useCallback(
@@ -493,8 +497,8 @@ export default function AvatarCropModal({
       const prev = selectionRef.current;
       let { x: px, y: py, size } = prev;
 
-      const dx = x - (px + size);
-      const dy = y - (py + size);
+      // const dx = x - (px + size);
+      // const dy = y - (py + size);
 
       switch (edge) {
         case 'inside':
@@ -503,9 +507,9 @@ export default function AvatarCropModal({
           break;
 
         case 'topLeft': {
-          let deltaX = px - x;
-          let deltaY = py - y;
-          let newSize = Math.max(
+          const deltaX = px - x;
+          const deltaY = py - y;
+          const newSize = Math.max(
             MIN_SIZE,
             Math.min(size + deltaX, size + deltaY, px + size, py + size),
           );
@@ -516,9 +520,9 @@ export default function AvatarCropModal({
         }
 
         case 'topRight': {
-          let deltaX = x - (px + size);
-          let deltaY = py - y;
-          let newSize = Math.max(
+          const deltaX = x - (px + size);
+          const deltaY = py - y;
+          const newSize = Math.max(
             MIN_SIZE,
             Math.min(size + deltaY, size + deltaX, canvasWidth - px, py + size),
           );
@@ -561,7 +565,7 @@ export default function AvatarCropModal({
       selectionRef.current = newSel;
       scheduleRedraw();
     },
-    [canvasWidth, scheduleRedraw],
+    [canvasWidth, scheduleRedraw, FRAME],
   );
   const onHoverMove = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -581,7 +585,7 @@ export default function AvatarCropModal({
       };
       setCursor(edge ? cursorMap[edge] : 'default');
     },
-    [detectEdge],
+    [detectEdge, FRAME],
   );
 
   const endDrag = useCallback(
@@ -595,7 +599,9 @@ export default function AvatarCropModal({
       if (canvasRef.current && pointerIdRef.current != null) {
         try {
           canvasRef.current.releasePointerCapture(pointerIdRef.current);
-        } catch {}
+        } catch (e) {
+          console.error('releasePointerCapture failed:', e);
+        }
         pointerIdRef.current = null;
       }
       scheduleRedraw();

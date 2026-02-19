@@ -4,7 +4,7 @@ import {
   getAccessTokenOrThrow,
 } from './authStore';
 
-interface WebSocketMessage {
+export interface WebSocketMessage {
   type: string;
   chat_id?: number;
   data?: any;
@@ -13,17 +13,19 @@ interface WebSocketMessage {
   token?: string;
   userId?: number;
   days?: number;
+  id?: number;
+  session?: any;
 }
 
 interface WebSocketEventMap {
-  connected: (data: any) => void;
+  connected: (data: null) => void;
   disconnected: (data: { code: number; reason: string }) => void;
-  error: (error: any) => void;
+  error: (error: Error) => void;
   message: (data: WebSocketMessage) => void;
   chat_message: (data: WebSocketMessage) => void;
   message_reaction: (data: WebSocketMessage) => void;
   message_viewed: (data: WebSocketMessage) => void;
-  connection_established: (data: any) => void;
+  connection_established: (data: WebSocketMessage) => void;
 }
 
 class WebSocketManager {
@@ -35,7 +37,10 @@ class WebSocketManager {
   private pingInterval: number | null = null;
   private reconnectTimeout: number | null = null;
   private isManualDisconnect = false;
-  private eventHandlers: Map<keyof WebSocketEventMap, Function[]> = new Map();
+  private eventHandlers: Map<
+    keyof WebSocketEventMap,
+    ((data: unknown) => void)[]
+  > = new Map();
 
   private unsubscribeTokenListener: (() => void) | null = null;
 
@@ -88,7 +93,10 @@ class WebSocketManager {
     }
   }
 
-  private emit<K extends keyof WebSocketEventMap>(event: K, data: any): void {
+  private emit<K extends keyof WebSocketEventMap>(
+    event: K,
+    data: unknown,
+  ): void {
     const handlers = this.eventHandlers.get(event);
     if (handlers) {
       handlers.forEach((handler) => {
@@ -158,7 +166,7 @@ class WebSocketManager {
         try {
           const token = await getAccessTokenOrThrow();
           this.sendMessage({ type: 'auth', token });
-        } catch (e) {
+        } catch {
           this.disconnect();
         }
       };
@@ -252,17 +260,17 @@ class WebSocketManager {
     }
   }
 
-  private startPingInterval() {
-    this.cleanupPing();
-    this.sendPing();
-    this.pingInterval = window.setInterval(() => this.sendPing(), 30_000);
-  }
+  // private startPingInterval() {
+  //   this.cleanupPing();
+  //   this.sendPing();
+  //   this.pingInterval = window.setInterval(() => this.sendPing(), 30_000);
+  // }
 
-  private sendPing() {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({ type: 'ping' }));
-    }
-  }
+  // private sendPing() {
+  //   if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+  //     this.socket.send(JSON.stringify({ type: 'ping' }));
+  //   }
+  // }
 
   public sendMessage(message: WebSocketMessage): boolean {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
@@ -288,7 +296,7 @@ class WebSocketManager {
     });
   }
 
-  public sendMessageReaction(messageId: number, reaction: any) {
+  public sendMessageReaction(messageId: number, reaction: unknown) {
     return this.sendMessage({
       type: 'message_reaction',
       message_id: messageId,
@@ -314,4 +322,3 @@ class WebSocketManager {
 }
 
 export const websocketManager = WebSocketManager.getInstance();
-export type { WebSocketMessage };

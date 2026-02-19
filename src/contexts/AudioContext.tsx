@@ -1,30 +1,7 @@
-import React, {
-  createContext,
-  useContext,
-  useRef,
-  useState,
-  useCallback,
-  useEffect,
-} from 'react';
-import { apiFetch } from '@/utils/apiFetch';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
+import { fetchPrivateMedia } from '@/utils/audio';
 import type { File } from '@/types';
-
-const SPEEDS = [0.5, 1, 1.5, 2];
-
-interface AudioContextType {
-  currentChatId: number | null;
-  coverUrl: string | null;
-  playlist: File[] | null;
-  setPlaylist: (playlist: File[] | null, currentChatId: number | null) => void;
-  togglePlay: (currentAudioId: number) => void;
-  isPlaying: boolean;
-  currentAudioId: number | null;
-  setCurrentAudioId: (currentAudioId: number | null) => void;
-  setCoverUrl: (coverUrl: string | null) => void;
-  setCurrentTime: (currentTime: number) => void;
-}
-
-const AudioContext = createContext<AudioContextType | undefined>(undefined);
+import { AudioContext } from '@/contexts/audioContext';
 
 export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -39,21 +16,67 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
   const [currentTime, setCurrentTime] = useState(0);
 
   const setPlaylist = useCallback(
-    (newPlaylist: File[] | null, chatId: number | null) => {
+    (
+      newPlaylist: File[] | null,
+      chatId: number | null,
+      opts?: { autoPlayId?: number | null },
+    ) => {
       setCurrentChatId(chatId);
 
       if (currentChatId !== chatId) {
         setPlaylistState(newPlaylist);
+      } else {
+        // still update playlist to the new one even if the chat is same
+        setPlaylistState(newPlaylist);
+      }
+
+      // If caller requested autoplay, handle it here using the provided playlist
+      if (opts?.autoPlayId != null && newPlaylist) {
+        void (async () => {
+          const audio = audioRef.current;
+          if (!audio) return;
+
+          const audioId = opts.autoPlayId!;
+          const file = newPlaylist.find((f) => f.id === audioId);
+          if (!file) return;
+
+          if (currentAudioId !== audioId) {
+            setCurrentAudioId(audioId);
+            if ('mediaSession' in navigator) {
+              navigator.mediaSession.metadata = new MediaMetadata({
+                title: file.original_name,
+                artwork: coverUrl
+                  ? [
+                      {
+                        src: coverUrl,
+                        sizes: '512x512',
+                        type: 'image/png',
+                      },
+                    ]
+                  : [],
+              });
+            }
+
+            const url = await fetchPrivateMedia(file.file_url);
+            if (audio.src !== url) audio.src = url;
+
+            await audio.play();
+            setIsPlaying(true);
+            return;
+          }
+
+          if (audio.paused) {
+            await audio.play();
+            setIsPlaying(true);
+          } else {
+            audio.pause();
+            setIsPlaying(false);
+          }
+        })();
       }
     },
-    [currentChatId],
+    [currentChatId, currentAudioId, coverUrl],
   );
-
-  async function fetchPrivateMedia(url: string) {
-    const res = await apiFetch(url);
-    const blob = await res.blob();
-    return URL.createObjectURL(blob);
-  }
 
   const togglePlay = useCallback(
     async (audioId: number) => {
@@ -96,7 +119,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsPlaying(false);
       }
     },
-    [playlist, currentAudioId],
+    [playlist, currentAudioId, coverUrl],
   );
 
   useEffect(() => {
@@ -151,9 +174,4 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-export const useAudio = () => {
-  const context = useContext(AudioContext);
-  if (!context)
-    throw new Error('useAudio must be used within an AudioProvider');
-  return context;
-};
+export default AudioProvider;

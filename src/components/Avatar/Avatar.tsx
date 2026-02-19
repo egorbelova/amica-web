@@ -1,13 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { stringToColor, pSBC } from '../../utils/index';
 import styles from './Avatar.module.scss';
-import type { DisplayMedia, PhotoMedia, VideoMedia, MediaLayer } from '@/types';
-import { usePrivateMedia } from '@/hooks/usePrivateMedia';
+import type {
+  DisplayMedia,
+  PhotoMedia,
+  VideoMedia,
+  MediaLayer,
+  File,
+} from '@/types';
+// import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import { apiFetch } from '@/utils/apiFetch';
 
 export interface AvatarProps {
   displayName: string;
-  displayMedia?: DisplayMedia | null;
+  displayMedia?: DisplayMedia | File | null;
   className?: string;
   size?: 'small' | 'medium';
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
@@ -33,7 +39,7 @@ const Avatar: React.FC<AvatarProps> = ({
 
   const avatarRef = useRef<HTMLDivElement>(null);
   const [fontSize, setFontSize] = useState(12);
-  const [currentMedia, setCurrentMedia] = useState<DisplayMedia | null>(
+  const [currentMedia, setCurrentMedia] = useState<DisplayMedia | File | null>(
     displayMedia || null,
   );
 
@@ -85,18 +91,25 @@ const Avatar: React.FC<AvatarProps> = ({
     const id = crypto.randomUUID();
     const newLayer: MediaLayerWithUrl = {
       id,
-      media: displayMedia,
+      media: displayMedia as DisplayMedia,
       ready: false,
     };
     setLayers((prev) => [...prev, newLayer]);
 
     async function loadUrl() {
-      const protectedUrl =
-        displayMedia?.type === 'photo'
-          ? size === 'medium' && (displayMedia as PhotoMedia).medium
-            ? (displayMedia as PhotoMedia).medium
-            : (displayMedia as PhotoMedia).small
-          : (displayMedia as VideoMedia).url;
+      let protectedUrl = '';
+      if (displayMedia && 'type' in (displayMedia as DisplayMedia)) {
+        const dm = displayMedia as DisplayMedia;
+        protectedUrl =
+          dm.type === 'photo'
+            ? size === 'medium' && (dm as PhotoMedia).medium
+              ? (dm as PhotoMedia).medium!
+              : (dm as PhotoMedia).small
+            : (dm as VideoMedia).url;
+      } else {
+        const f = displayMedia as File | undefined | null;
+        protectedUrl = f?.file_url || f?.thumbnail_small_url || '';
+      }
 
       const objectUrl = await fetchPrivateMedia(protectedUrl || '');
       setUrl(objectUrl);
@@ -110,9 +123,12 @@ const Avatar: React.FC<AvatarProps> = ({
     loadUrl();
   }, [displayMedia, size]);
 
-  const renderMedia = (media: DisplayMedia | null, url?: string) => {
+  const renderMedia = (media: DisplayMedia | File | null, url?: string) => {
     if (!media || !url) return null;
-    if (media.type === 'video') {
+    if (
+      'type' in (media as DisplayMedia) &&
+      (media as DisplayMedia).type === 'video'
+    ) {
       return (
         <video
           className={styles.avatarImage}

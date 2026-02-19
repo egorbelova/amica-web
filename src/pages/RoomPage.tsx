@@ -4,12 +4,12 @@ import MainChatWindow from '../components/MainChatWindow/MainChatWindow';
 import { websocketManager } from '../utils/websocket-manager';
 import './room.scss';
 import styles from './RoomPage.module.scss';
-import { useSettings } from '@/contexts/settings/Settings';
-import BackgroundComponent from '../components/BackgroundComponent/BackgroundComponent';
-import { usePageStack } from '@/contexts/useStackHistory';
+import { useSettings } from '@/contexts/settings/context';
+// import BackgroundComponent from '../components/BackgroundComponent/BackgroundComponent';
+// import { usePageStack } from '@/contexts/useStackHistory';
 
 const RoomPage: React.FC = () => {
-  const { push } = usePageStack();
+  // const { push } = usePageStack();
 
   // useEffect(() => {
   //   push('home');
@@ -41,7 +41,7 @@ const RoomPage: React.FC = () => {
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [, setIsPlaying] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -55,7 +55,7 @@ const RoomPage: React.FC = () => {
         video.muted = true;
         await video.play();
         setIsPlaying(true);
-      } catch (e) {
+      } catch {
         setIsPlaying(false);
       }
     };

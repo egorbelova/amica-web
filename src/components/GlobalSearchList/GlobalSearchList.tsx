@@ -1,10 +1,11 @@
-import { useSearchContext } from '@/contexts/search/SearchContext';
+import { useSearchContext } from '@/contexts/search/SearchContextCore';
+import type { User } from '@/types';
 import styles from './GlobalSearchList.module.scss';
 import Avatar from '../Avatar/Avatar';
-import { useChat } from '@/contexts/ChatContext';
+import { useChat } from '@/contexts/ChatContextCore';
 
 const GlobalSearchList: React.FC = () => {
-  const { results, loading, error } = useSearchContext();
+  const { results, loading, error } = useSearchContext<User>();
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div className='text-red-500'>{error}</div>;

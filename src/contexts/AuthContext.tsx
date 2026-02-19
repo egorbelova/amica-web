@@ -1,16 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
-
-interface AuthContextType {
-  loggedIn: boolean;
-  setLoggedIn: (value: boolean) => void;
-}
-
-const AuthContext = createContext<AuthContextType>({
-  loggedIn: true,
-  setLoggedIn: () => {},
-});
-
-export const useAuth = () => useContext(AuthContext);
+import React, { useState } from 'react';
+import { AuthContext } from './AuthContextCore';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,

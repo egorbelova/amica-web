@@ -124,7 +124,9 @@ export function startAuthHeartbeat(intervalMs = HEARTBEAT_INTERVAL) {
     if (!accessToken || !navigator.onLine) return;
     try {
       await refreshTokenIfNeeded();
-    } catch {}
+    } catch (e) {
+      console.error('Failed to refresh token', e);
+    }
   }, intervalMs);
 }
 

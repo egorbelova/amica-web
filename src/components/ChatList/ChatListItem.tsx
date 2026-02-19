@@ -2,8 +2,7 @@ import React, { forwardRef, useRef } from 'react';
 import { lastMessageDateFormat, unreadCountFormat } from '../../utils/index';
 import Avatar from '../Avatar/Avatar';
 import styles from './ChatListItem.module.scss';
-// import { SquircleContainer } from '../SquircleContainer/SquircleContainer';
-import type { DisplayMedia, File } from '@/types';
+import type { DisplayMedia, File, Message } from '@/types';
 import AttachmentPreview from './AttachmentPreview';
 
 export interface ChatListItemProps {
@@ -11,7 +10,7 @@ export interface ChatListItemProps {
   chatId: number;
   displayPrimaryMedia?: DisplayMedia;
   displayName: string;
-  lastMessage: any | null;
+  lastMessage: Message | null;
   unread_count: number;
   isActive: boolean;
   onChatClick: (chatId: number) => void;

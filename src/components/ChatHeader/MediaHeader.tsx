@@ -1,5 +1,5 @@
 import styles from './ChatHeader.module.scss';
-import { useAudio } from '@/contexts/AudioContext';
+import { useAudio } from '@/contexts/audioContext';
 import { Icon } from '../Icons/AutoIcons';
 
 export const MediaHeader: React.FC = () => {

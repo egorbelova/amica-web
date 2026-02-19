@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Icon } from '../Icons/AutoIcons';
 import { JWTVideo } from './JWTVideo';
-import { useSettings } from '@/contexts/settings/Settings';
+import { useSettings } from '@/contexts/settings/context';
 import styles from './SmartMediaLayout.module.scss';
 
 export default function VideoLayout({
@@ -12,7 +12,6 @@ export default function VideoLayout({
   has_audio: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [soundIconVisible, setSoundIconVisible] = useState(false);
   const [playIconVisible, setPlayIconVisible] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -51,10 +50,10 @@ export default function VideoLayout({
     seekByClientX(e.clientX);
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging.current) return;
     seekByClientX(e.clientX);
-  };
+  }, []);
 
   const handleMouseUp = (e: MouseEvent) => {
     e.stopPropagation();
@@ -80,10 +79,10 @@ export default function VideoLayout({
     seekByClientX(e.touches[0].clientX);
   };
 
-  const handleTouchMove = (e: TouchEvent) => {
+  const handleTouchMove = useCallback((e: TouchEvent) => {
     if (!isDragging.current) return;
     seekByClientX(e.touches[0].clientX);
-  };
+  }, []);
 
   const handleTouchEnd = () => {
     if (!isDragging.current) return;
@@ -107,7 +106,7 @@ export default function VideoLayout({
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
     };
-  }, []);
+  }, [handleMouseMove, handleTouchMove]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -160,18 +159,13 @@ export default function VideoLayout({
   }, []);
 
   useEffect(() => {
-    setSoundIconVisible(true);
-    const timeout = setTimeout(() => setSoundIconVisible(false), 700);
-    return () => clearTimeout(timeout);
-  }, [muted]);
-
-  useEffect(() => {
-    setPlayIconVisible(true);
-    const timeout = setTimeout(() => setPlayIconVisible(false), 700);
-    return () => clearTimeout(timeout);
+    const showTimeout = window.setTimeout(() => setPlayIconVisible(true), 0);
+    const hideTimeout = window.setTimeout(() => setPlayIconVisible(false), 700);
+    return () => {
+      clearTimeout(showTimeout);
+      clearTimeout(hideTimeout);
+    };
   }, [playing]);
-
-  const lastTap = useRef<number>(0);
 
   const handleClick = () => {
     if (isDragging.current) return;
@@ -248,8 +242,6 @@ export default function VideoLayout({
             width: 25,
             height: 25,
             cursor: 'pointer',
-            // opacity: soundIconVisible ? 1 : 0,
-            // transition: 'opacity 0.3s ease-in-out',
           }}
         >
           <Icon name={muted ? 'SoundMuteFill' : 'SoundMaxFill'} />

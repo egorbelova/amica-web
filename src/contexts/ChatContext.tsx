@@ -1,7 +1,5 @@
 import React, {
-  createContext,
   useCallback,
-  useContext,
   useState,
   useEffect,
   useMemo,
@@ -9,38 +7,13 @@ import React, {
 } from 'react';
 import type { ReactNode } from 'react';
 import type { Message, Chat, User } from '@/types';
-import { websocketManager } from '@/utils/websocket-manager';
+import {
+  websocketManager,
+  type WebSocketMessage,
+} from '@/utils/websocket-manager';
 import { apiFetch, apiUpload } from '@/utils/apiFetch';
-import { useSettings } from './settings/Settings';
-
-interface ChatContextType {
-  selectedChat: Chat | null;
-  messages: Message[];
-  chats: Chat[];
-  loading: boolean;
-  messagesCache: { [roomId: number]: Message[] };
-  error: string | null;
-
-  selectChat: (chatId: number | null) => void;
-  updateMessages: (messages: Message[], chatId: number) => void;
-  setChats: (chats: Chat[]) => void;
-  setLoading: (loading: boolean) => void;
-  getCachedMessages: (roomId: number) => Message[] | null;
-  updateChatLastMessage: (chatId: number, lastMessage: Message | null) => void;
-  updateChatUnreadCount: (chatId: number, unreadCount: number) => void;
-
-  fetchChats: () => Promise<void>;
-  fetchChat: (chatId: number) => Promise<void>;
-  handleChatClick: (chatId: number) => Promise<void>;
-  handleCreateTemporaryChat: (user: User) => void;
-  setSelectedChatId: (chatId: number | null) => void;
-  addContact: (userId: number) => void;
-  deleteContact: (contactId: number) => void;
-  saveContact: (contactId: number, name: string) => void;
-  handleNewMessage: (data: any) => void;
-}
-
-const ChatContext = createContext<ChatContextType | undefined>(undefined);
+import { useSettings } from './settings/context';
+import { ChatContext, type ChatContextType } from './ChatContextCore';
 
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -65,13 +38,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     setSelectedChatId(chatId);
   }, []);
 
-  const handleNewMessage = (data: any) => {
+  const handleNewMessage = (data: WebSocketMessage) => {
     console.log('New message received:', data);
     if (data.type === 'chat_message' && data.chat_id && data.data) {
       const roomId = data.chat_id;
-      const newMessage = data.data;
-
-      // console.log('New message received for room:', data);
+      const newMessage = data.data as unknown as Message;
 
       setChats((prevChats) => {
         return prevChats.map((chat) =>
@@ -141,6 +112,36 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     [],
   );
 
+  const fetchChat = useCallback(
+    async (chatId: number) => {
+      try {
+        const res = await apiFetch(`/api/get_chat/${chatId}/`);
+        if (!res.ok) throw new Error(`Failed: ${res.status}`);
+        const data = await res.json();
+        // console.log('fetchChat', data);
+        if (data.media) {
+          setChats((prevChats) => {
+            const updatedChats = prevChats.map((chat) =>
+              chat.id === chatId
+                ? {
+                    ...chat,
+                    media: data.media,
+                    members: data.members,
+                  }
+                : chat,
+            );
+            return updatedChats;
+          });
+        }
+        updateMessages(data.messages || [], chatId);
+      } catch (err) {
+        console.error(err);
+        updateMessages([], chatId);
+      }
+    },
+    [updateMessages],
+  );
+
   const saveContact = useCallback(
     async (contactId: number, name: string) => {
       if (!selectedChat) return;
@@ -176,7 +177,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       if (!selectedChatId) return;
       const formData = new FormData();
       formData.append('contact_id', contactId.toString());
-      const res = await apiFetch('/api/contact/', {
+      await apiFetch('/api/contact/', {
         method: 'DELETE',
         body: formData,
       });
@@ -206,8 +207,14 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       if (!selectedChatId) return;
       const formData = new FormData();
       formData.append('user_id', usedId.toString());
-      const res = await apiUpload('/api/contact/', formData);
-      if (res.error) return setError(res.error);
+      const res: unknown = await apiUpload('/api/contact/', formData);
+      if (typeof res === 'object' && res !== null) {
+        const r = res as Record<string, unknown>;
+        if (typeof r.error === 'string') {
+          setError(r.error);
+          return;
+        }
+      }
 
       setChats((prevChats) =>
         prevChats.map((chat) => {
@@ -281,7 +288,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchChat]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -296,37 +303,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
-
-  const fetchChat = useCallback(
-    async (chatId: number) => {
-      try {
-        const res = await apiFetch(`/api/get_chat/${chatId}/`);
-        if (!res.ok) throw new Error(`Failed: ${res.status}`);
-        const data = await res.json();
-        // console.log('fetchChat', data);
-        if (data.media) {
-          setChats((prevChats) => {
-            const updatedChats = prevChats.map((chat) =>
-              chat.id === chatId
-                ? {
-                    ...chat,
-                    media: data.media,
-                    members: data.members,
-                  }
-                : chat,
-            );
-            return updatedChats;
-          });
-        }
-        updateMessages(data.messages || [], chatId);
-      } catch (err) {
-        console.error(err);
-        updateMessages([], chatId);
-      }
-    },
-    [updateMessages],
-  );
+  }, [setActiveProfileTab]);
 
   const handleCreateTemporaryChat = useCallback(
     (user: User) => {
@@ -335,11 +312,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         id: tempId,
         info: user.username,
         name: user.username,
+        media: [],
         members: [user],
         last_message: null,
         unread_count: 0,
         type: 'D',
-        primary_media: user.profile?.primary_avatar || null,
+        primary_media: user.profile?.primary_avatar
+          ? {
+              type: 'photo',
+              small:
+                user.profile.primary_avatar.thumbnail_small_url ||
+                user.profile.primary_avatar.file_url,
+              medium: user.profile.primary_avatar.file_url,
+            }
+          : null,
       };
 
       setChats((prev) => [tempChat, ...prev]);
@@ -349,7 +335,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     [chats, selectChat],
   );
 
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const handleChatClick = useCallback(
     async (chatId: number) => {
@@ -389,12 +375,4 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
-};
-
-export const useChat = (): ChatContextType => {
-  const context = useContext(ChatContext);
-  if (context === undefined) {
-    throw new Error('useChat must be used within a ChatProvider');
-  }
-  return context;
 };

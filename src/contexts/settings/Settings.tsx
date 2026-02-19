@@ -1,19 +1,16 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-} from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import type {
   Settings,
-  SettingsContextValue,
   WallpaperSetting,
   SubTab,
+  WallpaperType,
 } from './types';
-import { websocketManager } from '@/utils';
+import {
+  websocketManager,
+  type WebSocketMessage,
+} from '@/utils/websocket-manager';
 import { apiUpload, apiFetch } from '@/utils/apiFetch';
-import { usePageStack } from '@/contexts/useStackHistory';
+import { SettingsContext } from './context';
 
 const defaultWallpapers: WallpaperSetting[] = [
   {
@@ -51,8 +48,6 @@ const defaultSettings: Settings = {
   useBackgroundThroughoutTheApp: false,
 };
 
-export const SettingsContext = createContext<SettingsContextValue | null>(null);
-
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const saved = localStorage.getItem('app-settings');
   let parsed: Partial<
@@ -61,7 +56,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   if (saved) {
     try {
       parsed = JSON.parse(saved);
-    } catch {}
+    } catch (e) {
+      console.error('Failed to parse settings', e);
+    }
   }
 
   const [isResizingPermitted, setIsResizingPermitted] = useState(false);
@@ -94,7 +91,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<Settings>(() => {
     const combinedWallpapers = [
       ...defaultWallpapers.filter(
-        (df) => !parsed.wallpapers?.some((w: any) => w.id === df.id),
+        (df) =>
+          !parsed.wallpapers?.some((w: WallpaperSetting) => w.id === df.id),
       ),
       ...(parsed.wallpapers || []),
     ];
@@ -113,13 +111,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [activeProfileTab, setActiveProfileTab] = useState<SubTab>(null);
   // const { push } = usePageStack();
 
-  // useEffect(() => {
-  //   console.log('activeProfileTab', activeProfileTab);
-  //   push(activeProfileTab);
-  // }, [activeProfileTab]);
-
   useEffect(() => {
-    const { activeWallpaper, ...rest } = settings;
+    const { ...rest } = settings;
     const toSave = {
       ...rest,
       autoplayVideos,
@@ -127,65 +120,76 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('app-settings', JSON.stringify(toSave));
   }, [settings, autoplayVideos]);
 
-  const setSetting = <K extends keyof Settings>(key: K, value: Settings[K]) =>
-    setSettings((prev) => ({ ...prev, [key]: value }));
+  const setSetting = useCallback(
+    <K extends keyof Settings>(key: K, value: Settings[K]) =>
+      setSettings((prev) => ({ ...prev, [key]: value })),
+    [setSettings],
+  );
 
-  const setBlur = (value: number) => {
-    setSettings(
-      (prev: Settings) =>
-        ({
+  const setBlur = useCallback(
+    (value: number) => {
+      setSettings(
+        (prev: Settings) =>
+          ({
+            ...prev,
+            activeWallpaper: {
+              ...prev.activeWallpaper,
+              blur: value,
+            },
+          }) as Settings,
+      );
+    },
+    [setSettings],
+  );
+
+  const setActiveWallpaper = useCallback(
+    (wallpaper: WallpaperSetting) => {
+      setSettings((prev) => {
+        let wallpaperData: WallpaperSetting;
+
+        if (!('url' in wallpaper) || !wallpaper.url) {
+          const defaultWall = defaultWallpapers.find(
+            (w) => w.id === wallpaper.id,
+          );
+          if (!defaultWall) return prev;
+          wallpaperData = { ...defaultWall };
+        } else {
+          wallpaperData = { ...wallpaper };
+        }
+
+        if (prev.activeWallpaper?.id === wallpaperData.id) {
+          return prev;
+        }
+
+        websocketManager.sendMessage({
+          type: 'set_active_wallpaper',
+          data: { id: wallpaperData.id },
+        });
+
+        const wallpapers = prev.wallpapers?.some(
+          (w) => w.id === wallpaperData.id,
+        )
+          ? prev.wallpapers
+          : [...(prev.wallpapers || []), wallpaperData];
+
+        return {
           ...prev,
-          activeWallpaper: {
-            ...prev.activeWallpaper,
-            blur: value,
-          },
-        }) as Settings,
-    );
-  };
-
-  const setActiveWallpaper = (wallpaper: WallpaperSetting) => {
-    setSettings((prev) => {
-      let wallpaperData: WallpaperSetting;
-
-      if (!('url' in wallpaper) || !wallpaper.url) {
-        const defaultWall = defaultWallpapers.find(
-          (w) => w.id === wallpaper.id,
-        );
-        if (!defaultWall) return prev;
-        wallpaperData = { ...defaultWall };
-      } else {
-        wallpaperData = { ...wallpaper };
-      }
-
-      if (prev.activeWallpaper?.id === wallpaperData.id) {
-        return prev;
-      }
-
-      websocketManager.sendMessage({
-        type: 'set_active_wallpaper',
-        data: { id: wallpaperData.id },
+          wallpapers,
+          activeWallpaper: wallpaperData,
+        };
       });
+    },
+    [setSettings],
+  );
 
-      const wallpapers = prev.wallpapers?.some((w) => w.id === wallpaperData.id)
-        ? prev.wallpapers
-        : [...(prev.wallpapers || []), wallpaperData];
-
-      return {
-        ...prev,
-        wallpapers,
-        activeWallpaper: wallpaperData,
-      };
-    });
-  };
-
-  const removeWallpaper = (id: string) => {
+  const removeWallpaper = useCallback((id: string) => {
     websocketManager.sendMessage({
       type: 'delete_user_wallpaper',
       data: { id },
     });
-  };
+  }, []);
 
-  const fetchWallpapers = async () => {
+  const fetchWallpapers = useCallback(async () => {
     try {
       const res = await apiFetch('/api/wallpapers/');
       const data = await res.json();
@@ -207,9 +211,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setSettings]);
 
-  const addUserWallpaper = async (wallpaper: File) => {
+  const addUserWallpaper = useCallback(async (wallpaper: File) => {
     try {
       const formData = new FormData();
       formData.append('file', wallpaper);
@@ -218,47 +222,52 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('addUserWallpaper error:', error);
     }
-  };
-
-  const handleWSMessage = useCallback((data: any) => {
-    if (!data.type) return;
-
-    if (data.type === 'active_wallpaper_updated') {
-      const wallpaperData: WallpaperSetting = {
-        ...data.data,
-        url: data.data.url,
-      };
-      setActiveWallpaper(wallpaperData);
-    }
-
-    if (data.type === 'user_wallpaper_deleted') {
-      const wallpaperId = data.id;
-      setSettings((prev) => ({
-        ...prev,
-        wallpapers: (prev.wallpapers || []).filter((w) => w.id !== wallpaperId),
-        activeWallpaper:
-          prev.activeWallpaper?.id === wallpaperId
-            ? defaultSettings.activeWallpaper
-            : prev.activeWallpaper,
-      }));
-    }
-
-    if (data.type === 'user_wallpaper_added') {
-      console.log(data);
-      const wallpaperData: WallpaperSetting = {
-        id: data.data.id,
-        type: data.data.type,
-        url: data.data.url,
-        blur: 0,
-      };
-      setSettings((prev) => ({
-        ...prev,
-        wallpapers: prev.wallpapers?.some((w) => w.id === wallpaperData.id)
-          ? prev.wallpapers
-          : [...(prev.wallpapers || []), wallpaperData],
-      }));
-    }
   }, []);
+
+  const handleWSMessage = useCallback(
+    (data: WebSocketMessage) => {
+      if (!data.type) return;
+
+      if (data.type === 'active_wallpaper_updated') {
+        const wallpaperData: WallpaperSetting = {
+          id: data.data?.id as string | number | null,
+          type: data.data?.type as WallpaperType | undefined,
+          url: data.data?.url as string | null,
+        };
+        setActiveWallpaper(wallpaperData);
+      }
+
+      if (data.type === 'user_wallpaper_deleted') {
+        const wallpaperId = data?.id;
+        setSettings((prev) => ({
+          ...prev,
+          wallpapers: (prev.wallpapers || []).filter(
+            (w) => w.id !== wallpaperId,
+          ),
+          activeWallpaper:
+            prev.activeWallpaper?.id === wallpaperId
+              ? defaultSettings.activeWallpaper
+              : prev.activeWallpaper,
+        }));
+      }
+
+      if (data.type === 'user_wallpaper_added') {
+        const wallpaperData: WallpaperSetting = {
+          id: data.data.id,
+          type: data.data.type,
+          url: data.data.url,
+          blur: 0,
+        };
+        setSettings((prev) => ({
+          ...prev,
+          wallpapers: prev.wallpapers?.some((w) => w.id === wallpaperData.id)
+            ? prev.wallpapers
+            : [...(prev.wallpapers || []), wallpaperData],
+        }));
+      }
+    },
+    [setActiveWallpaper, setSettings],
+  );
 
   useEffect(() => {
     websocketManager.on('message', handleWSMessage);
@@ -268,34 +277,44 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     return () => websocketManager.off('message', handleWSMessage);
   }, [handleWSMessage]);
 
+  const value = useMemo(
+    () => ({
+      settings,
+      setSetting,
+      setActiveWallpaper,
+      addUserWallpaper,
+      setBlur,
+      removeWallpaper,
+      fetchWallpapers,
+      loading,
+      activeProfileTab,
+      setActiveProfileTab,
+      autoplayVideos,
+      setAutoplayVideos,
+      settingsFullWindow,
+      setSettingsFullWindow,
+      isResizingPermitted,
+      setIsResizingPermitted,
+    }),
+    [
+      settings,
+      loading,
+      activeProfileTab,
+      autoplayVideos,
+      settingsFullWindow,
+      isResizingPermitted,
+      addUserWallpaper,
+      fetchWallpapers,
+      removeWallpaper,
+      setActiveWallpaper,
+      setBlur,
+      setSetting,
+    ],
+  );
+
   return (
-    <SettingsContext.Provider
-      value={{
-        settings,
-        setSetting,
-        setActiveWallpaper,
-        addUserWallpaper,
-        setBlur,
-        removeWallpaper,
-        fetchWallpapers,
-        loading,
-        activeProfileTab,
-        setActiveProfileTab,
-        autoplayVideos,
-        setAutoplayVideos,
-        settingsFullWindow,
-        setSettingsFullWindow,
-        isResizingPermitted,
-        setIsResizingPermitted,
-      }}
-    >
+    <SettingsContext.Provider value={value}>
       {children}
     </SettingsContext.Provider>
   );
-}
-
-export function useSettings() {
-  const ctx = useContext(SettingsContext);
-  if (!ctx) throw new Error('useSettings must be used within SettingsProvider');
-  return ctx;
 }

@@ -1,6 +1,6 @@
 // components/Search/UserSearch.tsx
 import React from 'react';
-import { SearchProvider } from '@/contexts/search/SearchContext';
+// import { SearchProvider } from '@/contexts/search/SearchContext';
 import SearchInput from '@/components/ui/searchInput/SearchInput';
 import GlobalSearchList from '@/components/GlobalSearchList/GlobalSearchList';
 import ChatList from '@/components/ChatList/ChatList';

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styles from './DropZone.module.scss';
 
 export default function DropZone({
@@ -7,7 +7,7 @@ export default function DropZone({
   onFiles: (files: File[]) => void;
 }) {
   const [dragging, setDragging] = useState(false);
-  let dragCounter = 0;
+  const dragCounterRef = useRef(0);
 
   useEffect(() => {
     const handleDragOver = (e: DragEvent) => {
@@ -16,19 +16,19 @@ export default function DropZone({
 
     const handleDragEnter = (e: DragEvent) => {
       e.preventDefault();
-      dragCounter++;
+      dragCounterRef.current++;
       setDragging(true);
     };
 
     const handleDragLeave = (e: DragEvent) => {
       e.preventDefault();
-      dragCounter--;
-      if (dragCounter <= 0) setDragging(false);
+      dragCounterRef.current--;
+      if (dragCounterRef.current <= 0) setDragging(false);
     };
 
     const handleDrop = (e: DragEvent) => {
       e.preventDefault();
-      dragCounter = 0;
+      dragCounterRef.current = 0;
       setDragging(false);
 
       const files = Array.from(e.dataTransfer?.files || []) as File[];
@@ -48,7 +48,7 @@ export default function DropZone({
       window.removeEventListener('dragleave', handleDragLeave);
       window.removeEventListener('drop', handleDrop);
     };
-  }, []);
+  }, [onFiles]);
 
   return dragging ? (
     <div className={styles.overlay}>Drop files here to upload</div>

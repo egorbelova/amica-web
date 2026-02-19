@@ -1,9 +1,9 @@
-function base64UrlToUint8Array(base64UrlString: string): Uint8Array {
+function base64UrlToUint8Array(base64UrlString: string): ArrayBuffer {
   const base64 =
     base64UrlString.replace(/-/g, '+').replace(/_/g, '/') +
     '=='.slice(0, (4 - (base64UrlString.length % 4)) % 4);
   const raw = atob(base64);
-  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0))).buffer;
 }
 
 function bufferToBase64Url(buffer: ArrayBuffer): string {
@@ -17,7 +17,7 @@ function bufferToBase64Url(buffer: ArrayBuffer): string {
 }
 
 import { Icon } from '@/components/Icons/AutoIcons';
-import React from 'react';
+
 interface PasskeyLoginButtonProps {
   styles?: Record<string, string>;
 }
@@ -38,11 +38,11 @@ export function PasskeyLoginButton({ styles }: PasskeyLoginButtonProps) {
 
       const options = await startRes.json();
 
-      const publicKey: any = {
+      const publicKey: PublicKeyCredentialRequestOptions = {
         challenge: base64UrlToUint8Array(options.challenge),
         rpId: options.rpId,
         allowCredentials:
-          options.allowCredentials?.map((cred: any) => ({
+          options.allowCredentials?.map((cred: Credential) => ({
             id: base64UrlToUint8Array(cred.id),
             type: 'public-key',
           })) || [],
@@ -54,7 +54,7 @@ export function PasskeyLoginButton({ styles }: PasskeyLoginButtonProps) {
         publicKey,
       })) as PublicKeyCredential;
 
-      const response = assertion.response as any;
+      const response = assertion.response as AuthenticatorAssertionResponse;
 
       const body = {
         id: assertion.id,

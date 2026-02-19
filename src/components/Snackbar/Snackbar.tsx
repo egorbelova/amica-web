@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import styles from './Snackbar.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 
@@ -11,25 +11,38 @@ const Snackbar = ({
   open: boolean;
   onExited: () => void;
 }) => {
-  const [show, setShow] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    let timeout: number;
+    const el = ref.current;
+    if (!el) return;
+    if (open) return;
 
-    if (open) {
-      setShow(true);
-    } else {
-      setShow(false);
-      timeout = setTimeout(() => {
-        if (onExited) onExited();
-      }, 300);
-    }
+    const handleEnd = (ev: Event) => {
+      if (ev.target !== el) return;
+      const e = ev as TransitionEvent | AnimationEvent;
+      if ('propertyName' in e && e.propertyName !== 'opacity') return;
+      onExited?.();
+    };
 
-    return () => clearTimeout(timeout);
+    el.addEventListener('transitionend', handleEnd as EventListener, {
+      once: true,
+    });
+    el.addEventListener('animationend', handleEnd as EventListener, {
+      once: true,
+    });
+
+    return () => {
+      el.removeEventListener('transitionend', handleEnd as EventListener);
+      el.removeEventListener('animationend', handleEnd as EventListener);
+    };
   }, [open, onExited]);
 
   return (
-    <div className={`${styles.snackbar} ${show ? styles.show : styles.hide}`}>
+    <div
+      ref={ref}
+      className={`${styles.snackbar} ${open ? styles.show : styles.hide}`}
+    >
       <Icon name='Unread' className={styles.icon} />
       {message}
     </div>

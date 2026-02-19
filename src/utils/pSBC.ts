@@ -9,15 +9,9 @@ export const pSBC = (
   p: number,
   c0: string,
   c1?: string,
-  l?: boolean
+  l?: boolean,
 ): string | null => {
-  let r: number,
-    g: number,
-    b: number,
-    P: number,
-    f: ColorRGB | null,
-    t: ColorRGB | null,
-    h: boolean;
+  let r: number, g: number, b: number, h: boolean;
 
   const i = parseInt;
   const m = Math.round;
@@ -82,23 +76,22 @@ export const pSBC = (
   h = c0.length > 9;
   h = c1 ? (c1.length > 9 ? true : c1 === 'c' ? !h : false) : h;
 
-  f = pSBCr(c0);
+  const f = pSBCr(c0);
   if (!f) return null;
 
   const isNegative = p < 0;
 
-  t =
+  const t =
     c1 && c1 !== 'c'
       ? pSBCr(c1)
       : isNegative
-      ? { r: 0, g: 0, b: 0, a: -1 }
-      : { r: 255, g: 255, b: 255, a: -1 };
+        ? { r: 0, g: 0, b: 0, a: -1 }
+        : { r: 255, g: 255, b: 255, a: -1 };
 
   if (!t) return null;
 
   const absP = Math.abs(p);
-  P = 1 - absP;
-  p = isNegative ? -p : p;
+  const P = 1 - absP;
 
   if (l) {
     r = m(P * f.r + absP * t.r);

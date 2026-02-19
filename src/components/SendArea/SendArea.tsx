@@ -1,11 +1,11 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { websocketManager } from '../../utils/websocket-manager';
-import { useChat } from '../../contexts/ChatContext';
-import { useUser } from '../../contexts/UserContext';
+import { useChat } from '../../contexts/ChatContextCore';
+import { useUser } from '../../contexts/UserContextCore';
 import { apiUpload } from '../../utils/apiFetch';
 import DropZone from '../DropZone/DropZone';
 import { Icon } from '../Icons/AutoIcons';
-import { useSearchContext } from '@/contexts/search/SearchContext';
+import { useSearchContext } from '@/contexts/search/SearchContextCore';
 import styles from './SendArea.module.scss';
 import JumpToBottom from '../JumpToBottom/JumpToBottom';
 import './SendArea.css';
@@ -20,7 +20,7 @@ const MessageInput: React.FC = () => {
   const editableRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { selectedChat, handleNewMessage } = useChat();
+  const { selectedChat } = useChat();
   const { user } = useUser();
   const { setTerm, setResults } = useSearchContext();
 
@@ -85,21 +85,12 @@ const MessageInput: React.FC = () => {
       try {
         setIsUploading(true);
 
-        console.log('Starting upload...');
+        await apiUpload('/api/messages/', formData, () => {});
 
-        const result = await apiUpload(
-          '/api/messages/',
-          formData,
-          (percent) => {
-            console.log(`Uploading: ${percent}%`);
-          },
-        );
-
-        console.log('Uploaded:', result);
         return true;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error sending files:', error);
-        alert(error?.message || error || 'Upload failed');
+        alert(error instanceof Error ? error.message : String(error));
         return false;
       } finally {
         setIsUploading(false);
@@ -241,7 +232,15 @@ const MessageInput: React.FC = () => {
         console.error('Error sending message:', error);
       }
     },
-    [message, files, roomId, sendFilesViaHttp],
+    [
+      message,
+      files,
+      roomId,
+      selectedChat?.members,
+      sendFilesViaHttp,
+      setTerm,
+      setResults,
+    ],
   );
 
   const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
@@ -267,7 +266,7 @@ const MessageInput: React.FC = () => {
 
       e.target.value = '';
     },
-    [],
+    [MAX_FILE_SIZE],
   );
 
   const handleSelfieUpload = useCallback(

@@ -1,3 +1,5 @@
+import type { WallpaperSetting } from '@/contexts/settings/types';
+
 export interface File {
   id: number;
   width?: number;
@@ -20,7 +22,7 @@ export interface Message {
   value: string;
   date: string;
   user: number;
-  viewers: number[];
+  viewers: User[];
   liked: number;
   files: File[];
   is_own: boolean;
@@ -35,6 +37,7 @@ export interface Chat {
   last_message: Message | null;
   unread_count: number;
   info: string;
+  media: File[];
 }
 
 export interface PhotoMedia {
@@ -63,8 +66,8 @@ export interface UserProfile {
   phone: string | null;
   date_of_birth: string | null;
   location: string | null;
-  primary_avatar: any | null;
-  media: any[];
+  primary_avatar: File | null;
+  media: File[];
 }
 
 export interface User {
@@ -73,7 +76,7 @@ export interface User {
   username: string;
   profile: UserProfile;
   preferred_session_lifetime_days: number;
-  active_wallpaper?: any | null;
+  active_wallpaper?: WallpaperSetting | null;
   last_seen: string | null;
   is_contact?: boolean;
   contact_id?: number;
@@ -83,5 +86,5 @@ export interface Contact {
   id: number;
   username: string;
   profile: UserProfile;
-  primary_avatar: any | null;
+  primary_avatar: File | null;
 }

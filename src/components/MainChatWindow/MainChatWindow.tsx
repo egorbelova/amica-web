@@ -1,39 +1,17 @@
-import { useState, useRef, useEffect, useCallback, act } from 'react';
+import { useState, useEffect } from 'react';
 import SendArea from '../SendArea/SendArea';
 import MessageList from '../MessageList/MessageList';
 import ChatHeader from '../ChatHeader/ChatHeader';
-import BackgroundComponent from '../BackgroundComponent/BackgroundComponent';
-import { useChat } from '../../contexts/ChatContext';
+// import BackgroundComponent from '../BackgroundComponent/BackgroundComponent';
+import { useChat } from '@/contexts/ChatContextCore';
 import SideBarMedia from '../SideBarMedia/SideBarMedia';
 import styles from './MainChatWindow.module.scss';
-import { useTranslation, type Locale } from '@/contexts/LanguageContext';
-import { useSettings } from '@/contexts/settings/Settings';
+import { useTranslation } from '@/contexts/languageCore';
+import { useSettings } from '@/contexts/settings/context';
 import wallpaperStyles from '@/pages/RoomPage.module.scss';
 import { usePageStack } from '@/contexts/useStackHistory';
 import { ActiveProfileTab } from '@/components/Profile/ActiveProfileTab';
 import { Icon } from '../Icons/AutoIcons';
-
-interface MainChatWindowProps {
-  staticUrl?: string;
-  username: string;
-  usernameId: string;
-  roomDetails: {
-    id: string;
-    name: string;
-  };
-  users: string;
-  roomId?: number | null;
-  userInfo?: {
-    id: number;
-    username: string;
-    email: string;
-  } | null;
-}
-
-interface AttachmentTab {
-  id: string;
-  label: string;
-}
 
 const MainChatWindow: React.FC = () => {
   const {
@@ -44,7 +22,7 @@ const MainChatWindow: React.FC = () => {
   } = useSettings();
   const { activeWallpaper } = settings;
 
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
 
   const { selectedChat, setSelectedChatId } = useChat();
 

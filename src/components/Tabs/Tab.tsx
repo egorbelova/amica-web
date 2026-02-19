@@ -1,4 +1,4 @@
-import { useTabs } from './TabsContext';
+import { useTabs } from './tabsShared';
 import { type ReactNode } from 'react';
 import styles from './Tabs.module.scss';
 

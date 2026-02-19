@@ -1,19 +1,20 @@
 import Message from '../Message/Message';
-import { useChat } from '../../contexts/ChatContext';
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useChat } from '@/contexts/ChatContextCore';
+import { useEffect, useRef, useState } from 'react';
 import ContextMenu from '../ContextMenu/ContextMenu';
 import styles from './MessageList.module.scss';
 import { createPortal } from 'react-dom';
 import Avatar from '../Avatar/Avatar';
-import { useJump } from '@/contexts/JumpContext';
+import { useJump } from '@/hooks/useJump';
 import { useMergedRefs } from '@/hooks/useMergedRefs';
 import type { MenuItem } from '../ContextMenu/ContextMenu';
 import type { IconName } from '../Icons/AutoIcons';
 import { apiFetch } from '@/utils/apiFetch';
-import { useSnackbar } from '@/contexts/snackbar/SnackbarContext';
+import { useSnackbar } from '@/contexts/snackbar/SnackbarContextCore';
+import type { Message as MessageType, File, User } from '@/types';
 
 const MessageList: React.FC = () => {
-  const { messages, updateMessages, selectedChat } = useChat();
+  const { messages, selectedChat } = useChat();
   const selectedChatRef = useRef(selectedChat);
   const messagesRef = useRef(messages);
   const { containerRef: jumpContainerRef, setIsVisible } = useJump();
@@ -24,79 +25,17 @@ const MessageList: React.FC = () => {
     messagesRef.current = messages;
   }, [selectedChat, messages]);
 
-  const handleNewMessage = useCallback(
-    (data: any) => {
-      const currentSelectedChat = selectedChatRef.current;
-      const currentMessages = messagesRef.current;
-
-      if (!currentSelectedChat || data.chat_id !== currentSelectedChat.id)
-        return;
-
-      const isDuplicate = currentMessages.some(
-        (msg) => msg.id === data.data.id,
-      );
-      if (isDuplicate) return;
-
-      const newMessages = [data.data, ...currentMessages];
-      updateMessages(newMessages, currentSelectedChat.id);
-    },
-    [updateMessages],
-  );
-
   const [viewersVisible, setViewersVisible] = useState(false);
-  const [currentViewers, setCurrentViewers] = useState<any[]>([]);
+  const [currentViewers, setCurrentViewers] = useState<User[]>([]);
 
-  const handleShowViewers = (msg: any) => {
+  const handleShowViewers = (msg: MessageType) => {
     setCurrentViewers(msg.viewers || []);
     setViewersVisible(true);
   };
 
-  // components/MessageList/MessageList.tsx
-  // useEffect(() => {
-  //   const handleMessageReaction = (data: any) => {
-  //     const updatedMessages = messages.map((msg) =>
-  //       msg.id === data.message_id ? { ...msg, reactions: data.data } : msg
-  //     );
-  //     updateMessages(updatedMessages, selectedChat!.id);
-  //   };
-
-  //   const handleMessageViewed = (data: any) => {
-  //     const updatedMessages = messages.map((msg) =>
-  //       msg.id === data.message_id ? { ...msg, viewed: true } : msg
-  //     );
-  //     // updateMessages(updatedMessages, selectedChat!.id);
-  //   };
-
-  //   websocketManager.on('message_reaction', handleMessageReaction);
-  //   websocketManager.on('message_viewed', handleMessageViewed);
-
-  //   return () => {
-  //     websocketManager.off('message_reaction', handleMessageReaction);
-  //     websocketManager.off('message_viewed', handleMessageViewed);
-  //   };
-  // }, [messages, selectedChat, updateMessages]);
-
-  // useEffect(() => {
-  //   // websocketManager.on('chat_message', handleNewMessage);
-
-  //   return () => {
-  //     // websocketManager.off('chat_message', handleNewMessage);
-  //   };
-  // }, [handleNewMessage]);
-
   const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [isMenuHiding, setIsMenuHiding] = useState(false);
-
-  const handleRightClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setMenuVisible(false);
-    setTimeout(() => {
-      setMenuPos({ x: e.clientX, y: e.clientY });
-      setMenuVisible(true);
-      setIsMenuHiding(false);
-    }, 0);
-  };
 
   const handleClose = () => {
     setIsMenuHiding(true);
@@ -109,23 +48,22 @@ const MessageList: React.FC = () => {
     }
   };
 
-  const handleCopyMedia = async (msg: any) => {
+  const handleCopyMedia = async (msg: MessageType) => {
     if (!msg?.files?.length) return;
 
-    const firstFile = msg.files.find((file: any) => file.category === 'image');
+    const firstFile = msg.files.find((file: File) => file.category === 'image');
     if (!firstFile) return;
 
     try {
       const response = await apiFetch(firstFile.file_url);
       const blob = await response.blob();
-      console.log(blob);
 
       try {
         const imageBlob = new Blob([blob], { type: 'image/png' });
         const clipboardItem = new ClipboardItem({ 'image/png': imageBlob });
         await navigator.clipboard.write([clipboardItem]);
         showSnackbar('Media copied');
-      } catch (err) {
+      } catch {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.src = firstFile.file_url;
@@ -153,7 +91,7 @@ const MessageList: React.FC = () => {
     }
   };
 
-  const [menuMessage, setMenuMessage] = useState<any | null>(null);
+  const [menuMessage, setMenuMessage] = useState<MessageType | null>(null);
   const [canCopyToClipboard, setCanCopyToClipboard] = useState(false);
 
   useEffect(() => {
@@ -195,11 +133,13 @@ const MessageList: React.FC = () => {
     checkClipboardAccess();
   }, []);
 
-  const handleSaveFile = async (msg: any) => {
+  const handleSaveFile = async (msg: MessageType) => {
     if (!msg?.files?.length) return;
 
-    const firstFile = msg.files.find((file: any) =>
-      ['image', 'video', 'audio', 'pdf', 'document'].includes(file.category),
+    const firstFile = msg.files.find((file: File) =>
+      ['image', 'video', 'audio', 'pdf', 'document'].includes(
+        file?.category || '',
+      ),
     );
     if (!firstFile) return;
 
@@ -244,8 +184,9 @@ const MessageList: React.FC = () => {
           },
         ]
       : []),
-    ...(menuMessage?.files?.some((f: any) => ['image'].includes(f.category)) &&
-    canCopyToClipboard
+    ...(menuMessage?.files?.some((f: File) =>
+      ['image'].includes(f?.category || ''),
+    ) && canCopyToClipboard
       ? [
           {
             label: 'Copy Media',
@@ -254,8 +195,10 @@ const MessageList: React.FC = () => {
           },
         ]
       : []),
-    ...(menuMessage?.files?.some((f: any) =>
-      ['image', 'video', 'audio', 'pdf', 'document'].includes(f.category),
+    ...(menuMessage?.files?.some((f: File) =>
+      ['image', 'video', 'audio', 'pdf', 'document'].includes(
+        f?.category || '',
+      ),
     )
       ? [
           {
@@ -300,7 +243,7 @@ const MessageList: React.FC = () => {
     },
   ];
 
-  const handleCopyMessage = (msg: any) => {
+  const handleCopyMessage = (msg: MessageType) => {
     if (!msg?.value) return;
 
     // console.log(msg);
@@ -339,7 +282,10 @@ const MessageList: React.FC = () => {
     document.body.removeChild(textarea);
   }
 
-  const handleMessageContextMenu = (e: React.MouseEvent, message: any) => {
+  const handleMessageContextMenu = (
+    e: React.MouseEvent,
+    message: MessageType,
+  ) => {
     e.preventDefault();
 
     setMenuVisible(false);
@@ -352,14 +298,14 @@ const MessageList: React.FC = () => {
     }, 0);
   };
 
-  const handleDragStart = (e: React.MouseEvent, msg: any) => {
+  const handleDragStart = (e: React.MouseEvent, msg: MessageType) => {
     timerRef.current = setTimeout(() => {
       setIsLongPress(true);
       handleMessageContextMenu(e, msg);
     }, 200);
   };
 
-  const handleDragEnd = (e: React.MouseEvent) => {
+  const handleDragEnd = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
@@ -383,7 +329,7 @@ const MessageList: React.FC = () => {
 
     el.addEventListener('scroll', onScroll);
     return () => el.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [setIsVisible]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -394,14 +340,6 @@ const MessageList: React.FC = () => {
       // behavior: 'smooth',
     });
   }, [messages]);
-
-  // const lastMessageWithImage = [...messages].find((msg) =>
-  //   msg.files?.some((f: any) => {
-  //     const ext = f.original_name?.split('.').pop()?.toLowerCase() || '';
-  //     return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext);
-  //   })
-  // );
-  // console.log('lastMessageWithImage', lastMessageWithImage);
 
   const messageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
@@ -471,7 +409,7 @@ const MessageList: React.FC = () => {
 
 export default MessageList;
 
-const ViewersList: React.FC<{ viewers: any[]; onClose: () => void }> = ({
+const ViewersList: React.FC<{ viewers: User[]; onClose: () => void }> = ({
   viewers,
   onClose,
 }) => {

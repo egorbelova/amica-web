@@ -31,9 +31,8 @@ function generateGradientColors(hexColor: string): string[] {
 
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    let h: number,
-      s: number,
-      l: number = (max + min) / 2;
+    let h: number, s: number;
+    const l: number = (max + min) / 2;
 
     if (max === min) {
       h = s = 0;

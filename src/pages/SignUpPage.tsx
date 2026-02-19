@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { apiFetch } from '../utils/apiFetch';
-import { useUser } from '../contexts/UserContext';
+import { useUser } from '../contexts/UserContextCore';
 import styles from './LoginPage.module.scss';
 import { Icon } from '@/components/Icons/AutoIcons';
 

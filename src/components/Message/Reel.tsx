@@ -117,15 +117,15 @@ const Reel: React.FC<ReelProps> = ({ items, onClose }) => {
 
     if (absX > absY) {
       if (deltaX > 0) {
-        nextFile(e as any);
+        nextFile(e as React.MouseEvent);
       } else {
-        prevFile(e as any);
+        prevFile(e as React.MouseEvent);
       }
     } else {
       if (deltaY > 0) {
-        nextItem(e as any);
+        nextItem(e as React.MouseEvent);
       } else {
-        prevItem(e as any);
+        prevItem(e as React.MouseEvent);
       }
     }
 
@@ -166,17 +166,17 @@ const Reel: React.FC<ReelProps> = ({ items, onClose }) => {
 
     if (absX > absY && absX > MIN_SWIPE_DISTANCE) {
       if (deltaX > 0) {
-        nextFile(new MouseEvent('click') as any);
+        nextFile(new MouseEvent('click') as unknown as React.MouseEvent);
       } else {
-        prevFile(new MouseEvent('click') as any);
+        prevFile(new MouseEvent('click') as unknown as React.MouseEvent);
       }
     }
 
     if (absY > absX && absY > MIN_SWIPE_DISTANCE) {
       if (deltaY > 0) {
-        nextItem(new MouseEvent('click') as any);
+        nextItem(new MouseEvent('click') as unknown as React.MouseEvent);
       } else {
-        prevItem(new MouseEvent('click') as any);
+        prevItem(new MouseEvent('click') as unknown as React.MouseEvent);
       }
     }
   };
@@ -210,7 +210,7 @@ const Reel: React.FC<ReelProps> = ({ items, onClose }) => {
         .flat()
         .forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [currentItem]);
+  }, [currentItem, blobUrlsMap]);
 
   const prevFile = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -260,7 +260,6 @@ const Reel: React.FC<ReelProps> = ({ items, onClose }) => {
           {/* <div className={styles.filename}>{file.original_name}</div> */}
           <AudioLayout
             key={file.id}
-            full={file.file_url}
             waveform={file.waveform || null}
             duration={file.duration || null}
             id={file.id}

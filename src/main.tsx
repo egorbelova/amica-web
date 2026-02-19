@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AppProviders } from './providers/AppProviders';
 import '@/scss/components/_global.scss';
-import React from 'react';
+// import React from 'react';
 
 ReactDOM.createRoot(document.body!).render(
   // <React.StrictMode>

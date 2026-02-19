@@ -1,9 +1,9 @@
-import { useRef, useContext } from 'react';
-import Avatar from '@/components/Avatar/Avatar';
+import { useRef } from 'react';
+// import Avatar from '@/components/Avatar/Avatar';
 import { Icon } from '@/components/Icons/AutoIcons';
-import styles from './UserSearchInput.module.scss';
+// import styles from './UserSearchInput.module.scss';
 import './SearchInput.css';
-import { useSearchContext } from '@/contexts/search/SearchContext';
+import { useSearchContext } from '@/contexts/search/SearchContextCore';
 
 const UserSearchInput = ({ placeholder = 'Search' }) => {
   const inputRef = useRef<HTMLInputElement>(null);

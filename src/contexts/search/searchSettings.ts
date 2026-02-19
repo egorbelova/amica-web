@@ -16,7 +16,9 @@ export const searchSettings = async (
     try {
       const data = await res.json();
       errorMsg = data.error || errorMsg;
-    } catch {}
+    } catch (e) {
+      console.error('Failed to parse settings', e);
+    }
     throw new Error(errorMsg);
   }
 

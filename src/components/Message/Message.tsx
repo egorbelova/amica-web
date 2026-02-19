@@ -1,11 +1,8 @@
 import MessageTime from '../Message/MessageTime';
-import { useUser } from '../../contexts/UserContext';
-import { useMessages } from '../../contexts/MessagesContext';
 import type { Message as MessageType } from '../../types';
 import styles from './Message.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 import SmartMediaLayout from './SmartMediaLayout.tsx';
-import Avatar from '../Avatar/Avatar.tsx';
 
 interface MessageProps {
   message: MessageType;
@@ -21,8 +18,6 @@ const Message: React.FC<MessageProps> = ({
   onPointerDown,
   onPointerUp,
 }) => {
-  const { user } = useUser();
-  const currentUserId = user?.id || 0;
   const isOwnMessage = (): boolean => {
     return message.is_own;
   };
@@ -64,16 +59,6 @@ const Message: React.FC<MessageProps> = ({
           isOwnMessage() ? `${styles.darker} ${styles.right}` : ''
         }`}
       >
-        {/* <SquircleContainer
-          style={{
-            maxWidth: '100%',
-            height: 'fit-content',
-          }}
-          cornerRadiusPx={20}
-          smoothness={1}
-          // strokeColor='#99999988'
-          // strokeWidth={isOwnMessage() ? undefined : 1}
-        > */}
         <div className={styles.message}>
           {message.files && message.files.length > 0 && (
             <SmartMediaLayout files={message.files} />
@@ -113,7 +98,6 @@ const Message: React.FC<MessageProps> = ({
             </div>
           </div>
         </div>
-        {/* </SquircleContainer> */}
       </div>
     </div>
   );

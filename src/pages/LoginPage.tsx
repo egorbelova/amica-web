@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import GoogleLoginButton from '../components/GoogleLoginButton/GoogleLoginButton';
 import { PasskeyLoginButton } from '../components/PasskeyButton/PasskeyLoginButton';
-import { useUser } from '../contexts/UserContext';
+import { useUser } from '../contexts/UserContextCore';
 import styles from './LoginPage.module.scss';
-import { Icon } from '@/components/Icons/AutoIcons';
 
 interface LoginFormData {
   username: string;
@@ -38,13 +37,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
     [error],
   );
 
-  const handleLogin = async () => {
+  const handleLogin = useCallback(async () => {
     try {
       await loginWithPassword(formData.username, formData.password);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     }
-  };
+  }, [formData.username, formData.password, loginWithPassword]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {

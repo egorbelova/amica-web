@@ -154,7 +154,7 @@ export function Dropdown<T extends string | number>({
         height: el.offsetHeight,
       });
     }
-  }, [open, value, items.length]);
+  }, [open, value, items]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -245,7 +245,7 @@ export function Dropdown<T extends string | number>({
                 top: position.top,
                 left: position.left,
               }}
-              onScroll={(e) => {
+              onScroll={() => {
                 // e.stopPropagation();
                 isScrolling.current = true;
                 resetIndicator();

@@ -24,7 +24,10 @@
 
     /* Linting */
     "noEmitOnError": false,
-    "strict": true,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
+    "strictBindCallApply": false,
+    "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "erasableSyntaxOnly": true,

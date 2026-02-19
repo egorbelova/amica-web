@@ -3,13 +3,12 @@ import ProfilePrivacy from '@/components/Profile/ProfilePrivacy';
 import ProfileAccount from '@/components/Profile/ProfileAccount';
 import ProfileAppearance from '@/components/Profile/ProfileAppearance';
 import ProfileSessions from '@/components/Profile/ProfileSessions';
-import { useSettings } from '@/contexts/settings/Settings';
+import { useSettings } from '@/contexts/settings/context';
 import styles from './Profile.module.scss';
-import { Icon } from '../Icons/AutoIcons';
+// import { Icon } from '../Icons/AutoIcons';
 
 export const ActiveProfileTab = () => {
-  const { activeProfileTab, setActiveProfileTab, settingsFullWindow } =
-    useSettings();
+  const { activeProfileTab } = useSettings();
   if (!activeProfileTab) {
     return null;
   }

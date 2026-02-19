@@ -4,7 +4,7 @@ import SignUpPage from './pages/SignUpPage';
 import RoomPage from './pages/RoomPage';
 import getDeviceCornerRadius from './utils/getDeviceCornerRadius';
 import { IconsSprite } from './components/Icons/AutoIcons';
-import { useUser } from './contexts/UserContext';
+import { useUser } from './contexts/UserContextCore';
 
 type AppView = 'login' | 'signup';
 

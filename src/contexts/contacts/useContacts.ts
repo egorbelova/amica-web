@@ -1,5 +1,5 @@
 // contexts/contacts/useContacts.ts
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { apiFetch } from '@/utils/apiFetch';
 
 export type Contact = {
@@ -7,7 +7,7 @@ export type Contact = {
   name: string;
   email?: string;
   phone?: string;
-  primary_media?: any;
+  primary_media?: File;
   chat_id: number;
 };
 
@@ -23,8 +23,8 @@ export function useContacts() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setContacts(data.contacts);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : String(err));
       } finally {
         setLoading(false);
       }
@@ -40,7 +40,7 @@ export function useContacts() {
       (c) =>
         c.name.toLowerCase().includes(lower) ||
         c.email?.toLowerCase().includes(lower) ||
-        c.phone?.toLowerCase().includes(lower)
+        c.phone?.toLowerCase().includes(lower),
     );
   };
 

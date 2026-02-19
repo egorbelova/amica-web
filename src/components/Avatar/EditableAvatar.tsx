@@ -3,13 +3,14 @@ import Avatar from '../Avatar/Avatar';
 import { Icon } from '../Icons/AutoIcons';
 import AvatarCropModal from './AvatarCropModal';
 import styles from './AvatarCropModal.module.scss';
+import type { File } from '@/types';
 
 type EditableAvatarProps = {
   displayName: string;
-  avatar?: any;
+  avatar?: File | null;
   objectId: number;
   contentType: string;
-  onAvatarChange: (avatar: any) => void;
+  onAvatarChange: (avatar: File) => void;
   isEditable?: boolean;
   className?: string;
   classNameAvatar?: string;

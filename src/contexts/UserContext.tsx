@@ -1,56 +1,22 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { apiJson, setApiFetchUnauthorizedHandler } from '../utils/apiFetch';
 import {
   setAccessToken,
   logout as authLogout,
   initAuth,
 } from '../utils/authStore';
-import { websocketManager } from '@/utils/websocket-manager';
+import {
+  websocketManager,
+  type WebSocketMessage,
+} from '@/utils/websocket-manager';
 import type { User } from '@/types';
-import { useSettings } from './settings/Settings';
+import { useSettings } from './settings/context';
+import type { WallpaperSetting } from './settings/types';
+import { UserContext, postJson } from './UserContextCore';
+import type { UserState, ApiResponse } from './UserContextCore';
+import type { File as FileType } from '@/types';
 
-interface UserState {
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-}
-
-interface ApiResponse {
-  access: string;
-  user: User;
-  refresh?: string;
-}
-
-interface UserContextType extends UserState {
-  isAuthenticated: boolean;
-  refreshUser: () => Promise<void>;
-  setUser: (user: User | null) => void;
-  loginWithPassword: (username: string, password: string) => Promise<void>;
-  loginWithGoogle: (idToken: string) => Promise<void>;
-  loginWithPasskey: (passkeyData: any) => Promise<void>;
-  logout: () => Promise<void>;
-}
-
-const UserContext = createContext<UserContextType | undefined>(undefined);
-
-async function postJson<T>(url: string, body: any): Promise<T> {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-    credentials: 'include',
-  });
-
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || res.statusText);
-  return data as T;
-}
+// postJson moved to UserContextCore.ts
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -62,12 +28,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   });
   const { setActiveWallpaper } = useSettings();
 
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const data = await apiJson<{ user: User; active_wallpaper?: any }>(
-        '/api/get_general_info/',
-      );
+      const data = await apiJson<{
+        user: User;
+        active_wallpaper?: WallpaperSetting;
+      }>('/api/get_general_info/');
       setState({ user: data.user, loading: false, error: null });
 
       if (!data.active_wallpaper) return;
@@ -81,7 +48,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       const message = err instanceof Error ? err.message : String(err);
       setState({ user: null, loading: false, error: message });
     }
-  };
+  }, [setActiveWallpaper]);
 
   useEffect(() => {
     setApiFetchUnauthorizedHandler(() =>
@@ -92,11 +59,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       initAuth();
       await fetchUser().catch(() => {});
     })();
-    const handler = (msg: any) => {
-      if (msg.type === 'file_uploaded') {
-        const userId = msg.data.object_id;
-        const newUrl = msg.data.media;
-        setState((prev) => {
+    const handler = (msg: WebSocketMessage) => {
+      if (msg.type === 'file_uploaded' && msg.data) {
+        const userId = Number(msg.data.object_id);
+        const media = msg.data.media;
+        const fileObj: FileType =
+          typeof media === 'object' && media !== null
+            ? (media as FileType)
+            : { id: -1, file_url: String(media) };
+
+        setState((prev: UserState) => {
           if (!prev.user) return prev;
 
           if (prev.user.id === userId) {
@@ -106,14 +78,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
                 ...prev.user,
                 profile: {
                   ...prev.user.profile,
-                  primary_avatar: newUrl,
+                  primary_avatar: fileObj,
                 },
               },
             };
           }
 
-          const updatedMedia = prev.user.profile.media.map((m) =>
-            m.id === userId ? { ...m, small: newUrl } : m,
+          const updatedMedia = prev.user.profile.media.map((m: FileType) =>
+            m.id === userId ? { ...m, file_url: fileObj.file_url } : m,
           );
 
           return {
@@ -132,13 +104,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
     websocketManager.on('message', handler);
     return () => websocketManager.off('message', handler);
-  }, []);
+  }, [fetchUser]);
 
-  const handleLoginSuccess = (data: ApiResponse) => {
-    if (!data.access || !data.user) throw new Error('Invalid response');
-    setAccessToken(data.access);
-    return fetchUser();
-  };
+  const handleLoginSuccess = useCallback(
+    (data: ApiResponse) => {
+      if (!data.access || !data.user) throw new Error('Invalid response');
+      setAccessToken(data.access);
+      return fetchUser();
+    },
+    [fetchUser],
+  );
 
   const loginWithPassword = (username: string, password: string) =>
     postJson<ApiResponse>('/api/login/', { username, password }).then(
@@ -150,7 +125,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       handleLoginSuccess,
     );
 
-  const loginWithPasskey = (passkeyData: any) =>
+  const loginWithPasskey = (passkeyData: unknown) =>
     postJson<ApiResponse>('/api/passkey_auth_finish/', passkeyData).then(
       handleLoginSuccess,
     );
@@ -185,8 +160,4 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-export const useUser = () => {
-  const ctx = useContext(UserContext);
-  if (!ctx) throw new Error('useUser must be inside UserProvider');
-  return ctx;
-};
+// useUser moved to UserContextCore.ts

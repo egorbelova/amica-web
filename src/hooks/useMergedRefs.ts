@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-export function useMergedRefs<T = any>(refs: Array<React.Ref<T> | null>) {
+export function useMergedRefs<T = unknown>(refs: Array<React.Ref<T> | null>) {
   return useCallback(
     (node: T | null) => {
       refs.forEach((ref) => {

@@ -1,12 +1,10 @@
-import { useState } from 'react';
 import { Icon } from '../Icons/AutoIcons';
 import styles from './Profile.module.scss';
-import { useTranslation } from '@/contexts/LanguageContext';
-import { availableLanguages } from '@/contexts/LanguageContext';
+import { useTranslation, availableLanguages } from '@/contexts/languageCore';
 
 import Avatar from '../Avatar/Avatar';
-import { useUser } from '@/contexts/UserContext';
-import { useSettings } from '@/contexts/settings/Settings';
+import { useUser } from '@/contexts/UserContextCore';
+import { useSettings } from '@/contexts/settings/context';
 import { usePageStack } from '@/contexts/useStackHistory';
 import { ActiveProfileTab } from './ActiveProfileTab';
 import Button from '@/components/ui/button/Button';

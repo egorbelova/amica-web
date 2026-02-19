@@ -9,8 +9,11 @@ export function usePrivateMedia(url: string | null) {
   useEffect(() => {
     if (!url) return;
     const controller = new AbortController();
-    setLoading(true);
-    setError(null);
+
+    Promise.resolve().then(() => {
+      setLoading(true);
+      setError(null);
+    });
 
     let localUrl: string | null = null;
 

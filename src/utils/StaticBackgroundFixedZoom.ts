@@ -390,7 +390,7 @@
 // export default StaticBackgroundFixedZoom;
 
 import { pSBC } from './pSBC';
-import generateGradientColors from './generateGradientColors';
+// import generateGradientColors from './generateGradientColors';
 
 class StaticBackgroundFixedZoom {
   private gradientCanvas: HTMLCanvasElement;
@@ -425,7 +425,7 @@ class StaticBackgroundFixedZoom {
   } | null;
 
   private resizeTimeout: number | null;
-  private redrawTimeout: number | null;
+  // private redrawTimeout: number | null;
 
   constructor(
     gradientCanvas: HTMLCanvasElement,
@@ -440,20 +440,20 @@ class StaticBackgroundFixedZoom {
     this.patternCtx = this.patternCanvas.getContext('2d')!;
     this.patternImage = new Image();
 
-    let room_BG_color_hex = '#4d8ddb';
-    let shadow_degree = 45;
+    const room_BG_color_hex = '#4d8ddb';
+    const shadow_degree = 45;
 
-    let gradientColors: string[] = [];
-    if (!Number.isInteger(shadow_degree)) {
-      shadow_degree = 45;
-    }
+    // let gradientColors: string[] = [];
+    // if (!Number.isInteger(shadow_degree)) {
+    //   shadow_degree = 45;
+    // }
 
-    try {
-      gradientColors = Array.from(generateGradientColors(room_BG_color_hex));
-    } catch (e) {
-      room_BG_color_hex = '#6c47ff';
-      gradientColors = Array.from(generateGradientColors(room_BG_color_hex));
-    }
+    // try {
+    //   gradientColors = Array.from(generateGradientColors(room_BG_color_hex));
+    // } catch (e) {
+    //   room_BG_color_hex = '#6c47ff';
+    //   gradientColors = Array.from(generateGradientColors(room_BG_color_hex));
+    // }
 
     this.FIXED_HEX_1 = pSBC(-0.2, room_BG_color_hex) || '';
     this.FIXED_HEX_2 = pSBC(0, room_BG_color_hex) || '';
@@ -474,7 +474,7 @@ class StaticBackgroundFixedZoom {
     this.patternCache = null;
 
     this.resizeTimeout = null;
-    this.redrawTimeout = null;
+    // this.redrawTimeout = null;
 
     this.init();
   }
@@ -483,7 +483,7 @@ class StaticBackgroundFixedZoom {
     let shadowTimeout: number;
     document
       .querySelector('#shadow_degree_chat')
-      ?.addEventListener('input', (e) => {
+      ?.addEventListener('input', () => {
         clearTimeout(shadowTimeout);
         shadowTimeout = window.setTimeout(() => {
           const input = document.querySelector<HTMLInputElement>(
@@ -503,7 +503,7 @@ class StaticBackgroundFixedZoom {
     let colorTimeout: number;
     document
       .querySelector('#color_chat_change')
-      ?.addEventListener('input', (e) => {
+      ?.addEventListener('input', () => {
         clearTimeout(colorTimeout);
         colorTimeout = window.setTimeout(() => {
           const input =

@@ -1,10 +1,13 @@
 import styles from './Profile.module.scss';
-import { useTranslation } from '@/contexts/LanguageContext';
+// import { useTranslation } from '@/contexts/LanguageContext';
 import { useEffect, useState, useCallback } from 'react';
 import { apiFetch } from '@/utils/apiFetch';
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/contexts/UserContextCore';
 import { Dropdown } from '../Dropdown/Dropdown';
-import { websocketManager } from '@/utils';
+import {
+  websocketManager,
+  type WebSocketMessage,
+} from '@/utils/websocket-manager';
 
 interface Session {
   jti: string;
@@ -37,7 +40,7 @@ const formatDate = (value: string) =>
   });
 
 export default function ProfileSessions() {
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
   const { user, setUser } = useUser();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +56,7 @@ export default function ProfileSessions() {
       const res = await apiFetch('/api/active-sessions/');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: Session[] = await res.json();
-      setSessions(data.sort((a, b) => (a.is_current ? -1 : 1)));
+      setSessions(data.sort((a) => (a.is_current ? -1 : 1)));
       setError(null);
     } catch (err) {
       console.error(err);
@@ -65,7 +68,7 @@ export default function ProfileSessions() {
   }, []);
 
   const handleWSMessage = useCallback(
-    (data: any) => {
+    (data: WebSocketMessage) => {
       if (!data.type) return;
       switch (data.type) {
         case 'session_created':

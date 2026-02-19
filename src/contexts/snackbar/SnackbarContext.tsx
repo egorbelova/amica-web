@@ -1,15 +1,7 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import Snackbar from '@/components/Snackbar/Snackbar';
-
-const SnackbarContext = createContext<SnackbarContextType | null>(null);
-
-type SnackbarType = {
-  message: string;
-} | null;
-
-type SnackbarContextType = {
-  showSnackbar: (message: string, duration?: number) => void;
-};
+import { SnackbarContext } from './SnackbarContextCore';
+import type { SnackbarType } from './SnackbarContextCore';
 
 export const SnackbarProvider = ({
   children,
@@ -28,10 +20,6 @@ export const SnackbarProvider = ({
     }, duration);
   }, []);
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
   const handleExited = () => {
     setSnackbar(null);
   };
@@ -48,12 +36,4 @@ export const SnackbarProvider = ({
       )}
     </SnackbarContext.Provider>
   );
-};
-
-export const useSnackbar = () => {
-  const context = useContext(SnackbarContext);
-  if (!context) {
-    throw new Error('useSnackbar must be used inside SnackbarProvider');
-  }
-  return context;
 };

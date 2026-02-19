@@ -1,5 +1,3 @@
-import { useContext } from 'react';
-// import Icon from '../Icon/Icon';
 import { TabsProvider } from '../Tabs/TabsContext';
 import { Tabs } from '../Tabs/Tabs';
 import { Tab } from '../Tabs/Tab';
@@ -7,7 +5,7 @@ import Contacts from '@/components/Contacts/Contacts';
 import Profile from '@/components/Profile/Profile';
 import ChatsTabView from './ChatsTabView';
 import styles from './LeftSideBar.module.scss';
-import { useSettings } from '@/contexts/settings/Settings';
+import { useSettings } from '@/contexts/settings/context';
 
 interface ChooseListProps {
   userInfo?: {

@@ -1,7 +1,7 @@
-import { act, useEffect, useState } from 'react';
-import { useTranslation } from '@/contexts/LanguageContext';
+import { useEffect, useState } from 'react';
+import { useTranslation } from '@/contexts/languageCore';
 import styles from './Profile.module.scss';
-import { useSettings } from '@/contexts/settings/Settings';
+import { useSettings } from '@/contexts/settings/context';
 import Toggle from '@/components/ui/toggle/Toggle';
 import Slider from '../ui/slider/Slider';
 import type { WallpaperSetting } from '@/contexts/settings/types';
@@ -14,7 +14,7 @@ export default function ProfileAppearance() {
     setSetting,
     setActiveWallpaper,
     setBlur,
-    addUserWallpaper,
+    // addUserWallpaper,
     removeWallpaper,
     fetchWallpapers,
     loading,
@@ -34,7 +34,7 @@ export default function ProfileAppearance() {
 
   useEffect(() => {
     fetchWallpapers();
-  }, []);
+  }, [fetchWallpapers]);
 
   const handleSelectWallpaper = (wall: WallpaperSetting) => {
     setActiveWallpaper({

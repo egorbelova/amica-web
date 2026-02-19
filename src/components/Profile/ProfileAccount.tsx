@@ -1,9 +1,9 @@
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/contexts/UserContextCore';
 import styles from './Profile.module.scss';
-import { useTranslation } from '@/contexts/LanguageContext';
+import { useTranslation } from '@/contexts/languageCore';
 import { Icon } from '../Icons/AutoIcons';
 import EditableAvatar from '@/components/Avatar/EditableAvatar';
-import type { DisplayMedia, User, UserProfile } from '@/types';
+import type { DisplayMedia, User, UserProfile, File } from '@/types';
 
 export default function ProfileAccount() {
   const { user, logout, setUser } = useUser();

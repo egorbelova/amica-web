@@ -1,5 +1,5 @@
 import styles from './JumpToBottom.module.scss';
-import { useJump } from '@/contexts/JumpContext';
+import { useJump } from '@/hooks/useJump';
 import { Icon } from '../Icons/AutoIcons';
 
 export default function JumpToBottom() {

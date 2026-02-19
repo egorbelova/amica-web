@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import styles from './MediaModal.module.scss';
 import type { File } from '@/types';
 
@@ -13,20 +13,16 @@ const MediaModal: React.FC<MediaModalProps> = ({
   onClose,
   containerRect,
 }) => {
-  const [animateFrom, setAnimateFrom] = useState<React.CSSProperties>({});
-
-  useEffect(() => {
-    if (containerRect) {
-      setAnimateFrom({
+  const animateFrom: React.CSSProperties = containerRect
+    ? {
         position: 'fixed',
         top: containerRect.top,
         left: containerRect.left,
         width: containerRect.width,
         height: containerRect.height,
         transformOrigin: 'center center',
-      });
-    }
-  }, [containerRect]);
+      }
+    : {};
 
   return (
     <div className={styles.overlay} onClick={onClose}>

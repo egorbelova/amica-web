@@ -8,10 +8,6 @@ const __dirname = path.dirname(__filename);
 const iconsDir = path.join(__dirname, '../src/icons');
 const outFile = path.join(__dirname, '../src/components/Icons/AutoIcons.tsx');
 
-function pascalCase(name: string) {
-  return name.replace(/(^\w|-\w)/g, (c) => c.replace('-', '').toUpperCase());
-}
-
 function fixSvgAttributes(svg: string) {
   return svg.replace(/([a-zA-Z0-9:-]+)="([^"]*)"/g, (full, attr, value) => {
     if (!attr.includes('-')) return `${attr}="${value}"`;
@@ -23,7 +19,7 @@ function fixSvgAttributes(svg: string) {
 
 const files = fs.readdirSync(iconsDir).filter((f) => f.endsWith('.svg'));
 
-const symbols: any[] = [];
+const symbols: { name: string; inner: string; viewBox: string }[] = [];
 const animatedComponents: Record<string, { inner: string; viewBox: string }> =
   {};
 
@@ -54,7 +50,7 @@ const iconNamesType = [
   ...Object.keys(animatedComponents).map((n) => `"${n}"`),
 ].join(' | ');
 
-let output = `import React from "react";
+const output = `import React from "react";
 
 export type IconName = ${iconNamesType};
 export type IconProps = React.SVGProps<SVGSVGElement> & { name: IconName };

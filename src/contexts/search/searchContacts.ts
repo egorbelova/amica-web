@@ -13,7 +13,9 @@ export const searchContacts = async (query: string): Promise<Contact[]> => {
     try {
       const data = await res.json();
       errorMsg = data.error || errorMsg;
-    } catch {}
+    } catch (e) {
+      console.error('Failed to parse contacts', e);
+    }
     throw new Error(errorMsg);
   }
 

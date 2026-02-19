@@ -1,11 +1,11 @@
-import { useTabs } from './TabsContext';
-import { useUser } from '@/contexts/UserContext';
+import { useTabs } from './tabsShared';
+import { useUser } from '@/contexts/UserContextCore';
 import { Icon } from '@/components/Icons/AutoIcons';
 import Avatar from '@/components/Avatar/Avatar';
 import styles from './Tabs.module.scss';
-import { useTranslation } from '@/contexts/LanguageContext';
-import { useSettings } from '@/contexts/settings/Settings';
-import { useEffect, useRef } from 'react';
+import { useTranslation } from '@/contexts/languageCore';
+import { useSettings } from '@/contexts/settings/context';
+import { useRef } from 'react';
 
 type TabValue = 'contacts' | 'chats' | 'profile';
 

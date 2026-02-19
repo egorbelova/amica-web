@@ -33,14 +33,14 @@ export function useSearch<T>({
       try {
         const data = await searchFn(value);
         setResults(data);
-      } catch (e: any) {
+      } catch (e: unknown) {
         setResults([]);
-        setError(e.message ?? 'Search failed');
+        setError(e instanceof Error ? e.message : String(e));
       } finally {
         setLoading(false);
       }
     },
-    [searchFn, minLength]
+    [searchFn, minLength],
   );
 
   const onChange = useCallback(
@@ -49,7 +49,7 @@ export function useSearch<T>({
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => execute(value), debounceMs);
     },
-    [execute, debounceMs]
+    [execute, debounceMs],
   );
 
   const clear = useCallback(() => {

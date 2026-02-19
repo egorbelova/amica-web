@@ -3,7 +3,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  useLayoutEffect,
+  useMemo,
 } from 'react';
 import styles from './Slider.module.scss';
 
@@ -32,13 +32,31 @@ const Slider: React.FC<SliderProps> = ({
 
   const thumbWidth = 30;
   const thumbInset = thumbWidth / 3;
-  useEffect(() => setInternalValue(value), [value]);
+
+  useEffect(() => {
+    if (dragging) return;
+    if (value === internalValue) return;
+    let raf = 0;
+    raf = window.requestAnimationFrame(() => {
+      setInternalValue(value);
+    });
+    return () => {
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, [value, dragging, internalValue]);
   const [trackWidth, setTrackWidth] = useState(0);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    let raf = 0;
     if (trackRef.current) {
-      setTrackWidth(trackRef.current.getBoundingClientRect().width);
+      const width = trackRef.current.getBoundingClientRect().width;
+      raf = window.requestAnimationFrame(() => {
+        setTrackWidth(width);
+      });
     }
+    return () => {
+      if (raf) window.cancelAnimationFrame(raf);
+    };
   }, []);
 
   const clampValue = useCallback(
@@ -173,35 +191,41 @@ const Slider: React.FC<SliderProps> = ({
 
   const thumbLeft = calcThumbLeft(internalValue);
 
-  const calcFillWidth = (val: number) => {
-    if (!trackRef.current) return 0;
-    const { width } = trackRef.current.getBoundingClientRect();
-    const percent = (val - min) / (max - min);
-    const edge = 0.1;
-    const padding = thumbInset;
+  const calcFillWidth = useCallback(
+    (val: number) => {
+      if (!trackWidth) return 0;
+      const width = trackWidth;
+      const percent = (val - min) / (max - min);
+      const edge = 0.1;
+      const padding = thumbInset;
 
-    const fullRange = width - 2 * padding;
-    const centerThumb = padding + percent * fullRange;
+      const fullRange = width - 2 * padding;
+      const centerThumb = padding + percent * fullRange;
 
-    const edgeEaseStart = (t: number) => Math.pow(t, 0.6);
-    const edgeEaseEnd = (t: number) => 1 - Math.pow(1 - t, 0.6);
+      const edgeEaseStart = (t: number) => Math.pow(t, 0.6);
+      const edgeEaseEnd = (t: number) => 1 - Math.pow(1 - t, 0.6);
 
-    if (percent < edge) {
-      const start = 0;
-      const end = padding + edge * fullRange;
-      const t = edgeEaseStart(percent / edge);
-      return start + t * (end - start);
-    } else if (percent > 1 - edge) {
-      const start = padding + (1 - edge) * fullRange;
-      const end = width;
-      const t = edgeEaseEnd((percent - (1 - edge)) / edge);
-      return start + t * (end - start);
-    } else {
-      return centerThumb;
-    }
-  };
+      if (percent < edge) {
+        const start = 0;
+        const end = padding + edge * fullRange;
+        const t = edgeEaseStart(percent / edge);
+        return start + t * (end - start);
+      } else if (percent > 1 - edge) {
+        const start = padding + (1 - edge) * fullRange;
+        const end = width;
+        const t = edgeEaseEnd((percent - (1 - edge)) / edge);
+        return start + t * (end - start);
+      } else {
+        return centerThumb;
+      }
+    },
+    [min, max, thumbInset, trackWidth],
+  );
 
-  const fillWidth = calcFillWidth(internalValue);
+  const fillWidth = useMemo(
+    () => calcFillWidth(internalValue),
+    [calcFillWidth, internalValue],
+  );
 
   return (
     <div className={styles.sliderWrapper}>
@@ -240,4 +264,20 @@ const Slider: React.FC<SliderProps> = ({
   );
 };
 
-export default Slider;
+const propsEqual = (
+  prev: Readonly<React.ComponentProps<typeof Slider>>,
+  next: Readonly<React.ComponentProps<typeof Slider>>,
+) => {
+  return (
+    prev.value === next.value &&
+    prev.min === next.min &&
+    prev.max === next.max &&
+    prev.step === next.step &&
+    prev.label === next.label &&
+    prev.color === next.color
+    // intentionally ignore onChange identity to avoid re-renders when parent
+    // provides a new function each render
+  );
+};
+
+export default React.memo(Slider, propsEqual);

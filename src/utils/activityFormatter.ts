@@ -8,8 +8,8 @@ export const formatLastSeen = (lastSeenString: string | null): string => {
     const now = new Date();
     const diffMs = now.getTime() - lastSeen.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    // const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    // const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
     if (diffMins <= 2) {
       return 'online';
@@ -55,7 +55,7 @@ export const formatLastSeen = (lastSeenString: string | null): string => {
           hour: '2-digit',
           minute: '2-digit',
           hour12: true,
-        }
+        },
       )}`;
     }
 
@@ -126,7 +126,7 @@ export const formatLastSeenShort = (lastSeenString: string | null): string => {
 
     const years = Math.floor(diffDays / 365);
     return `${years}y ago`;
-  } catch (error) {
+  } catch {
     return 'long ago';
   }
 };
@@ -141,7 +141,7 @@ export const isUserOnline = (lastSeenString: string | null): boolean => {
     const diffMins = Math.floor(diffMs / (1000 * 60));
 
     return diffMins <= 5;
-  } catch (error) {
+  } catch {
     return false;
   }
 };

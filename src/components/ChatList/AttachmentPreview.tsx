@@ -1,6 +1,6 @@
 import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import styles from './ChatListItem.module.scss';
-import { useSettings } from '@/contexts/settings/Settings';
+import { useSettings } from '@/contexts/settings/context';
 import type { File } from '@/types';
 
 function AttachmentPreview({ file }: { file: File }) {

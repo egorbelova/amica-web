@@ -1,4 +1,4 @@
-import { availableLanguages, useTranslation } from '@/contexts/LanguageContext';
+import { availableLanguages, useTranslation } from '@/contexts/languageCore';
 import styles from './Profile.module.scss';
 
 export default function ProfileLanguage() {
