@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import Snackbar from '@/components/Snackbar/Snackbar';
 import { SnackbarContext } from './SnackbarContextCore';
 import type { SnackbarType } from './SnackbarContextCore';
@@ -10,12 +10,20 @@ export const SnackbarProvider = ({
 }) => {
   const [snackbar, setSnackbar] = useState<SnackbarType>(null);
   const [open, setOpen] = useState(false);
+  const [showKey, setShowKey] = useState(0);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showSnackbar = useCallback((message: string, duration = 2000) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setShowKey((k) => k + 1);
     setSnackbar({ message });
     setOpen(true);
 
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
+      timeoutRef.current = null;
       setOpen(false);
     }, duration);
   }, []);
@@ -29,6 +37,7 @@ export const SnackbarProvider = ({
       {children}
       {snackbar && (
         <Snackbar
+          key={showKey}
           message={snackbar.message}
           open={open}
           onExited={handleExited}

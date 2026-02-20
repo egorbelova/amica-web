@@ -15,8 +15,7 @@ const Snackbar = ({
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
-    if (open) return;
+    if (!el || open) return;
 
     const handleEnd = (ev: Event) => {
       if (ev.target !== el) return;

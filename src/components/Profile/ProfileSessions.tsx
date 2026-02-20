@@ -9,6 +9,7 @@ import {
   type WebSocketMessage,
 } from '@/utils/websocket-manager';
 import type { Session } from '@/types';
+import ProfileTabDescription from './ProfileTabDescription';
 
 const SESSION_LIFETIME_OPTIONS = [
   // { value: 500, label: '5s' },
@@ -142,6 +143,12 @@ export default function ProfileSessions() {
 
   return (
     <div className={styles.section}>
+      <ProfileTabDescription
+        title='Active sessions'
+        description='Manage your active sessions and their lifetimes.'
+        iconName='Sessions'
+        backgroundColor='#ff6600'
+      />
       {error && <div className={styles.error}>⚠️ {error}</div>}
       <div className={styles.sessionLifetime}>
         <label>Session lifetime: </label>

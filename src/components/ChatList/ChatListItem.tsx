@@ -4,6 +4,7 @@ import Avatar from '../Avatar/Avatar';
 import styles from './ChatListItem.module.scss';
 import type { DisplayMedia, File, Message } from '@/types';
 import AttachmentPreview from './AttachmentPreview';
+import { Icon } from '../Icons/AutoIcons';
 
 export interface ChatListItemProps {
   index?: number;
@@ -116,6 +117,9 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
         <div className={styles['chat-list-item__content']}>
           <div className={styles['chat-list-item__header']}>
             <div className={styles['chat-list-item__name']}>{displayName}</div>
+            {lastMessage?.is_own && lastMessage?.is_viewed && (
+              <Icon name='Read' className={styles['chat-list-item__read']} />
+            )}
             <div className={styles['chat-list-item__date']}>
               {lastMessageDate}
             </div>

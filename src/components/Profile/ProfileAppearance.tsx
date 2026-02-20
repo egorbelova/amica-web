@@ -6,6 +6,7 @@ import Toggle from '@/components/ui/toggle/Toggle';
 import Slider from '../ui/slider/Slider';
 import type { WallpaperSetting } from '@/contexts/settings/types';
 import { Icon } from '../Icons/AutoIcons';
+import ProfileTabDescription from './ProfileTabDescription';
 
 export default function ProfileAppearance() {
   const { t } = useTranslation();
@@ -52,6 +53,12 @@ export default function ProfileAppearance() {
 
   return (
     <div className={styles.section}>
+      <ProfileTabDescription
+        title='Appearance'
+        description='Customize your appearance and settings.'
+        iconName='Appearance'
+        backgroundColor='#0D2230'
+      />
       <div className={styles.optionRow}>
         <div>{t('language.time.timeFormat')}</div>
         <Toggle

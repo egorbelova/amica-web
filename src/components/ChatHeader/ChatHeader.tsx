@@ -5,6 +5,7 @@ import { formatLastSeen } from '../../utils/activityFormatter';
 import styles from './ChatHeader.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 import { MediaHeader } from './MediaHeader';
+import Button from '../ui/button/Button';
 
 interface ChatHeaderProps {
   onGoHome?: () => void;
@@ -38,13 +39,12 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   return (
     <div className={styles['header-container']}>
       <div className={styles['chat-header']} onClick={onChatInfoClick}>
-        <button
+        <Button
           onClick={handleGoHome}
-          type='button'
           className={styles['chat-header__back-button']}
         >
           <Icon name='Arrow' />
-        </button>
+        </Button>
 
         <div className={styles['chat-header__title']}>
           <span className={styles['chat-header__title-name']}>

@@ -69,9 +69,9 @@
 }
 
 .settingsContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  // display: flex;
+  // flex-direction: column;
+  // align-items: center;
   overflow: auto;
   position: relative;
   border-radius: 24px;
@@ -89,10 +89,10 @@
   left: 0;
   right: 0;
   bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
+  // display: flex;
+  // align-items: center;
+  // justify-content: center;
+  // flex-direction: column;
   transition: all 0.2s;
   container: settingsContainer / inline-size;
   animation: settingsContainerShow 0.4s;
@@ -113,9 +113,10 @@
 }
 
 .minimize {
-  width: 16px;
-  height: 16px;
-  position: absolute;
-  right: 10px;
-  top: 10px;
+  // position: absolute;
+  // left: 10px;
+  // top: 10px;
+  height: 30px !important;
+  margin-left: 20px;
+  margin-top: 20px;
 }

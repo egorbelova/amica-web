@@ -11,7 +11,7 @@ interface LayoutItem {
 const GAP = 3;
 // const MAX_W = 420;
 const MAX_H = 560;
-const MIN_W = 200;
+const MIN_W = 0;
 const MIN_H = 200;
 const RATIO_3_TOP = 0.62;
 

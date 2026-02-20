@@ -12,6 +12,7 @@ import wallpaperStyles from '@/pages/RoomPage.module.scss';
 import { usePageStack } from '@/contexts/useStackHistory';
 import { ActiveProfileTab } from '@/components/Profile/ActiveProfileTab';
 import { Icon } from '../Icons/AutoIcons';
+import Button from '../ui/button/Button';
 
 const MainChatWindow: React.FC = () => {
   const {
@@ -113,12 +114,12 @@ const MainChatWindow: React.FC = () => {
       {/* {windowWidth <= 768 && <BackgroundComponent />} */}
       {current === 'profile' && settingsFullWindow && activeProfileTab && (
         <div className={styles.settingsContainer}>
-          <div
+          <Button
             onClick={() => setSettingsFullWindow(false)}
             className={styles.minimize}
           >
             <Icon name='FullscreenExit' />
-          </div>
+          </Button>
           <ActiveProfileTab />
         </div>
       )}

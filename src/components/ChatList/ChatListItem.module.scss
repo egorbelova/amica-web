@@ -55,12 +55,19 @@
     grid-template-areas: 'text count';
   }
 
+  &__read {
+    width: 16px;
+    height: 16px;
+    fill: #4d8ddb;
+    transition: fill 0.3s ease;
+  }
+
   &__header {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
 
     height: 20px;
     min-width: 100%;
@@ -76,7 +83,7 @@
     -webkit-touch-callout: none;
 
     border: 0;
-    transition: color 1s;
+    transition: color 0.3s;
     overflow: hidden;
 
     padding-bottom: var(--mask-height);
@@ -214,6 +221,10 @@
     border: none;
     background: var(--room_BG_color_hex);
     color: #d5eaff;
+
+    .chat-list-item__read {
+      fill: #d5eaff;
+    }
   }
 }
 

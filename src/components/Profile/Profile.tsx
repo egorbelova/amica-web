@@ -99,12 +99,12 @@ export default function Profile() {
           // </button>
         )}
         {isResizingPermitted && activeProfileTab && !settingsFullWindow && (
-          <div
+          <Button
             className={styles.maximize}
             onClick={() => setSettingsFullWindow(true)}
           >
             <Icon name='Fullscreen' />
-          </div>
+          </Button>
         )}
       </div>
 

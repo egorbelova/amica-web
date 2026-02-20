@@ -26,6 +26,7 @@ export interface Message {
   liked: number;
   files: File[];
   is_own: boolean;
+  is_viewed: boolean;
 }
 
 export interface Chat {

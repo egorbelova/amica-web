@@ -1,2 +1,2 @@
 # pnpm dlx lint-staged
-pnpm test
+pnpm run lint:fix

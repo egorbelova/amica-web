@@ -1,11 +1,18 @@
 import { availableLanguages, useTranslation } from '@/contexts/languageCore';
 import styles from './Profile.module.scss';
+import ProfileTabDescription from './ProfileTabDescription';
 
 export default function ProfileLanguage() {
   const { locale, changeLanguage, t } = useTranslation();
 
   return (
     <div className={styles.section}>
+      <ProfileTabDescription
+        title='Language'
+        description='Select your preferred language.'
+        iconName='Language'
+        backgroundColor='#4d8ddb'
+      />
       {availableLanguages.map((lang) => (
         <div
           key={lang.code}
