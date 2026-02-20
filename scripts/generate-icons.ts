@@ -88,12 +88,6 @@ export const Icon: React.FC<IconProps> = ({ name, ...props }) => {
   return <svg viewBox={staticViewBoxes[name]} {...props}><use href={\`#icon-\${name}\`} /></svg>;
 };
 
-export const iconsList = {
-${symbols.map((s) => `  "${s.name}": "icon-${s.name}"`).join(',\n')},
-${Object.keys(animatedComponents)
-  .map((n) => `  "${n}": "icon-${n}"`)
-  .join(',\n')}
-};
 `;
 
 fs.writeFileSync(outFile, output, 'utf8');

@@ -317,15 +317,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         last_message: null,
         unread_count: 0,
         type: 'D',
-        primary_media: user.profile?.primary_avatar
-          ? {
-              type: 'photo',
-              small:
-                user.profile.primary_avatar.thumbnail_small_url ||
-                user.profile.primary_avatar.file_url,
-              medium: user.profile.primary_avatar.file_url,
-            }
-          : null,
+        primary_media: user.profile.primary_media,
       };
 
       setChats((prev) => [tempChat, ...prev]);

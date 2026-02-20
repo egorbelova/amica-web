@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useChat } from '@/contexts/ChatContextCore';
-import { useUser } from '../../contexts/UserContextCore';
 import Avatar from '../Avatar/Avatar';
 import { formatLastSeen } from '../../utils/activityFormatter';
 import styles from './ChatHeader.module.scss';
@@ -17,17 +16,12 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   onChatInfoClick,
 }) => {
   const { selectedChat } = useChat();
-  const { user } = useUser();
-  const [subtitle, setSubtitle] = useState('');
   const [, setAvatarModalVisible] = useState(false);
 
-  useEffect(() => {
-    if (selectedChat?.type === 'G') {
-      setSubtitle(`${selectedChat?.info || ''} members`);
-    } else {
-      setSubtitle(formatLastSeen(selectedChat?.info || ''));
-    }
-  }, [selectedChat, user]);
+  const subtitle =
+    selectedChat?.type === 'G'
+      ? `${selectedChat?.info || ''} members`
+      : formatLastSeen(selectedChat?.info || '');
 
   if (!selectedChat) return;
 

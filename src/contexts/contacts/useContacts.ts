@@ -1,15 +1,7 @@
 // contexts/contacts/useContacts.ts
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/utils/apiFetch';
-
-export type Contact = {
-  id: number;
-  name: string;
-  email?: string;
-  phone?: string;
-  primary_media?: File;
-  chat_id: number;
-};
+import type { Contact } from '@/types';
 
 export function useContacts() {
   const [contacts, setContacts] = useState<Contact[]>([]);

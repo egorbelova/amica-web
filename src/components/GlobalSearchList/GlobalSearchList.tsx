@@ -6,12 +6,10 @@ import { useChat } from '@/contexts/ChatContextCore';
 
 const GlobalSearchList: React.FC = () => {
   const { results, loading, error } = useSearchContext<User>();
+  const { handleCreateTemporaryChat } = useChat();
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div className='text-red-500'>{error}</div>;
-  //   if (!results.length) return <div>No results</div>;
-
-  const { handleCreateTemporaryChat } = useChat();
   return (
     <ul className={styles['search-list']}>
       {results.map((user) => (
@@ -24,7 +22,7 @@ const GlobalSearchList: React.FC = () => {
         >
           <Avatar
             displayName={user.username}
-            displayMedia={user.profile.primary_avatar}
+            displayMedia={user.profile.primary_media}
             className={styles.avatar}
           />
           <div className={styles.info}>

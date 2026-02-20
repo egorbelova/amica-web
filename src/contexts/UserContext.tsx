@@ -9,7 +9,7 @@ import {
   websocketManager,
   type WebSocketMessage,
 } from '@/utils/websocket-manager';
-import type { User } from '@/types';
+import type { DisplayMedia, User } from '@/types';
 import { useSettings } from './settings/context';
 import type { WallpaperSetting } from './settings/types';
 import { UserContext, postJson } from './UserContextCore';
@@ -62,29 +62,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     const handler = (msg: WebSocketMessage) => {
       if (msg.type === 'file_uploaded' && msg.data) {
         const userId = Number(msg.data.object_id);
-        const media = msg.data.media;
+        const media = msg.data.media as FileType;
         const fileObj: FileType =
           typeof media === 'object' && media !== null
-            ? (media as FileType)
+            ? media
             : { id: -1, file_url: String(media) };
 
         setState((prev: UserState) => {
-          if (!prev.user) return prev;
+          if (!prev) return prev;
 
-          if (prev.user.id === userId) {
-            return {
-              ...prev,
-              user: {
-                ...prev.user,
-                profile: {
-                  ...prev.user.profile,
-                  primary_avatar: fileObj,
-                },
-              },
-            };
-          }
-
-          const updatedMedia = prev.user.profile.media.map((m: FileType) =>
+          const updatedMedia = prev.user.profile.media.map((m: DisplayMedia) =>
             m.id === userId ? { ...m, file_url: fileObj.file_url } : m,
           );
 

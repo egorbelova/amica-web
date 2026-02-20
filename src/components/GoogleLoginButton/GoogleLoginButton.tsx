@@ -69,7 +69,11 @@ function GooglePopupLoginButton({ className }: GooglePopupLoginButtonProps) {
 
   const handleLogin = useCallback(() => {
     if (!tokenClientRef.current) return;
-    tokenClientRef.current.requestAccessToken({ prompt: 'consent' });
+    (
+      tokenClientRef.current as {
+        requestAccessToken: (options: { prompt: string }) => Promise<void>;
+      }
+    ).requestAccessToken({ prompt: 'consent' });
   }, []);
 
   return (

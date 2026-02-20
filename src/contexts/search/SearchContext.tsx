@@ -18,8 +18,6 @@ export function SearchProvider<T>({
 }: SearchProviderProps<T>) {
   const search = useSearch<T>({ searchFn, minLength, debounceMs });
   return (
-    <SearchContext.Provider value={search as any}>
-      {children}
-    </SearchContext.Provider>
+    <SearchContext.Provider value={search}>{children}</SearchContext.Provider>
   );
 }

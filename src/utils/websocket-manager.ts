@@ -3,18 +3,38 @@ import {
   refreshTokenIfNeeded,
   getAccessTokenOrThrow,
 } from './authStore';
+import type { Session } from '@/types';
+
+export interface WebSocketMessageData {
+  id?: number | string;
+  user_id?: number;
+  type?: string;
+  chat_id?: number;
+  message_id?: number;
+  message?: string;
+  token?: string;
+  userId?: number;
+  days?: number;
+  value?: string;
+  media?: File;
+  reaction?: { reaction_type: string };
+  object_id?: number;
+  first_message?: string;
+  session?: Session;
+  url?: string;
+}
 
 export interface WebSocketMessage {
   type: string;
   chat_id?: number;
-  data?: any;
+  data?: WebSocketMessageData;
   message_id?: number;
   message?: string;
   token?: string;
   userId?: number;
   days?: number;
   id?: number;
-  session?: any;
+  session?: Session;
 }
 
 interface WebSocketEventMap {

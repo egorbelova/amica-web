@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import SendArea from '../SendArea/SendArea';
 import MessageList from '../MessageList/MessageList';
 import ChatHeader from '../ChatHeader/ChatHeader';
@@ -32,19 +32,22 @@ const MainChatWindow: React.FC = () => {
 
   const { current } = usePageStack();
 
-  const [isSwiped, setIsSwiped] = useState(false);
-  useEffect(() => {
-    if (!selectedChat) {
-      setIsSwiped(false);
+  const isSwiped = Boolean(selectedChat);
+
+  useLayoutEffect(() => {
+    const margin = isSwiped ? '0%' : '100%';
+    document.documentElement.style.setProperty(
+      '--swipe-margin-inactive',
+      margin,
+    );
+
+    return () => {
       document.documentElement.style.setProperty(
         '--swipe-margin-inactive',
         '100%',
       );
-      return;
-    }
-    setIsSwiped(true);
-    document.documentElement.style.setProperty('--swipe-margin-inactive', '0%');
-  }, [selectedChat]);
+    };
+  }, [isSwiped]);
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);

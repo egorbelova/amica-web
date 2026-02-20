@@ -8,17 +8,7 @@ import {
   websocketManager,
   type WebSocketMessage,
 } from '@/utils/websocket-manager';
-
-interface Session {
-  jti: string;
-  ip_address: string;
-  device: string;
-  user_agent: string;
-  created_at: string;
-  expires_at: string;
-  last_active: string;
-  is_current: boolean;
-}
+import type { Session } from '@/types';
 
 const SESSION_LIFETIME_OPTIONS = [
   // { value: 500, label: '5s' },

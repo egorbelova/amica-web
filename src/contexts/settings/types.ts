@@ -1,4 +1,4 @@
-export type WallpaperType = 'photo' | 'video';
+export type WallpaperType = 'photo' | 'video' | string;
 
 export type WallpaperSetting = {
   id: number | string | null;

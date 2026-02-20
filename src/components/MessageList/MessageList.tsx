@@ -397,7 +397,7 @@ const MessageList: React.FC = () => {
             message={message}
             onContextMenu={(e) => handleMessageContextMenu(e, message)}
             onPointerDown={(e) => handleDragStart(e, message)}
-            onPointerUp={(e) => handleDragEnd(e)}
+            onPointerUp={() => handleDragEnd()}
             // isLastMessage={message.id === lastMessageWithImage?.id}
             isLastMessage={false}
           />
@@ -420,17 +420,17 @@ const ViewersList: React.FC<{ viewers: User[]; onClose: () => void }> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <h4>Seen by:</h4>
-        {viewers.map((v) => (
-          <div key={v.user.id} className={styles['viewer-item']}>
+        {viewers.map((v: User) => (
+          <div key={v.id} className={styles['viewer-item']}>
             <Avatar
-              displayName={v.user.username}
-              displayMedia={v.user.profile.primary_avatar}
+              displayName={v.username}
+              displayMedia={v.profile.primary_media}
               className='user-info-avatar'
             />
             <div className={styles['viewer-info']}>
-              <span className={styles['viewer-name']}>{v.user.username}</span>
+              <span className={styles['viewer-name']}>{v.username}</span>
               <span className={styles['viewer-time']}>
-                {new Date(v.read_date).toLocaleTimeString([], {
+                {new Date(v.last_seen || '').toLocaleTimeString([], {
                   hour: '2-digit',
                   minute: '2-digit',
                 })}

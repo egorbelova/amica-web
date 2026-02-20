@@ -78,7 +78,7 @@ export function Tabs() {
               <div className={styles.avatar}>
                 <Avatar
                   displayName={user?.username || ''}
-                  displayMedia={user?.profile?.primary_avatar || null}
+                  displayMedia={user?.profile?.primary_media || null}
                   size='small'
                 />
               </div>

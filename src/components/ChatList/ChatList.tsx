@@ -55,8 +55,10 @@ const ChatList: React.FC = () => {
 
   useLayoutEffect(() => {
     if (!sortedChats.length) {
-      setAnimatedChats([]);
-      prevChatIdsRef.current = [];
+      requestAnimationFrame(() => {
+        setAnimatedChats([]);
+        prevChatIdsRef.current = [];
+      });
       return;
     }
 
@@ -64,8 +66,10 @@ const ChatList: React.FC = () => {
     const prevChatIds = prevChatIdsRef.current;
 
     if (prevChatIds.length === 0) {
-      setAnimatedChats(sortedChats);
-      prevChatIdsRef.current = currentChatIds;
+      requestAnimationFrame(() => {
+        setAnimatedChats(sortedChats);
+        prevChatIdsRef.current = currentChatIds;
+      });
       return;
     }
     const orderChanged =
@@ -73,7 +77,9 @@ const ChatList: React.FC = () => {
       prevChatIds.some((id, index) => id !== currentChatIds[index]);
 
     if (!orderChanged) {
-      setAnimatedChats(sortedChats);
+      requestAnimationFrame(() => {
+        setAnimatedChats(sortedChats);
+      });
       return;
     }
 
@@ -82,8 +88,10 @@ const ChatList: React.FC = () => {
       prevPositions.set(id, el.getBoundingClientRect());
     });
 
-    setAnimatedChats(sortedChats);
-    prevChatIdsRef.current = currentChatIds;
+    requestAnimationFrame(() => {
+      setAnimatedChats(sortedChats);
+      prevChatIdsRef.current = currentChatIds;
+    });
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -99,7 +107,7 @@ const ChatList: React.FC = () => {
             el.style.transition = 'none';
             el.style.transform = `translate(${dx}px, ${dy}px)`;
 
-            el.offsetHeight;
+            void el.offsetHeight;
 
             requestAnimationFrame(() => {
               el.style.transition = 'transform 0.3s ease';

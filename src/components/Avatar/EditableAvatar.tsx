@@ -3,14 +3,14 @@ import Avatar from '../Avatar/Avatar';
 import { Icon } from '../Icons/AutoIcons';
 import AvatarCropModal from './AvatarCropModal';
 import styles from './AvatarCropModal.module.scss';
-import type { File } from '@/types';
+import type { DisplayMedia } from '@/types';
 
 type EditableAvatarProps = {
   displayName: string;
-  avatar?: File | null;
+  avatar?: DisplayMedia | null;
   objectId: number;
   contentType: string;
-  onAvatarChange: (avatar: File) => void;
+  onAvatarChange: (avatar: DisplayMedia) => void;
   isEditable?: boolean;
   className?: string;
   classNameAvatar?: string;
@@ -113,8 +113,8 @@ export default function EditableAvatar({
               objectId={objectId}
               contentType={contentType}
               onClose={() => setIsCropOpen(false)}
-              onUploadSuccess={(primary_avatar) => {
-                onAvatarChange(primary_avatar);
+              onUploadSuccess={(primary_media) => {
+                onAvatarChange(primary_media);
                 setSelectedFile(null);
               }}
             />

@@ -1,4 +1,5 @@
 import React, {
+  useCallback,
   useEffect,
   useState,
   useLayoutEffect,
@@ -42,9 +43,50 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   const [attachmentsActive, setAttachmentsActive] = useState(false);
   const sidebarInnerRef = useRef<HTMLDivElement>(null);
   const { showSnackbar } = useSnackbar();
-  const [isAvatarRollerOpen, setIsAvatarRollerOpen] = useState(false);
-  const [rollPosition, setRollPosition] = useState(0);
-  const [value, setValue] = useState(selectedChat?.name || '');
+  const [rollerOpenByChatId, setRollerOpenByChatId] = useState<
+    Record<string, boolean>
+  >({});
+  const [rollPositionByChatId, setRollPositionByChatId] = useState<
+    Record<string, number>
+  >({});
+
+  const chatId = selectedChat?.id ?? '';
+  const isAvatarRollerOpen = rollerOpenByChatId[chatId] ?? false;
+  const rollPosition = rollPositionByChatId[chatId] ?? 0;
+
+  const setIsAvatarRollerOpen = useCallback(
+    (value: boolean | ((prev: boolean) => boolean)) => {
+      if (!chatId) return;
+      setRollerOpenByChatId((prev) => {
+        const current = prev[chatId] ?? false;
+        const next = typeof value === 'function' ? value(current) : value;
+        return { ...prev, [chatId]: next };
+      });
+    },
+    [chatId],
+  );
+  const setRollPosition = useCallback(
+    (value: number | ((prev: number) => number)) => {
+      if (!chatId) return;
+      setRollPositionByChatId((prev) => {
+        const current = prev[chatId] ?? 0;
+        const next = typeof value === 'function' ? value(current) : value;
+        return { ...prev, [chatId]: next };
+      });
+    },
+    [chatId],
+  );
+  const [nameDraftByChatId, setNameDraftByChatId] = useState<
+    Record<string, string>
+  >({});
+  const editValue = nameDraftByChatId[chatId] ?? (selectedChat?.name || '');
+  const setValue = useCallback(
+    (nextValue: string) => {
+      if (!chatId) return;
+      setNameDraftByChatId((prev) => ({ ...prev, [chatId]: nextValue }));
+    },
+    [chatId],
+  );
 
   useEffect(() => {
     if (!tabsRef.current) return;
@@ -80,17 +122,15 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     };
   }, []);
 
-  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
-  const [filterType, setFilterType] = useState<string>('All');
-
-  useEffect(() => {
-    setMediaFiles(
+  const mediaFiles = useMemo(
+    () =>
       messages
         ?.flatMap((msg: Message) => msg.files || [])
         .filter((f: File) => f.category === 'image' || f.category === 'video')
-        .reverse(),
-    );
-  }, [messages]);
+        .reverse() || [],
+    [messages],
+  );
+  const [filterType, setFilterType] = useState<string>('All');
 
   const hasVideos = useMemo(
     () => mediaFiles.some((f) => f.category === 'video'),
@@ -138,42 +178,55 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     [mediaFiles, effectiveFilterType],
   );
 
-  const audioFiles = messages
-    ?.flatMap((msg: Message) => msg.files || [])
-    .filter((f: File) => f.category === 'audio')
-    .reverse();
+  const audioFiles = useMemo(
+    () =>
+      messages
+        ?.flatMap((msg: Message) => msg.files || [])
+        .filter((f: File) => f.category === 'audio')
+        .reverse() || [],
+    [messages],
+  );
 
-  const [activeTab, setActiveTab] = useState<
+  const availableTabs = useMemo(() => {
+    const tabs: ('members' | 'media' | 'audio')[] = [];
+    if (selectedChat?.type === 'G') tabs.push('members');
+    if (mediaFiles.length > 0) tabs.push('media');
+    if (audioFiles.length > 0) tabs.push('audio');
+    return tabs;
+  }, [selectedChat.type, mediaFiles.length, audioFiles.length]);
+
+  const [userSelectedTab, setActiveTab] = useState<
     'media' | 'audio' | 'members' | null
   >(null);
+  const [prevChatId, setPrevChatId] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (selectedChat?.type === 'G') {
-      setActiveTab('members');
-    } else if (mediaFiles.length > 0) {
-      setActiveTab('media');
-    } else if (audioFiles.length > 0) {
-      setActiveTab('audio');
-    } else {
-      setActiveTab(null);
+  if (selectedChat?.id !== prevChatId) {
+    setPrevChatId(selectedChat?.id ?? null);
+    setActiveTab(null);
+  }
+
+  const activeTab = useMemo(() => {
+    if (userSelectedTab && availableTabs.includes(userSelectedTab)) {
+      return userSelectedTab;
     }
-  }, [selectedChat, mediaFiles.length, audioFiles.length]);
+    return availableTabs[0] || null;
+  }, [userSelectedTab, availableTabs]);
 
   const [interlocutorEditVisible, setInterlocutorEditVisible] = useState(false);
+  const visibleName = interlocutorEditVisible
+    ? editValue
+    : selectedChat?.name || '';
 
   const onInterlocutorEditBack = () => setInterlocutorEditVisible(false);
-  const onInterlocutorEdit = () => setInterlocutorEditVisible(true);
-
-  useEffect(() => {
-    if (!interlocutorEditVisible) {
-      setValue(selectedChat?.name || '');
+  const onInterlocutorEdit = () => {
+    if (chatId) {
+      setNameDraftByChatId((prev) => ({
+        ...prev,
+        [chatId]: prev[chatId] ?? (selectedChat?.name || ''),
+      }));
     }
-  }, [interlocutorEditVisible, selectedChat?.name]);
-
-  useLayoutEffect(() => {
-    setIsAvatarRollerOpen(false);
-    setRollPosition(0);
-  }, [selectedChat]);
+    setInterlocutorEditVisible(true);
+  };
 
   const sidebarRef = React.useRef<HTMLDivElement>(null);
 
@@ -255,9 +308,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     interlocutorEditVisible,
   ]);
 
-  useLayoutEffect(() => {
-    setRollPosition((prev) => (prev !== 0 ? 0 : prev));
-  }, [interlocutorEditVisible]);
+  const effectiveRollPosition = interlocutorEditVisible ? 0 : rollPosition;
 
   const subtitle = useMemo(() => {
     if (selectedChat?.type === 'G') {
@@ -283,13 +334,16 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
       if (activeTab === 'audio') ref = audioRef;
 
       if (ref?.current) {
-        setIndicatorPosition(ref.current.offsetLeft);
-        setIndicatorWidth(ref.current.offsetWidth);
+        const { offsetLeft, offsetWidth } = ref.current;
+        requestAnimationFrame(() => {
+          setIndicatorPosition(offsetLeft);
+          setIndicatorWidth(offsetWidth);
+        });
       }
     };
 
     updateIndicator();
-  }, [activeTab, mediaFiles.length, audioFiles.length, selectedChat]);
+  }, [activeTab, availableTabs]);
 
   useEffect(() => {
     const sidebar = gridRef.current;
@@ -312,10 +366,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
       const deltaX = pointerEndX - pointerStartX;
 
       if (Math.abs(deltaX) > 50) {
-        const tabsOrder: Array<'members' | 'media' | 'audio'> = [];
-        if (selectedChat?.type === 'G') tabsOrder.push('members');
-        if (mediaFiles.length > 0) tabsOrder.push('media');
-        if (audioFiles.length > 0) tabsOrder.push('audio');
+        const tabsOrder = availableTabs;
 
         const currentIndex = tabsOrder.indexOf(
           activeTab as 'members' | 'media' | 'audio',
@@ -344,7 +395,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
       sidebar.removeEventListener('pointerup', handlePointerUp);
       sidebar.removeEventListener('pointercancel', handlePointerUp);
     };
-  }, [activeTab, selectedChat, mediaFiles, audioFiles]);
+  }, [activeTab, availableTabs]);
 
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -589,7 +640,9 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                 ? styles['sidebar__avatar-wrapper--roller']
                 : ''
             }`}
-            style={{ transform: `translateX(${rollPosition * -100}%)` }}
+            style={{
+              transform: `translateX(${effectiveRollPosition * -100}%)`,
+            }}
             onClick={handleRollPositionChange}
           >
             <EditableAvatar
@@ -611,7 +664,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                 //   ...user,
                 //   profile: {
                 //     ...user.profile,
-                //     primary_avatar,
+                //     primary_media,
                 //   },
                 // });
               }}
@@ -632,7 +685,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
           /> */}
             {selectedChat.media && selectedChat.media.length > 0 && (
               <>
-                {selectedChat.media.map((media: File) => (
+                {selectedChat.media.map((media: DisplayMedia) => (
                   <Avatar
                     key={media.id}
                     displayName={selectedChat.name}
@@ -660,7 +713,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                 : undefined
             }
           >
-            {value}
+            {visibleName}
           </div>
           <span className={styles['sidebar__subtitle']}>{subtitle}</span>
         </div>
@@ -736,9 +789,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                   <div key={member?.id} className={styles.memberItem}>
                     <Avatar
                       className={styles.memberAvatar}
-                      displayMedia={
-                        member.profile.primary_avatar as unknown as DisplayMedia
-                      }
+                      displayMedia={member.profile.primary_media}
                       displayName={member.username}
                     />
                     <div className={styles.memberInfo}>
@@ -814,7 +865,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                   <Input
                     placeholder='Group Name'
                     isRequired
-                    value={value}
+                    value={editValue}
                     onChange={setValue}
                   />
                   {/* <Input placeholder='Description' /> */}
@@ -824,7 +875,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
               <button
                 className={`${styles.button} ${styles.save}`}
                 type='button'
-                onClick={() => saveContact(interlocutor?.contact_id, value)}
+                onClick={() => saveContact(interlocutor?.contact_id, editValue)}
               >
                 {t('buttons.save')}
               </button>

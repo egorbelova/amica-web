@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import styles from './ContextMenu.module.scss';
 import { createPortal } from 'react-dom';
 import { Icon } from '../Icons/AutoIcons';
@@ -28,7 +28,6 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   isHiding,
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState(position);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -68,7 +67,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     };
   }, [onClose]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const menu = menuRef.current;
     if (!menu) return;
 
@@ -80,12 +79,16 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     const x = position.x + (originX === 'left' ? 0 : -menu.offsetWidth);
     const y = position.y + (originY === 'top' ? 0 : -menu.offsetHeight);
 
-    setPos({ x, y });
-
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
     menu.style.setProperty('--scaleOriginX', originX);
     menu.style.setProperty('--scaleOriginY', originY);
 
-    setVisible(true);
+    const frameId = requestAnimationFrame(() => {
+      setVisible(true);
+    });
+
+    return () => cancelAnimationFrame(frameId);
   }, [position]);
 
   return createPortal(
@@ -97,8 +100,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         ${isHiding ? styles['context-menu--hiding'] : ''}`}
       style={{
         position: 'fixed',
-        left: pos.x,
-        top: pos.y,
+        left: position.x,
+        top: position.y,
       }}
     >
       {items.map((item, idx) =>

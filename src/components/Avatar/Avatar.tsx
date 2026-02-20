@@ -1,19 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { stringToColor, pSBC } from '../../utils/index';
 import styles from './Avatar.module.scss';
-import type {
-  DisplayMedia,
-  PhotoMedia,
-  VideoMedia,
-  MediaLayer,
-  File,
-} from '@/types';
+import type { DisplayMedia, MediaLayer, File } from '@/types';
 // import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import { apiFetch } from '@/utils/apiFetch';
 
 export interface AvatarProps {
   displayName: string;
-  displayMedia?: DisplayMedia | File | null;
+  displayMedia?: DisplayMedia;
   className?: string;
   size?: 'small' | 'medium';
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
@@ -94,24 +88,28 @@ const Avatar: React.FC<AvatarProps> = ({
       media: displayMedia as DisplayMedia,
       ready: false,
     };
-    setLayers((prev) => [...prev, newLayer]);
+    const frameId = requestAnimationFrame(() => {
+      setLayers((prev) => [...prev, newLayer]);
+    });
 
     async function loadUrl() {
-      let protectedUrl = '';
-      if (displayMedia && 'type' in (displayMedia as DisplayMedia)) {
-        const dm = displayMedia as DisplayMedia;
+      let protectedUrl: string;
+      if (displayMedia && 'type' in displayMedia) {
+        const dm = displayMedia;
         protectedUrl =
           dm.type === 'photo'
-            ? size === 'medium' && (dm as PhotoMedia).medium
-              ? (dm as PhotoMedia).medium!
-              : (dm as PhotoMedia).small
-            : (dm as VideoMedia).url;
+            ? size === 'medium' && dm.medium
+              ? dm.medium!
+              : dm.small || ''
+            : dm.url;
       } else {
-        const f = displayMedia as File | undefined | null;
+        const f = displayMedia as File | undefined;
         protectedUrl = f?.file_url || f?.thumbnail_small_url || '';
       }
 
-      const objectUrl = await fetchPrivateMedia(protectedUrl || '');
+      if (!protectedUrl) return;
+
+      const objectUrl = await fetchPrivateMedia(protectedUrl);
       setUrl(objectUrl);
       setLayers((prev) =>
         prev.map((layer) =>
@@ -121,6 +119,7 @@ const Avatar: React.FC<AvatarProps> = ({
     }
 
     loadUrl();
+    return () => cancelAnimationFrame(frameId);
   }, [displayMedia, size]);
 
   const renderMedia = (media: DisplayMedia | File | null, url?: string) => {

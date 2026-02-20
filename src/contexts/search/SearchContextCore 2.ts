@@ -1,15 +1,10 @@
-import {
-  createContext,
-  useContext,
-  type Dispatch,
-  type SetStateAction,
-} from 'react';
+import { createContext, useContext } from 'react';
 
 export interface SearchReturn<T> {
   term: string;
-  setTerm: Dispatch<SetStateAction<string>>;
+  setTerm: (v: string) => void;
   results: T[];
-  setResults: Dispatch<SetStateAction<T[]>>;
+  setResults: (v: T[]) => void;
   loading: boolean;
   error: string | null;
   onChange: (value: string) => void;

@@ -23,11 +23,6 @@ const Message: React.FC<MessageProps> = ({
   };
   const isMessageViewed = (): boolean => message.viewers?.length > 0;
 
-  const handleMessageClick = () => {
-    if (!isOwnMessage() && !isMessageViewed()) {
-    }
-  };
-
   const hasOnlyMediaFiles =
     Array.isArray(message.files) &&
     message.files.length > 0 &&
@@ -41,7 +36,6 @@ const Message: React.FC<MessageProps> = ({
       className={`temp_full ${
         isOwnMessage() ? 'own-message' : 'other-message'
       }`}
-      onClick={handleMessageClick}
       onDoubleClick={handleDoubleClick}
       onContextMenu={onContextMenu}
       onPointerDown={onPointerDown}
@@ -51,7 +45,7 @@ const Message: React.FC<MessageProps> = ({
         <Avatar
           className={styles.avatar}
           displayName={message.user.username}
-          displayMedia={message.user.profile.primary_avatar}
+          displayMedia={message.user.profile.primary_media}
         />
       )} */}
       <div

@@ -8,14 +8,14 @@ import React, {
 import ReactDOM from 'react-dom';
 import styles from './AvatarCropModal.module.scss';
 import { apiUpload } from '@/utils/apiFetch';
-import type { File } from '@/types';
+import type { DisplayMedia, File } from '@/types';
 
 interface AvatarCropModalProps {
-  file: File;
+  file: globalThis.File;
   type: 'photo' | 'video';
   isOpen: boolean;
   onClose: () => void;
-  onUploadSuccess: (file: File) => void;
+  onUploadSuccess: (file: DisplayMedia | null) => void;
   objectId: number;
   contentType: string;
 }
@@ -392,10 +392,10 @@ export default function AvatarCropModal({
       const formData = new FormData();
       formData.append('file', file);
       try {
-        const data = await apiUpload(
+        const data = (await apiUpload(
           `/api/media_files/primary-media/?content_type=${contentType}&object_id=${objectId}`,
           formData,
-        );
+        )) as DisplayMedia;
 
         if (data) {
           onUploadSuccess(data);
@@ -433,13 +433,13 @@ export default function AvatarCropModal({
       );
 
       try {
-        const data = await apiUpload(
+        const data = (await apiUpload(
           `/api/media_files/primary-media/?content_type=${contentType}&object_id=${objectId}`,
           formData,
-        );
+        )) as DisplayMedia;
 
         if (data) onUploadSuccess(data);
-        else onUploadSuccess(null as unknown as File);
+        else onUploadSuccess(null);
 
         onClose();
       } catch (e) {

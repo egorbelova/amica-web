@@ -1,7 +1,7 @@
 // contexts/contacts/useContactSearch.ts
 import { useSearch } from '@/contexts/search/useSearch';
 import { useContacts } from './useContacts';
-import type { Contact } from './useContacts';
+import type { Contact } from '@/types';
 
 export function useContactSearch() {
   const { contacts, loading, error, searchContacts } = useContacts();

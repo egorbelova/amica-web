@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef } from 'react';
+import React, { forwardRef, useRef, useImperativeHandle } from 'react';
 import { lastMessageDateFormat, unreadCountFormat } from '../../utils/index';
 import Avatar from '../Avatar/Avatar';
 import styles from './ChatListItem.module.scss';
@@ -33,6 +33,8 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
     const lastMessageDate =
       lastMessage && lastMessageDateFormat(lastMessage.date);
     const container = useRef<HTMLAnchorElement>(null);
+
+    useImperativeHandle(ref, () => container.current as HTMLAnchorElement);
 
     const lastMessageText = lastMessage && lastMessage.value;
 

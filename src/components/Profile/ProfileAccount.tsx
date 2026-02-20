@@ -3,7 +3,7 @@ import styles from './Profile.module.scss';
 import { useTranslation } from '@/contexts/languageCore';
 import { Icon } from '../Icons/AutoIcons';
 import EditableAvatar from '@/components/Avatar/EditableAvatar';
-import type { DisplayMedia, User, UserProfile, File } from '@/types';
+import type { DisplayMedia, User, UserProfile } from '@/types';
 
 export default function ProfileAccount() {
   const { user, logout, setUser } = useUser();
@@ -13,15 +13,15 @@ export default function ProfileAccount() {
     <div className={styles.section}>
       <EditableAvatar
         displayName={user?.username || ''}
-        avatar={user?.profile?.primary_avatar}
+        avatar={user?.profile?.primary_media}
         objectId={user?.profile?.id || 0}
         contentType='profile'
-        onAvatarChange={(primary_avatar) => {
+        onAvatarChange={(primary_media: DisplayMedia) => {
           setUser({
             ...(user as User | null),
             profile: {
               ...(user?.profile as UserProfile),
-              primary_avatar: primary_avatar as DisplayMedia,
+              primary_media: primary_media,
             } as UserProfile,
           } as User);
         }}

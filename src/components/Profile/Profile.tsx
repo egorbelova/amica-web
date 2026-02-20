@@ -29,7 +29,7 @@ export default function Profile() {
         <Avatar
           className={styles.avatar}
           displayName={user?.username || ''}
-          displayMedia={user?.profile?.primary_avatar || null}
+          displayMedia={user?.profile?.primary_media || null}
         />
       ),
     },
