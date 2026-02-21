@@ -17,23 +17,16 @@ const Snackbar = ({
     const el = ref.current;
     if (!el || open) return;
 
-    const handleEnd = (ev: Event) => {
-      if (ev.target !== el) return;
-      const e = ev as TransitionEvent | AnimationEvent;
-      if ('propertyName' in e && e.propertyName !== 'opacity') return;
+    const handleEnd = (e: AnimationEvent) => {
+      if (e.target !== el) return;
+      if (e.animationName !== 'snackbar-exit') return;
       onExited?.();
     };
 
-    el.addEventListener('transitionend', handleEnd as EventListener, {
-      once: true,
-    });
-    el.addEventListener('animationend', handleEnd as EventListener, {
-      once: true,
-    });
+    el.addEventListener('animationend', handleEnd);
 
     return () => {
-      el.removeEventListener('transitionend', handleEnd as EventListener);
-      el.removeEventListener('animationend', handleEnd as EventListener);
+      el.removeEventListener('animationend', handleEnd);
     };
   }, [open, onExited]);
 

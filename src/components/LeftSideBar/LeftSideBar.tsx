@@ -24,7 +24,9 @@ const LeftSideBar: React.FC<ChooseListProps> = () => {
       <TabsProvider>
         <div className='left-menu'>
           <Tab id='contacts'>
-            <div className={styles['tab-content']}>
+            <div
+              className={`${styles['tab-content']} ${styles['tab-content--contacts']}`}
+            >
               <Contacts />
             </div>
           </Tab>

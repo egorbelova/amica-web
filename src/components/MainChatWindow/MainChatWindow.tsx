@@ -82,7 +82,7 @@ const MainChatWindow: React.FC = () => {
       {windowWidth <= 768 && (
         <>
           {activeWallpaper?.url && (
-            <>
+            <div className={wallpaperStyles.wallpaperContainer}>
               {activeWallpaper?.type === 'photo' && (
                 <img
                   src={activeWallpaper.url}
@@ -107,7 +107,7 @@ const MainChatWindow: React.FC = () => {
                   }}
                 />
               )}
-            </>
+            </div>
           )}
         </>
       )}

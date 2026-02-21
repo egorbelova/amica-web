@@ -117,9 +117,16 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
         <div className={styles['chat-list-item__content']}>
           <div className={styles['chat-list-item__header']}>
             <div className={styles['chat-list-item__name']}>{displayName}</div>
-            {lastMessage?.is_own && lastMessage?.is_viewed && (
-              <Icon name='Read' className={styles['chat-list-item__read']} />
-            )}
+            {lastMessage?.is_own &&
+              (lastMessage?.is_viewed ? (
+                <Icon name='Read' className={styles['chat-list-item__read']} />
+              ) : (
+                <Icon
+                  name='Unread'
+                  className={styles['chat-list-item__read']}
+                  style={{ width: '12px', height: '12px' }}
+                />
+              ))}
             <div className={styles['chat-list-item__date']}>
               {lastMessageDate}
             </div>

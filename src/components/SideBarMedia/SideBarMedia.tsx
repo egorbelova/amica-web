@@ -24,6 +24,7 @@ import type { IconName } from '../Icons/AutoIcons';
 import type { DropdownItem } from '../Dropdown/Dropdown';
 import type { Message, File, User, DisplayMedia } from '@/types';
 import type { ChatContextType } from '@/contexts/ChatContextCore';
+import Button from '../ui/button/Button';
 
 interface SideBarMediaProps {
   visible: boolean;
@@ -552,7 +553,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
       />
       <div className={`${styles.sidebar}`} ref={sidebarInnerRef}>
         <div className={styles.header}>
-          <div
+          <Button
             onClick={interlocutorEditVisible ? onInterlocutorEditBack : onClose}
             className={styles.button}
           >
@@ -561,40 +562,27 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
             ) : (
               <Icon name='Cross' />
             )}
-
-            {/* <MorphingIcon
-            shape1={iconPaths.cross}
-            shape2={iconPaths.arrow}
-            active={interlocutorEditVisible}
-          /> */}
-          </div>
+          </Button>
 
           {selectedChat &&
             selectedChat.type === 'D' &&
             selectedChat?.members &&
             !attachmentsActive && (
               <>
-                {selectedChat.members[0].is_contact ? (
-                  <div
-                    className={`${styles.button} ${
-                      interlocutorEditVisible ? styles.hidden : ''
-                    }`}
-                    onClick={onInterlocutorEdit}
-                  >
-                    Edit
-                  </div>
-                ) : (
-                  <div
-                    className={`${styles.button} ${
-                      interlocutorEditVisible ? styles.hidden : ''
-                    }`}
-                    onClick={() => {
-                      addContact(selectedChat.members[0].id);
-                    }}
-                  >
-                    Add Contact
-                  </div>
-                )}
+                <Button
+                  className={`${styles.button} ${
+                    interlocutorEditVisible ? styles.hidden : ''
+                  }`}
+                  onClick={
+                    selectedChat.members[0].is_contact
+                      ? onInterlocutorEdit
+                      : () => addContact(selectedChat.members[0].id)
+                  }
+                >
+                  {selectedChat.members[0].is_contact
+                    ? 'Edit'
+                    : 'Add to Contacts'}
+                </Button>
               </>
             )}
           {attachmentsActive && activeTab === 'media' && (
@@ -872,14 +860,14 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                 </>
               )}
 
-              <button
+              <Button
                 className={`${styles.button} ${styles.save}`}
                 type='button'
                 onClick={() => saveContact(interlocutor?.contact_id, editValue)}
               >
                 {t('buttons.save')}
-              </button>
-              <button
+              </Button>
+              <Button
                 className={`${styles.button} ${styles.delete}`}
                 type='button'
                 onClick={() => {
@@ -887,8 +875,8 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                   setInterlocutorEditVisible(false);
                 }}
               >
-                Delete Contact
-              </button>
+                Delete from Contacts
+              </Button>
             </div>
           </div>
         )}

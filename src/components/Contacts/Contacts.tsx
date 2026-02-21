@@ -28,6 +28,7 @@ const Contacts = () => {
                 displayMedia={contact.primary_media}
               />
               <span className={styles.username}>{contact.name}</span>
+              <span className={styles.email}>{contact.last_seen}</span>
             </li>
           ))
         ) : (

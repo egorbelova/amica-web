@@ -97,6 +97,7 @@ export interface Contact {
   email?: string;
   phone?: string;
   chat_id: number;
+  last_seen: string | null;
 }
 
 export interface Session {

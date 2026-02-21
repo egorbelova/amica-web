@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './Dropdown.module.scss';
 import { Icon, type IconName } from '../Icons/AutoIcons';
+import Button from '../ui/button/Button';
 
 export type DropdownItem<T> = {
   label: string;
@@ -212,7 +213,7 @@ export function Dropdown<T extends string | number>({
 
   return (
     <div className={styles.dropdown} ref={containerRef}>
-      <button
+      <Button
         ref={btnRef}
         onClick={() => setOpen((prev) => !prev)}
         className={styles.toggle}
@@ -228,8 +229,10 @@ export function Dropdown<T extends string | number>({
         ) : (
           placeholder
         )}
-        <span className={`${styles.arrow} ${open ? styles.open : ''}`}>▾</span>
-      </button>
+        <span className={`${styles.arrow} ${open ? styles.open : ''}`}>
+          <Icon name='Arrow' />
+        </span>
+      </Button>
 
       {open &&
         createPortal(

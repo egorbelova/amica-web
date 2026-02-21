@@ -12,20 +12,24 @@
 .toggle {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   padding: 6px 10px;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: 16px;
   cursor: pointer;
   font-size: 14px;
+  width: fit-content;
 }
 .arrow {
   margin-left: 6px;
   transition: transform 0.2s ease;
+  transform: rotate(-90deg);
+  height: 20px;
+  width: 20px;
 }
 .arrow.open {
-  transform: rotate(180deg);
+  transform: rotate(90deg);
 }
 .menu {
   top: 100%;
