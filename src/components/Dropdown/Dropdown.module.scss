@@ -29,7 +29,7 @@
   min-width: min(150px, calc(100% - 20px));
   max-width: 100%;
   text-wrap: nowrap;
-  max-height: 120px;
+  max-height: 240px;
   overflow-y: auto;
   backdrop-filter: blur(12px);
   background: var(--color-bg);
@@ -42,7 +42,7 @@
 
   position: absolute;
   opacity: 0;
-  pointer-events: none;
+  // pointer-events: none;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 24px;
   padding: 8px;
@@ -63,7 +63,7 @@
 .menu.open {
   opacity: 1;
   scale: 1;
-  pointer-events: auto;
+  // pointer-events: auto;
   animation: open 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.08);
 }
 

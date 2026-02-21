@@ -7,12 +7,15 @@ export type WallpaperSetting = {
   blur?: number;
 };
 
+export type ActiveWallpaperEditMode = 'natural' | 'black-and-white';
+
 export type Settings = {
   language: string;
   theme: 'light' | 'dark' | 'system';
   timeFormat: '12h' | '24h' | 'auto';
   wallpapers: WallpaperSetting[];
   activeWallpaper?: WallpaperSetting | null;
+  activeWallpaperEditMode?: ActiveWallpaperEditMode;
   useBackgroundThroughoutTheApp: boolean;
 };
 
@@ -27,7 +30,7 @@ export type SubTab =
 export interface SettingsContextValue {
   settings: Settings;
   setSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
-  setActiveWallpaper: (wallpaper: WallpaperSetting) => void;
+  setActiveWallpaper: (wallpaper: WallpaperSetting | null) => void;
   addUserWallpaper: (file: File) => void;
   activeProfileTab: SubTab;
   setActiveProfileTab: (tab: SubTab) => void;

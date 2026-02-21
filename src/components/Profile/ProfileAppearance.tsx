@@ -7,6 +7,7 @@ import Slider from '../ui/slider/Slider';
 import type { WallpaperSetting } from '@/contexts/settings/types';
 import { Icon } from '../Icons/AutoIcons';
 import ProfileTabDescription from './ProfileTabDescription';
+import { Dropdown } from '../Dropdown/Dropdown';
 
 export default function ProfileAppearance() {
   const { t } = useTranslation();
@@ -38,6 +39,10 @@ export default function ProfileAppearance() {
   }, [fetchWallpapers]);
 
   const handleSelectWallpaper = (wall: WallpaperSetting) => {
+    if (!wall) {
+      setActiveWallpaper(null);
+      return;
+    }
     setActiveWallpaper({
       id: wall.id,
       url: wall.url,
@@ -103,6 +108,16 @@ export default function ProfileAppearance() {
               </div>
             )}
             <div className={styles.wallpaperList}>
+              <div
+                className={`${styles.wallpaperItem} ${
+                  settings.activeWallpaper === null ? styles.selected : ''
+                }`}
+                onClick={() => setActiveWallpaper(null)}
+              >
+                <div className={styles.wallpaperThumbnailEmpty}>
+                  No Background
+                </div>
+              </div>
               {[...settings.wallpapers].reverse().map((wall) => (
                 <div
                   key={wall.id}
@@ -112,6 +127,24 @@ export default function ProfileAppearance() {
                       : ''
                   }`}
                 >
+                  {settings.activeWallpaper?.id === wall.id && (
+                    <Dropdown
+                      items={[
+                        { label: 'Natural', value: 'natural' },
+                        { label: 'Black and White', value: 'black-and-white' },
+                      ]}
+                      value={settings.activeWallpaperEditMode ?? 'natural'}
+                      placeholder='Edit'
+                      onChange={(value) =>
+                        setSetting(
+                          'activeWallpaperEditMode',
+                          value as 'natural' | 'black-and-white',
+                        )
+                      }
+                      buttonStyles={styles.editSelectedWallpaper}
+                      dropdownStyles={styles.editSelectedWallpaperDropdown}
+                    />
+                  )}
                   {wall.type === 'video' ? (
                     <video
                       src={wall.url || ''}

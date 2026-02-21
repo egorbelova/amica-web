@@ -102,7 +102,7 @@ const RoomPage: React.FC = () => {
                       alt='Wallpaper'
                       className={styles.wallpaper}
                       style={{
-                        filter: `blur(${activeWallpaper.blur}px)`,
+                        filter: `blur(${activeWallpaper.blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
                       }}
                     />
                   </div>
@@ -128,7 +128,9 @@ const RoomPage: React.FC = () => {
                       loop
                       preload='metadata'
                       className={styles.wallpaper}
-                      style={{ filter: `blur(${activeWallpaper.blur}px)` }}
+                      style={{
+                        filter: `blur(${activeWallpaper.blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
+                      }}
                     />
                   </div>
                 </>

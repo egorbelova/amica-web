@@ -16,6 +16,7 @@ type DropdownProps<T> = {
   onChange: (value: T) => void;
   placeholder?: string;
   buttonStyles?: string;
+  dropdownStyles?: string;
 };
 
 export function Dropdown<T extends string | number>({
@@ -24,6 +25,7 @@ export function Dropdown<T extends string | number>({
   onChange,
   buttonStyles,
   placeholder = 'Select...',
+  dropdownStyles,
 }: DropdownProps<T>) {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState({
@@ -120,13 +122,41 @@ export function Dropdown<T extends string | number>({
     };
   }, []);
 
+  useEffect(() => {
+    const log = (e: Event) => {
+      const target = e.target as HTMLElement;
+      console.log(
+        e.type,
+        'target:',
+        target?.tagName,
+        'class:',
+        target?.className,
+      );
+    };
+
+    document.addEventListener('pointerdown', log, true);
+    document.addEventListener('pointerup', log, true);
+    document.addEventListener('click', log, true);
+
+    return () => {
+      document.removeEventListener('pointerdown', log, true);
+      document.removeEventListener('pointerup', log, true);
+      document.removeEventListener('click', log, true);
+    };
+  }, []);
+
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // e.preventDefault();
+    e.stopPropagation();
     isPointerDown.current = true;
     isScrolling.current = false;
     updateIndicatorByPointer(e.clientY);
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    // e.preventDefault();
+    e.stopPropagation();
+
     if (!isPointerDown.current || isScrolling.current) return;
     isPointerDown.current = false;
 
@@ -171,23 +201,6 @@ export function Dropdown<T extends string | number>({
     });
   }, [open, value, items]);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(target) &&
-        menuRef.current &&
-        !menuRef.current.contains(target)
-      ) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const resetIndicator = () => {
     setIndicatorPos(null);
     // const index = items.findIndex((item) => item.value === value);
@@ -221,7 +234,7 @@ export function Dropdown<T extends string | number>({
   const selected = items.find((item) => item.value === value);
 
   return (
-    <div className={styles.dropdown} ref={containerRef}>
+    <div className={`${styles.dropdown} ${dropdownStyles}`} ref={containerRef}>
       <Button
         ref={btnRef}
         onClick={() => setOpen((prev) => !prev)}
@@ -243,10 +256,7 @@ export function Dropdown<T extends string | number>({
       {open &&
         createPortal(
           <>
-            <div
-              className={styles.backdrop}
-              onClick={() => setOpen(false)}
-            ></div>
+            <div className={styles.backdrop} onClick={() => setOpen(false)} />
             <ul
               ref={menuRef}
               className={`${styles.menu} ${open ? styles.open : ''}`}
@@ -266,9 +276,12 @@ export function Dropdown<T extends string | number>({
                 onPointerDown={handlePointerDown}
                 onPointerUp={handlePointerUp}
                 onPointerLeave={resetIndicator}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 ref={menuInnerRef}
               >
-                {' '}
                 {indicatorPos && (
                   <span
                     className={styles.indicator}

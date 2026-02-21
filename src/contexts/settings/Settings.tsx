@@ -17,25 +17,21 @@ const defaultWallpapers: WallpaperSetting[] = [
     id: 'default-0',
     url: '../DefaultWallpapers/abdelhamid-azoui-Zhl3nrozkG0-unsplash.jpg.webp',
     type: 'photo',
-    blur: 0,
   },
   {
     id: 'default-1',
     url: '../DefaultWallpapers/syuhei-inoue-fvgv3i4_uvI-unsplash.jpg.webp',
     type: 'photo',
-    blur: 0,
   },
   {
     id: 'default-2',
     url: '../DefaultWallpapers/dave-hoefler-PEkfSAxeplg-unsplash.jpg.webp',
     type: 'photo',
-    blur: 0,
   },
   {
     id: 'default-3',
     url: '../DefaultWallpapers/video/blue-sky-seen-directly-with-some-clouds_480p_infinity.webm',
     type: 'video',
-    blur: 0,
   },
 ];
 
@@ -45,6 +41,7 @@ const defaultSettings: Settings = {
   timeFormat: 'auto',
   wallpapers: defaultWallpapers,
   activeWallpaper: defaultWallpapers[0],
+  activeWallpaperEditMode: 'natural',
   useBackgroundThroughoutTheApp: false,
 };
 
@@ -97,13 +94,20 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       ...(parsed.wallpapers || []),
     ];
 
-    const activeWallpaper = defaultWallpapers[0];
+    const activeWallpaper =
+      parsed.activeWallpaper === null
+        ? null
+        : parsed.activeWallpaper && typeof parsed.activeWallpaper === 'object'
+          ? (parsed.activeWallpaper as WallpaperSetting)
+          : defaultWallpapers[0];
 
     return {
       ...defaultSettings,
       ...parsed,
       wallpapers: combinedWallpapers,
       activeWallpaper,
+      activeWallpaperEditMode:
+        parsed.activeWallpaperEditMode ?? defaultSettings.activeWallpaperEditMode,
     };
   });
 
@@ -128,23 +132,32 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const setBlur = useCallback(
     (value: number) => {
-      setSettings(
-        (prev: Settings) =>
-          ({
-            ...prev,
-            activeWallpaper: {
-              ...prev.activeWallpaper,
-              blur: value,
-            },
-          }) as Settings,
-      );
+      setSettings((prev: Settings) => {
+        if (prev.activeWallpaper == null) return prev;
+        return {
+          ...prev,
+          activeWallpaper: {
+            ...prev.activeWallpaper,
+            blur: value,
+          },
+        } as Settings;
+      });
     },
     [setSettings],
   );
 
   const setActiveWallpaper = useCallback(
-    (wallpaper: WallpaperSetting) => {
+    (wallpaper: WallpaperSetting | null) => {
       setSettings((prev) => {
+        if (wallpaper === null) {
+          if (prev.activeWallpaper === null) return prev;
+          websocketManager.sendMessage({
+            type: 'set_active_wallpaper',
+            data: { id: null },
+          });
+          return { ...prev, activeWallpaper: null };
+        }
+
         let wallpaperData: WallpaperSetting;
 
         if (!('url' in wallpaper) || !wallpaper.url) {
@@ -229,12 +242,16 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       if (!data.type) return;
 
       if (data.type === 'active_wallpaper_updated') {
-        const wallpaperData: WallpaperSetting = {
-          id: data.data?.id as string | number | null,
-          type: data.data?.type as WallpaperType | undefined,
-          url: data.data?.url as string | null,
-        };
-        setActiveWallpaper(wallpaperData);
+        if (data.data == null || data.data.id == null) {
+          setActiveWallpaper(null);
+        } else {
+          const wallpaperData: WallpaperSetting = {
+            id: data.data.id as string | number,
+            type: data.data?.type as WallpaperType | undefined,
+            url: data.data?.url as string | null,
+          };
+          setActiveWallpaper(wallpaperData);
+        }
       }
 
       if (data.type === 'user_wallpaper_deleted') {
@@ -245,9 +262,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             (w) => w.id !== wallpaperId,
           ),
           activeWallpaper:
-            prev.activeWallpaper?.id === wallpaperId
-              ? defaultSettings.activeWallpaper
-              : prev.activeWallpaper,
+            prev.activeWallpaper?.id === wallpaperId ? null : prev.activeWallpaper,
         }));
       }
 

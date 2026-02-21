@@ -165,12 +165,12 @@
 
 .wallpaperList {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   justify-content: center;
 
   @container settingsContainer (min-width: 0px) {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 
   // @media (max-width: 480px) {
@@ -181,21 +181,46 @@
 
 .wallpaperThumbnail {
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 5;
   object-fit: cover;
-  cursor: pointer;
+}
+
+.wallpaperThumbnailEmpty {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-secondary, #2a2a2a);
+  color: var(--color-text-secondary, #888);
+  text-align: center;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
 .wallpaperItem {
-  border-radius: 32px;
+  border-radius: 24px;
   overflow: hidden;
   position: relative;
   width: 100%;
-  aspect-ratio: 1;
+  cursor: pointer;
+  aspect-ratio: 4 / 5;
 }
 
 .selected {
   outline: 3px solid #007bff;
+}
+
+.editSelectedWallpaper {
+  padding: 0 50px !important;
+}
+
+.editSelectedWallpaperDropdown {
+  position: absolute !important;
+  bottom: 10px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 1000 !important;
 }
 
 .removeWallpaper {
@@ -241,6 +266,10 @@
   padding: calc(60px + 10px) 20px;
   height: 100%;
   width: 100%;
+
+  @container settingsContainer (min-width: 0px) {
+    padding: 10px 20px;
+  }
 }
 
 // .settingsContainer {

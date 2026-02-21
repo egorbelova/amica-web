@@ -219,39 +219,51 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [currentAudioId]);
 
   useEffect(() => {
-    if (!('mediaSession' in navigator)) return;
-
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
-      void playPrev();
-    });
-    navigator.mediaSession.setActionHandler('nexttrack', () => {
-      void playNext();
-    });
-
-    return () => {
-      navigator.mediaSession.setActionHandler('previoustrack', null);
-      navigator.mediaSession.setActionHandler('nexttrack', null);
-    };
-  }, [playPrev, playNext]);
-
-  useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
+    const onPlay = () => {
+      setIsPlaying(true);
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
+      }
+    };
+    const onPause = () => {
+      setIsPlaying(false);
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+      }
+    };
     const onEnded = () => setIsPlaying(false);
+
+    // На iOS кнопки prev/next на экране блокировки появляются только если
+    // обработчики установлены после начала воспроизведения (событие playing).
+    const onPlaying = () => {
+      if (!('mediaSession' in navigator)) return;
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        void playPrev();
+      });
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        void playNext();
+      });
+    };
 
     audio.addEventListener('play', onPlay);
     audio.addEventListener('pause', onPause);
     audio.addEventListener('ended', onEnded);
+    audio.addEventListener('playing', onPlaying);
 
     return () => {
       audio.removeEventListener('play', onPlay);
       audio.removeEventListener('pause', onPause);
       audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('playing', onPlaying);
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('previoustrack', null);
+        navigator.mediaSession.setActionHandler('nexttrack', null);
+      }
     };
-  }, []);
+  }, [playPrev, playNext]);
 
   return (
     <AudioContext.Provider
