@@ -7,6 +7,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const coverBlobUrlRef = useRef<string | null>(null);
   const [currentAudioId, setCurrentAudioId] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -19,7 +20,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
     (
       newPlaylist: File[] | null,
       chatId: number | null,
-      opts?: { autoPlayId?: number | null },
+      opts?: { autoPlayId?: number | null; coverUrl?: string | null },
     ) => {
       setCurrentChatId(chatId);
 
@@ -28,6 +29,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
       } else {
         // still update playlist to the new one even if the chat is same
         setPlaylistState(newPlaylist);
+      }
+
+      const cover = opts?.coverUrl ?? null;
+      if (cover !== null) {
+        coverBlobUrlRef.current = null;
+        setCoverUrl(cover);
       }
 
       // If caller requested autoplay, handle it here using the provided playlist
@@ -42,13 +49,14 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
 
           if (currentAudioId !== audioId) {
             setCurrentAudioId(audioId);
+            const artworkUrl = cover ?? null;
             if ('mediaSession' in navigator) {
               navigator.mediaSession.metadata = new MediaMetadata({
-                title: file.original_name,
-                artwork: coverUrl
+                title: file.original_name ?? '',
+                artwork: artworkUrl
                   ? [
                       {
-                        src: coverUrl,
+                        src: artworkUrl,
                         sizes: '512x512',
                         type: 'image/png',
                       },
@@ -57,7 +65,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
               });
             }
 
-            const url = await fetchPrivateMedia(file.file_url);
+            const url = await fetchPrivateMedia(file.file_url!);
             if (audio.src !== url) audio.src = url;
 
             await audio.play();
@@ -75,26 +83,33 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
         })();
       }
     },
-    [currentChatId, currentAudioId, coverUrl],
+    [currentChatId, currentAudioId],
   );
 
   const togglePlay = useCallback(
-    async (audioId: number) => {
+    async (audioId: number, opts?: { coverUrl?: string | null }) => {
       const audio = audioRef.current;
       if (!audio || !playlist) return;
 
       const file = playlist.find((f) => f.id === audioId);
       if (!file) return;
 
+      const cover = opts?.coverUrl ?? null;
+      if (cover !== null) {
+        coverBlobUrlRef.current = null;
+        setCoverUrl(cover);
+      }
+
       if (currentAudioId !== audioId) {
         setCurrentAudioId(audioId);
+        const artworkUrl = cover !== null ? cover : coverUrl;
         if ('mediaSession' in navigator) {
           navigator.mediaSession.metadata = new MediaMetadata({
-            title: file.original_name,
-            artwork: coverUrl
+            title: file.original_name ?? '',
+            artwork: artworkUrl
               ? [
                   {
-                    src: coverUrl,
+                    src: artworkUrl,
                     sizes: '512x512',
                     type: 'image/png',
                   },
@@ -103,7 +118,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
           });
         }
 
-        const url = await fetchPrivateMedia(file.file_url);
+        const url = await fetchPrivateMedia(file.file_url!);
         if (audio.src !== url) audio.src = url;
 
         await audio.play();
@@ -122,6 +137,75 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
     [playlist, currentAudioId, coverUrl],
   );
 
+  const playPrev = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio || !playlist || currentAudioId == null) return;
+
+    const index = playlist.findIndex((f) => f.id === currentAudioId);
+    if (index <= 0) {
+      audio.currentTime = 0;
+      if (audio.paused) await audio.play();
+      setIsPlaying(true);
+      return;
+    }
+
+    const file = playlist[index - 1];
+    const cover =
+      file.cover_url != null ? await fetchPrivateMedia(file.cover_url) : null;
+    if (coverBlobUrlRef.current) {
+      URL.revokeObjectURL(coverBlobUrlRef.current);
+    }
+    coverBlobUrlRef.current = cover;
+    setCoverUrl(cover);
+    setCurrentAudioId(file.id ?? null);
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: file.original_name ?? '',
+        artwork: cover
+          ? [{ src: cover, sizes: '512x512', type: 'image/png' }]
+          : [],
+      });
+    }
+    const url = await fetchPrivateMedia(file.file_url!);
+    if (audio.src !== url) audio.src = url;
+    await audio.play();
+    setIsPlaying(true);
+  }, [playlist, currentAudioId]);
+
+  const playNext = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio || !playlist || currentAudioId == null) return;
+
+    const index = playlist.findIndex((f) => f.id === currentAudioId);
+    if (index < 0 || index >= playlist.length - 1) {
+      audio.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    const file = playlist[index + 1];
+    const cover =
+      file.cover_url != null ? await fetchPrivateMedia(file.cover_url) : null;
+    if (coverBlobUrlRef.current) {
+      URL.revokeObjectURL(coverBlobUrlRef.current);
+    }
+    coverBlobUrlRef.current = cover;
+    setCoverUrl(cover);
+    setCurrentAudioId(file.id ?? null);
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: file.original_name ?? '',
+        artwork: cover
+          ? [{ src: cover, sizes: '512x512', type: 'image/png' }]
+          : [],
+      });
+    }
+    const url = await fetchPrivateMedia(file.file_url!);
+    if (audio.src !== url) audio.src = url;
+    await audio.play();
+    setIsPlaying(true);
+  }, [playlist, currentAudioId]);
+
   useEffect(() => {
     // console.log('currentTime', currentTime);
 
@@ -133,6 +217,22 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (!currentAudioId) audioRef.current?.pause();
   }, [currentAudioId]);
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      void playPrev();
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      void playNext();
+    });
+
+    return () => {
+      navigator.mediaSession.setActionHandler('previoustrack', null);
+      navigator.mediaSession.setActionHandler('nexttrack', null);
+    };
+  }, [playPrev, playNext]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -161,6 +261,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
         setPlaylist,
         currentChatId,
         togglePlay,
+        playPrev,
+        playNext,
         isPlaying,
         currentAudioId,
         setCurrentAudioId,

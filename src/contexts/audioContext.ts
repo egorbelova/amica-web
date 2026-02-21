@@ -8,9 +8,11 @@ export interface AudioContextType {
   setPlaylist: (
     playlist: File[] | null,
     currentChatId: number | null,
-    opts?: { autoPlayId?: number | null },
+    opts?: { autoPlayId?: number | null; coverUrl?: string | null },
   ) => void;
-  togglePlay: (currentAudioId: number) => void;
+  togglePlay: (audioId: number, opts?: { coverUrl?: string | null }) => void;
+  playPrev: () => void;
+  playNext: () => void;
   isPlaying: boolean;
   currentAudioId: number | null;
   setCurrentAudioId: (currentAudioId: number | null) => void;

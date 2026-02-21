@@ -32,7 +32,6 @@ export default function AudioLayout({
     togglePlay: toggleAudio,
     isPlaying: isAudioPlaying,
     currentAudioId,
-    setCoverUrl,
     setCurrentTime,
   } = useAudio();
   const { selectedChat, messages } = useChat();
@@ -101,18 +100,19 @@ export default function AudioLayout({
     };
   }, []);
 
-  // removed pendingAudioId; autoplay on playlist change is handled by AudioContext
-
   const togglePlay = useCallback(() => {
+    const coverOpt = cover ?? undefined;
     if (currentChatId !== selectedChat?.id) {
       const newPlaylist = messages.flatMap((message) =>
         (message.files ?? []).filter((file) => file.category === 'audio'),
       );
-      setPlaylist(newPlaylist, selectedChat?.id || 0, { autoPlayId: id });
+      setPlaylist(newPlaylist, selectedChat?.id || 0, {
+        autoPlayId: id,
+        coverUrl: coverOpt,
+      });
     } else {
-      toggleAudio(id);
+      toggleAudio(id, { coverUrl: coverOpt });
     }
-    setCoverUrl(cover);
   }, [
     messages,
     selectedChat?.id,
@@ -121,10 +121,7 @@ export default function AudioLayout({
     setPlaylist,
     toggleAudio,
     cover,
-    setCoverUrl,
   ]);
-
-  // autoplay handled by AudioContext provider when setPlaylist is called with opts.autoPlayId
 
   const cycleSpeed = useCallback(() => {
     const audio = audioRef.current;
@@ -154,7 +151,6 @@ export default function AudioLayout({
 
     updateTime(getClientX(e));
     const onMouseMove = (moveEvent: MouseEvent | TouchEvent) => {
-      // console.log('onMouseMove');
       moveEvent.preventDefault();
       moveEvent.stopPropagation();
 
@@ -287,7 +283,6 @@ export default function AudioLayout({
       ro = new ResizeObserver(update);
       ro.observe(el);
     } else {
-      // fallback to window resize if ResizeObserver not available
       window.addEventListener('resize', update);
     }
 

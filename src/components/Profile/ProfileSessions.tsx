@@ -161,6 +161,7 @@ export default function ProfileSessions() {
             value={sessionLifetime}
             onChange={updateSessionLifetime}
             placeholder='Select session lifetime'
+            buttonStyles={styles.sessionLifetimeDropdown}
           />
         )}
         {savingLifetime && <span>Saving…</span>}

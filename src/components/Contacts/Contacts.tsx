@@ -3,6 +3,7 @@ import Avatar from '@/components/Avatar/Avatar';
 import styles from './Contacts.module.scss';
 import { useChat } from '@/contexts/ChatContextCore';
 import { useContacts } from '@/contexts/contacts/useContacts';
+import { formatLastSeen } from '@/utils/activityFormatter';
 
 const Contacts = () => {
   const { t } = useTranslation();
@@ -27,8 +28,12 @@ const Contacts = () => {
                 displayName={contact.name}
                 displayMedia={contact.primary_media}
               />
-              <span className={styles.username}>{contact.name}</span>
-              <span className={styles.email}>{contact.last_seen}</span>
+              <div className={styles.contactInfo}>
+                <span className={styles.username}>{contact.name}</span>
+                <span className={styles.lastSeen}>
+                  {formatLastSeen(contact.last_seen)}
+                </span>
+              </div>
             </li>
           ))
         ) : (

@@ -15,3 +15,14 @@
 .username {
   font-weight: 500;
 }
+
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.lastSeen {
+  font-size: 0.875rem;
+  color: #999;
+}

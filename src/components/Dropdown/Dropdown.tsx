@@ -15,12 +15,14 @@ type DropdownProps<T> = {
   value: T;
   onChange: (value: T) => void;
   placeholder?: string;
+  buttonStyles?: string;
 };
 
 export function Dropdown<T extends string | number>({
   items,
   value,
   onChange,
+  buttonStyles,
   placeholder = 'Select...',
 }: DropdownProps<T>) {
   const [open, setOpen] = useState(false);
@@ -148,13 +150,25 @@ export function Dropdown<T extends string | number>({
 
     const index = items.findIndex((item) => item.value === value);
     const el = itemRefs.current[index];
+    const menu = menuRef.current;
 
-    if (el) {
+    if (!el || !menu) return;
+
+    const targetScrollTop = el.offsetTop;
+
+    const maxScroll = menu.scrollHeight - menu.clientHeight;
+
+    menu.scrollTo({
+      top: Math.min(targetScrollTop, maxScroll),
+      behavior: 'instant',
+    });
+
+    requestAnimationFrame(() => {
       setIndicatorPos({
         top: el.offsetTop,
         height: el.offsetHeight,
       });
-    }
+    });
   }, [open, value, items]);
 
   useEffect(() => {
@@ -198,25 +212,20 @@ export function Dropdown<T extends string | number>({
         left = Math.max(window.scrollX, viewportWidth - menuWidth - 8);
       }
 
-      const top = btnRect.bottom + window.scrollY;
+      const top = btnRect.top + window.scrollY;
 
       setPosition({ top, left });
     }
   }, [open, items.length]);
 
   const selected = items.find((item) => item.value === value);
-  useEffect(() => {
-    if (open) {
-      itemRefs.current = [];
-    }
-  }, [open]);
 
   return (
     <div className={styles.dropdown} ref={containerRef}>
       <Button
         ref={btnRef}
         onClick={() => setOpen((prev) => !prev)}
-        className={styles.toggle}
+        className={`${styles.toggle} ${buttonStyles}`}
         type='button'
       >
         {selected ? (
@@ -229,9 +238,6 @@ export function Dropdown<T extends string | number>({
         ) : (
           placeholder
         )}
-        <span className={`${styles.arrow} ${open ? styles.open : ''}`}>
-          <Icon name='Arrow' />
-        </span>
       </Button>
 
       {open &&
