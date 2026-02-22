@@ -14,7 +14,6 @@ interface SliderProps {
   step?: number;
   onChange: (value: number) => void;
   label?: string;
-  color?: string;
 }
 
 const Slider: React.FC<SliderProps> = ({
@@ -24,7 +23,6 @@ const Slider: React.FC<SliderProps> = ({
   step = 1,
   onChange,
   label,
-  color = '#007bff',
 }) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -249,14 +247,12 @@ const Slider: React.FC<SliderProps> = ({
           className={styles.fill}
           style={{
             width: `${fillWidth}px`,
-            backgroundColor: color,
           }}
         />
         <div
           className={styles.thumb}
           style={{
             left: `${thumbLeft}px`,
-            backgroundColor: color,
           }}
         />
       </div>
@@ -273,10 +269,7 @@ const propsEqual = (
     prev.min === next.min &&
     prev.max === next.max &&
     prev.step === next.step &&
-    prev.label === next.label &&
-    prev.color === next.color
-    // intentionally ignore onChange identity to avoid re-renders when parent
-    // provides a new function each render
+    prev.label === next.label
   );
 };
 

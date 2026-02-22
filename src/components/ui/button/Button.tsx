@@ -25,32 +25,41 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) => {
-    const mirrorRef = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
-    const [dimensions, setDimensions] = useState({ width: 40, height: 40 });
+    const [width, setWidth] = useState(0);
 
     useLayoutEffect(() => {
-      const mirror = mirrorRef.current;
-      if (!mirror) return;
+      const button = buttonRef.current;
+      if (!button) return;
 
-      const updateSize = () => {
-        setDimensions({
-          width: mirror.offsetWidth,
-          height: mirror.offsetHeight,
-        });
+      const updateWidth = () => {
+        const contentSpan = button.querySelector<HTMLSpanElement>(
+          `.${styles.content}`,
+        );
+        if (contentSpan) {
+          const style = getComputedStyle(button);
+          const padding =
+            parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+          setWidth(contentSpan.scrollWidth + padding);
+        }
       };
 
-      updateSize();
-      const resizeObserver = new ResizeObserver(updateSize);
-      resizeObserver.observe(mirror);
+      updateWidth();
+
+      const resizeObserver = new ResizeObserver(updateWidth);
+      const contentSpan = button.querySelector<HTMLSpanElement>(
+        `.${styles.content}`,
+      );
+      if (contentSpan) resizeObserver.observe(contentSpan);
+
       return () => resizeObserver.disconnect();
     }, [children]);
 
     const setRefs = (el: HTMLButtonElement | null) => {
-      (buttonRef as React.MutableRefObject<HTMLButtonElement | null>).current =
-        el;
+      buttonRef.current = el;
       if (typeof ref === 'function') ref(el);
-      else if (ref) (ref as React.MutableRefObject<HTMLButtonElement | null>).current = el;
+      else if (ref)
+        (ref as React.MutableRefObject<HTMLButtonElement | null>).current = el;
     };
 
     const classes = [
@@ -62,14 +71,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       .filter(Boolean)
       .join(' ');
 
-    const mirrorClasses = [
-      styles.button,
-      styles.mirror,
-      styles[variant],
-    ]
-      .filter(Boolean)
-      .join(' ');
-
     return (
       <button
         ref={setRefs}
@@ -77,21 +78,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled}
         className={classes}
         style={{
-          width: dimensions.width,
-          height: dimensions.height,
+          width: width ? `${width}px` : 'auto',
         }}
         {...props}
       >
-        <div
-          ref={mirrorRef}
-          className={mirrorClasses}
-          aria-hidden="true"
-        >
-          <span className={styles.content}>{children}</span>
-        </div>
         <span className={styles.content}>{children}</span>
       </button>
     );
   },
 );
+
 export default Button;

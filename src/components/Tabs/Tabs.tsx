@@ -6,6 +6,7 @@ import styles from './Tabs.module.scss';
 import { useTranslation } from '@/contexts/languageCore';
 import { useSettings } from '@/contexts/settings/context';
 import { useRef } from 'react';
+import Button from '../ui/button/Button';
 
 type TabValue = 'contacts' | 'chats' | 'profile';
 
@@ -37,8 +38,7 @@ export function Tabs() {
     <nav className={styles.tabs}>
       {activeProfileTab === 'appearance' && activeTab === 'profile' && (
         <div className={styles['new-wallpaper']}>
-          <button
-            type='button'
+          <Button
             className={styles['new-wallpaper__button']}
             onClick={() => {
               wallpaperInputRef.current?.click();
@@ -46,7 +46,7 @@ export function Tabs() {
           >
             <Icon name='Wallpaper' className={styles['new-wallpaper__icon']} />
             <span>Add New Wallpaper</span>
-          </button>
+          </Button>
           <input
             ref={wallpaperInputRef}
             className={styles['new-wallpaper__input']}

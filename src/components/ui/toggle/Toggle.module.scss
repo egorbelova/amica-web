@@ -21,7 +21,7 @@
   flex-shrink: 0;
 
   &.checked {
-    background-color: var(--toggle-active, rgb(0, 123, 255));
+    background-color: var(--toggle-active, var(--mainColor));
   }
 
   &.disabled {

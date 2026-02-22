@@ -46,7 +46,7 @@
   text-overflow: ellipsis;
   width: 100%;
   position: absolute;
-  caret-color: var(--room_BG_color_hex);
+  caret-color: var(--mainColor);
   padding: 0;
 }
 

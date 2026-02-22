@@ -3,6 +3,7 @@ import type { Message as MessageType } from '../../types';
 import styles from './Message.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 import SmartMediaLayout from './SmartMediaLayout.tsx';
+import { useRef, useState, useLayoutEffect } from 'react';
 
 interface MessageProps {
   message: MessageType;
@@ -18,6 +19,7 @@ const Message: React.FC<MessageProps> = ({
   onPointerDown,
   onPointerUp,
 }) => {
+  const messageRef = useRef<HTMLDivElement>(null);
   const isOwnMessage = (): boolean => {
     return message.is_own;
   };
@@ -31,6 +33,32 @@ const Message: React.FC<MessageProps> = ({
     );
 
   const handleDoubleClick = () => {};
+
+  const messageContainerRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    const messageContainer = messageContainerRef.current;
+    if (!messageContainer) return;
+
+    const updateWidth = () => {
+      const message = messageRef.current;
+      if (message) {
+        setWidth(message.scrollWidth);
+        setHeight(message.scrollHeight);
+      }
+    };
+
+    updateWidth();
+
+    const resizeObserver = new ResizeObserver(updateWidth);
+    const message = messageRef.current;
+    if (message) resizeObserver.observe(message);
+
+    return () => resizeObserver.disconnect();
+  }, []);
+
   return (
     <div
       className={`temp_full ${
@@ -52,8 +80,13 @@ const Message: React.FC<MessageProps> = ({
         className={`${styles.message_div} ${
           isOwnMessage() ? `${styles.darker} ${styles.right}` : ''
         }`}
+        ref={messageContainerRef}
+        style={{
+          width: width ? `${width}px` : 'auto',
+          height: height ? `${height}px` : 'auto',
+        }}
       >
-        <div className={styles.message}>
+        <div className={styles.message} ref={messageRef}>
           {message.files && message.files.length > 0 && (
             <SmartMediaLayout files={message.files} />
           )}
@@ -63,7 +96,7 @@ const Message: React.FC<MessageProps> = ({
               !message.value ? styles.textEmpty : ''
             } ${!message.value && hasOnlyMediaFiles ? styles.hasOnlyMediaFiles : ''}`}
           >
-            <div className='message_and_reaction'>
+            <div className={styles.message_and_reaction}>
               {message.value && (
                 <span className={styles.message__text}>{message.value}</span>
               )}

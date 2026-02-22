@@ -29,7 +29,9 @@ export interface ChatContextType {
   handleNewMessage: (data: WebSocketMessage) => void;
 }
 
-export const ChatContext = createContext<ChatContextType | undefined>(undefined);
+export const ChatContext = createContext<ChatContextType | undefined>(
+  undefined,
+);
 
 export const useChat = (): ChatContextType => {
   const context = useContext(ChatContext);
@@ -38,4 +40,3 @@ export const useChat = (): ChatContextType => {
   }
   return context;
 };
-

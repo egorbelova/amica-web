@@ -8,13 +8,9 @@
   right: 15px;
   overflow: hidden;
   border-radius: 100%;
-  width: 40px;
-  height: 40px;
+  width: 40px !important;
+  height: 40px !important;
   text-align: center;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
   opacity: 0;
   transform: scale(0);
@@ -23,69 +19,6 @@
     opacity 0.2s ease-in,
     background 1s,
     transform 0.2s ease-in;
-
-  background: rgba(35, 35, 35, 0.7) !important;
-  box-shadow:
-    inset 0 0 0 1px
-      color-mix(
-        in srgb,
-        var(--c-light) calc(var(--glass-reflex-light) * 10%),
-        transparent
-      ),
-    inset 1.8px 3px 0px -2px
-      color-mix(
-        in srgb,
-        var(--c-light) calc(var(--glass-reflex-light) * 90%),
-        transparent
-      ),
-    inset -2px -2px 0px -2px
-      color-mix(
-        in srgb,
-        var(--c-light) calc(var(--glass-reflex-light) * 80%),
-        transparent
-      ),
-    inset -3px -8px 1px -6px
-      color-mix(
-        in srgb,
-        var(--c-light) calc(var(--glass-reflex-light) * 60%),
-        transparent
-      ),
-    inset -0.3px -1px 4px 0px
-      color-mix(
-        in srgb,
-        var(--c-dark) calc(var(--glass-reflex-dark) * 12%),
-        transparent
-      ),
-    inset -1.5px 2.5px 0px -2px
-      color-mix(
-        in srgb,
-        var(--c-dark) calc(var(--glass-reflex-dark) * 20%),
-        transparent
-      ),
-    inset 0px 3px 4px -2px
-      color-mix(
-        in srgb,
-        var(--c-dark) calc(var(--glass-reflex-dark) * 20%),
-        transparent
-      ),
-    inset 2px -6.5px 1px -4px
-      color-mix(
-        in srgb,
-        var(--c-dark) calc(var(--glass-reflex-dark) * 10%),
-        transparent
-      ),
-    0px 1px 5px 0px
-      color-mix(
-        in srgb,
-        var(--c-dark) calc(var(--glass-reflex-dark) * 10%),
-        transparent
-      ),
-    0px 6px 16px 0px
-      color-mix(
-        in srgb,
-        var(--c-dark) calc(var(--glass-reflex-dark) * 8%),
-        transparent
-      );
 }
 
 .liquidGlass-effect-scroll {
@@ -96,31 +29,6 @@
   backdrop-filter: blur(1px) opacity(1);
   -webkit-backdrop-filter: blur(1px) opacity(1);
   overflow: hidden;
-}
-
-.scroll_down::before {
-  content: '';
-  position: absolute;
-
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  -webkit-mask: radial-gradient(
-    circle,
-    transparent 50%,
-    #fff calc(100%),
-    #fff calc(100%),
-    transparent calc(100%)
-  );
-
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  backdrop-filter: saturate(300%) blur(10px) brightness(200%) opacity(100%);
-  -webkit-backdrop-filter: saturate(300%) blur(10px) brightness(200%)
-    opacity(100%);
-  z-index: -1;
 }
 
 .visible {

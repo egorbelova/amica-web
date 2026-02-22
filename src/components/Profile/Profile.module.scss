@@ -212,7 +212,8 @@
 }
 
 .editSelectedWallpaper {
-  padding: 0 50px !important;
+  height: 30px !important;
+  padding: 0 20px !important;
 }
 
 .editSelectedWallpaperDropdown {
@@ -259,7 +260,7 @@
 }
 
 .check.active {
-  background: #4d8ddb;
+  background: var(--mainColor);
 }
 
 .content {
@@ -276,8 +277,8 @@
 // }
 
 .close {
-  width: 18px;
-  height: 20px;
+  width: 40px !important;
+  height: 40px !important;
 }
 
 .title {
@@ -363,4 +364,120 @@
 
 .sessionLifetimeDropdown {
   height: 30px !important;
+}
+
+.colorPickerPreview {
+  min-width: 32px;
+  height: 32px;
+  border-radius: 32px;
+  border: 2px solid #ccc;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+  background-color: var(--mainColor);
+}
+
+.colorPickerContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  border-radius: 32px;
+  margin: 20px 0px;
+}
+
+.colorPickerBar {
+  position: relative;
+  height: 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: none;
+
+  background: linear-gradient(
+    to right,
+    hsl(0, 100%, 50%),
+    hsl(60, 100%, 50%),
+    hsl(120, 100%, 50%),
+    hsl(180, 100%, 50%),
+    hsl(240, 100%, 50%),
+    hsl(300, 100%, 50%),
+    hsl(360, 100%, 50%)
+  );
+}
+
+.colorPickerThumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #00000033;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.colorArea {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  border-radius: 16px;
+  cursor: crosshair;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.colorAreaOverlayWhite {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+}
+
+.colorAreaOverlayBlack {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, #000, rgba(0, 0, 0, 0));
+}
+
+.colorThumb {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px #00000033;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.changeColorButton {
+  width: 100% !important;
+}
+
+.colorChangeContainer {
+  padding: 10px 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.colorInfo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.colorInput {
+  width: 100% !important;
+}
+
+.hueThumb {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px #00000033;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }

@@ -843,9 +843,22 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
             <div className={styles.form}>
               {selectedChat.type === 'D' && (
                 <>
-                  {/* <Input placeholder='First Name' isRequired />
-                <Input placeholder='Last Name' />
-                <Input placeholder='Notes' /> */}
+                  <Input
+                    placeholder='Username'
+                    isRequired
+                    value={editValue}
+                    onChange={setValue}
+                  />
+                  {/* <Input
+                    placeholder='Last Name'
+                    value={editValue}
+                    onChange={setValue}
+                  />
+                  <Input
+                    placeholder='Notes'
+                    value={editValue}
+                    onChange={setValue}
+                  /> */}
                 </>
               )}
               {selectedChat.type === 'G' && (

@@ -58,7 +58,7 @@
   &__read {
     width: 16px;
     height: 16px;
-    fill: #4d8ddb;
+    fill: var(--mainColor);
     transition: fill 0.3s ease;
   }
 
@@ -224,7 +224,7 @@
   &--active,
   &--active:hover {
     border: none;
-    background: var(--room_BG_color_hex);
+    background: var(--mainColor);
     color: #d5eaff;
 
     .chat-list-item__read {

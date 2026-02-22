@@ -168,7 +168,7 @@
   position: absolute;
   inset: 2px;
   z-index: -1;
-  background: #4f8cff;
+  background: var(--mainColor);
   border-radius: inherit;
   transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
   transition-duration: 0.5s;
@@ -411,13 +411,9 @@
 
 .save {
   width: 100% !important;
-  background-color: var(--room_BG_color_hex);
+  background-color: var(--mainColor);
   &:hover {
-    background-color: color-mix(
-      in srgb,
-      var(--room_BG_color_hex) 80%,
-      transparent
-    );
+    background-color: color-mix(in srgb, var(--mainColor) 80%, transparent);
   }
 }
 

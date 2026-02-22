@@ -19,10 +19,10 @@
   align-items: center;
 
   &__button {
-    background-color: #1972de;
+    background-color: var(--mainColor) !important;
     border-radius: 20px;
     height: calc(100% - 16px);
-    width: 100%;
+    flex: 1;
     margin: 20px;
     display: flex;
     justify-content: center;
@@ -100,8 +100,8 @@
 
   &.active {
     // background: var(--color-accent);
-    fill: #4d8ddb;
-    color: #4d8ddb;
+    fill: var(--mainColor);
+    color: var(--mainColor);
   }
 }
 

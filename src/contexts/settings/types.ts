@@ -44,4 +44,6 @@ export interface SettingsContextValue {
   setSettingsFullWindow: (value: boolean) => void;
   isResizingPermitted: boolean;
   setIsResizingPermitted: (value: boolean) => void;
+  setColor: (color: string) => void;
+  color: string;
 }

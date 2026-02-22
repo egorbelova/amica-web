@@ -80,11 +80,7 @@ export default function Profile() {
             onClick={() => setActiveProfileTab(null)}
             className={styles.close}
           >
-            <Icon
-              name='Arrow'
-              className={styles.close}
-              style={{ transform: 'rotate(180deg)' }}
-            />
+            <Icon name='Arrow' style={{ transform: 'rotate(180deg)' }} />
           </Button>
           // <button
           //   type='button'

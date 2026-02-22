@@ -48,7 +48,11 @@ const defaultSettings: Settings = {
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const saved = localStorage.getItem('app-settings');
   let parsed: Partial<
-    Settings & { autoplayVideos?: boolean; settingsFullWindow?: boolean }
+    Settings & {
+      autoplayVideos?: boolean;
+      settingsFullWindow?: boolean;
+      color?: string;
+    }
   > = {};
   if (saved) {
     try {
@@ -107,9 +111,16 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       wallpapers: combinedWallpapers,
       activeWallpaper,
       activeWallpaperEditMode:
-        parsed.activeWallpaperEditMode ?? defaultSettings.activeWallpaperEditMode,
+        parsed.activeWallpaperEditMode ??
+        defaultSettings.activeWallpaperEditMode,
     };
   });
+
+  const [color, setColor] = useState<string>(parsed.color ?? '#2c77d1');
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--mainColor', color);
+  }, [color]);
 
   const [loading, setLoading] = useState(true);
   const [activeProfileTab, setActiveProfileTab] = useState<SubTab>(null);
@@ -120,9 +131,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const toSave = {
       ...rest,
       autoplayVideos,
+      color,
     };
     localStorage.setItem('app-settings', JSON.stringify(toSave));
-  }, [settings, autoplayVideos]);
+  }, [settings, autoplayVideos, color]);
 
   const setSetting = useCallback(
     <K extends keyof Settings>(key: K, value: Settings[K]) =>
@@ -262,7 +274,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             (w) => w.id !== wallpaperId,
           ),
           activeWallpaper:
-            prev.activeWallpaper?.id === wallpaperId ? null : prev.activeWallpaper,
+            prev.activeWallpaper?.id === wallpaperId
+              ? null
+              : prev.activeWallpaper,
         }));
       }
 
@@ -310,6 +324,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setSettingsFullWindow,
       isResizingPermitted,
       setIsResizingPermitted,
+      setColor,
+      color,
     }),
     [
       settings,
@@ -318,12 +334,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       autoplayVideos,
       settingsFullWindow,
       isResizingPermitted,
+      color,
       addUserWallpaper,
       fetchWallpapers,
       removeWallpaper,
       setActiveWallpaper,
       setBlur,
       setSetting,
+      setColor,
     ],
   );
 

@@ -10,9 +10,11 @@
 }
 
 .message_div_temp_separator {
-  margin: 0;
   padding: 6px 8px;
   text-align: left;
+  display: inline-flex;
+  align-items: flex-end;
+  flex-wrap: nowrap;
 
   color: var(--message_font_color);
   position: relative;
@@ -33,14 +35,13 @@
   .message_div_subdata {
     display: flex;
     flex-direction: row;
-    position: relative;
-    top: 6px;
     margin-left: 4px;
     gap: 8px;
     align-items: center;
-    float: right;
     justify-content: space-between;
-    padding: 0 6px;
+    padding: 0 6px 0 10px;
+    flex-shrink: 0;
+    margin-left: auto;
   }
 
   &.textEmpty {
@@ -67,26 +68,21 @@
   font-size: 1rem;
   overflow: hidden;
   position: relative;
-  transition:
-    margin-left 0.4s,
-    width 0.2s,
-    height 0.2s cubic-bezier(0.075, 0.82, 0.165, 1),
-    opacity 0.1s ease-out,
-    translate 0.3s;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-out;
+  transition-property: margin-left, width, height, opacity, translate;
 
   &.right {
     margin-left: auto;
   }
 
+  background-color: rgb(from var(--message_color) r g b / 50%);
+
   &.darker {
-    .message {
-      background-color: rgb(from var(--darker_) r g b / 90%);
-    }
+    background-color: rgb(from var(--mainColor) r g b / 90%);
   }
 
   .message {
-    margin: 0;
-    background-color: rgb(from var(--message_color) r g b / 50%);
     text-align: left;
     display: flex;
     flex-wrap: wrap;
@@ -96,7 +92,6 @@
     left: 0;
     right: 0;
     bottom: 0;
-    width: fit-content;
     max-width: 100%;
     height: fit-content;
     position: relative;
@@ -120,4 +115,9 @@
   height: 11px;
   width: auto;
   fill: #fff;
+}
+
+.message_and_reaction {
+  display: inline;
+  max-width: 100%;
 }

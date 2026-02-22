@@ -122,29 +122,6 @@ export function Dropdown<T extends string | number>({
     };
   }, []);
 
-  useEffect(() => {
-    const log = (e: Event) => {
-      const target = e.target as HTMLElement;
-      console.log(
-        e.type,
-        'target:',
-        target?.tagName,
-        'class:',
-        target?.className,
-      );
-    };
-
-    document.addEventListener('pointerdown', log, true);
-    document.addEventListener('pointerup', log, true);
-    document.addEventListener('click', log, true);
-
-    return () => {
-      document.removeEventListener('pointerdown', log, true);
-      document.removeEventListener('pointerup', log, true);
-      document.removeEventListener('click', log, true);
-    };
-  }, []);
-
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // e.preventDefault();
     e.stopPropagation();

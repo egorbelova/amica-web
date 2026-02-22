@@ -8,6 +8,8 @@ import type { WallpaperSetting } from '@/contexts/settings/types';
 import { Icon } from '../Icons/AutoIcons';
 import ProfileTabDescription from './ProfileTabDescription';
 import { Dropdown } from '../Dropdown/Dropdown';
+import ColorPicker from './ColorPicker';
+import Button from '../ui/button/Button';
 
 export default function ProfileAppearance() {
   const { t } = useTranslation();
@@ -25,6 +27,7 @@ export default function ProfileAppearance() {
   } = useSettings();
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -107,6 +110,15 @@ export default function ProfileAppearance() {
                 />
               </div>
             )}
+            <div className={styles.colorChangeContainer}>
+              <Button
+                onClick={() => setColorPickerOpen(!colorPickerOpen)}
+                className={styles.changeColorButton}
+              >
+                {colorPickerOpen ? 'Close Color Picker' : 'Change Color'}
+              </Button>
+              {colorPickerOpen && <ColorPicker />}
+            </div>
             <div className={styles.wallpaperList}>
               <div
                 className={`${styles.wallpaperItem} ${

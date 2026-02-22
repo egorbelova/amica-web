@@ -14,7 +14,7 @@ import { useSnackbar } from '@/contexts/snackbar/SnackbarContextCore';
 import type { Message as MessageType, File, User } from '@/types';
 
 const MessageList: React.FC = () => {
-  const { messages, selectedChat } = useChat();
+  const { messages, selectedChat, updateMessages } = useChat();
   const selectedChatRef = useRef(selectedChat);
   const messagesRef = useRef(messages);
   const { containerRef: jumpContainerRef, setIsVisible } = useJump();
@@ -212,7 +212,7 @@ const MessageList: React.FC = () => {
     {
       label: 'Edit',
       icon: 'Edit' as IconName,
-      onClick: () => alert('Edit clicked'),
+      onClick: () => handleEditMessage(menuMessage),
     },
     {
       label: 'Forward',
@@ -242,6 +242,15 @@ const MessageList: React.FC = () => {
       danger: true,
     },
   ];
+
+  const handleEditMessage = (msg: MessageType) => {
+    const newText = prompt('Edit message', msg.value);
+
+    const newMessages = messages.map((m) =>
+      m.id === msg.id ? { ...m, value: newText } : m,
+    );
+    updateMessages(newMessages, selectedChat?.id || 0);
+  };
 
   const handleCopyMessage = (msg: MessageType) => {
     if (!msg?.value) return;
@@ -331,15 +340,15 @@ const MessageList: React.FC = () => {
     return () => el.removeEventListener('scroll', onScroll);
   }, [setIsVisible]);
 
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
+  // useEffect(() => {
+  //   const el = containerRef.current;
+  //   if (!el) return;
 
-    el.scrollTo({
-      top: el.scrollHeight,
-      // behavior: 'smooth',
-    });
-  }, [messages]);
+  //   el.scrollTo({
+  //     top: el.scrollHeight,
+  //     // behavior: 'smooth',
+  //   });
+  // }, [messages]);
 
   const messageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 

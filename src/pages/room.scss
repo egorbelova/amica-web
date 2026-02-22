@@ -1,3 +1,5 @@
+$mainColor: #2c77d1;
+
 :root {
   --swipe-margin-inactive: 100%;
   --swipe-margin-choose-list: 0%;
@@ -21,6 +23,8 @@
 
   --glass-reflex-dark: 2;
   --glass-reflex-light: 0.3;
+
+  --mainColor: #{$mainColor};
 }
 
 ::-webkit-scrollbar {
@@ -359,11 +363,6 @@ svg {
   white-space: nowrap;
 }
 
-.message_and_reaction {
-  display: inline;
-  max-width: 100%;
-}
-
 .message_div_temp_time_view {
   display: flex;
   flex-direction: row;
@@ -386,7 +385,7 @@ svg {
     min-width: calc(100% - 52px);
   }
   100% {
-    background: rgb(from var(--darker_) r g b / 95%);
+    background: rgb(from var(--mainColor) r g b / 95%);
     min-width: 0;
   }
 }

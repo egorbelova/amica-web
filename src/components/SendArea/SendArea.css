@@ -57,7 +57,7 @@
   font-size: 1rem;
   font-weight: inherit;
   color: var(--textarea_font);
-  caret-color: var(--room_BG_color_hex);
+  caret-color: var(--mainColor);
   word-break: break-word;
   white-space: pre-wrap;
   outline: none;
@@ -194,8 +194,8 @@
   border-radius: 20px;
   cursor: pointer;
   stroke: none;
-  background: var(--room_BG_color_hex);
-  background: color-mix(in srgb, var(--room_BG_color_hex) 70%, transparent);
+  background: var(--mainColor);
+  background: color-mix(in srgb, var(--mainColor) 70%, transparent);
   /* box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1); */
   /* box-shadow: inset 1px 1px 0px 0 rgba(255, 255, 255, 0.3),
     inset -1px -1px 1px 0px rgba(255, 255, 255, 0.3); */

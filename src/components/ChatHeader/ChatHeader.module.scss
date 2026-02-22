@@ -64,7 +64,7 @@
     z-index: 999;
     display: none;
     margin-left: 10px;
-    min-width: 40px;
+    width: 40px !important;
 
     svg {
       width: 100%;
