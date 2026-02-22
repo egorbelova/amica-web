@@ -6,13 +6,13 @@ import ChatHeader from '../ChatHeader/ChatHeader';
 import { useChat } from '@/contexts/ChatContextCore';
 import SideBarMedia from '../SideBarMedia/SideBarMedia';
 import styles from './MainChatWindow.module.scss';
-import { useTranslation } from '@/contexts/languageCore';
 import { useSettings } from '@/contexts/settings/context';
 import wallpaperStyles from '@/pages/RoomPage.module.scss';
 import { usePageStack } from '@/contexts/useStackHistory';
 import { ActiveProfileTab } from '@/components/Profile/ActiveProfileTab';
 import { Icon } from '../Icons/AutoIcons';
 import Button from '../ui/button/Button';
+import AppearanceMenu from './AppearanceMenu';
 
 const MainChatWindow: React.FC = () => {
   const {
@@ -22,8 +22,6 @@ const MainChatWindow: React.FC = () => {
     activeProfileTab,
   } = useSettings();
   const { activeWallpaper } = settings;
-
-  const { t } = useTranslation();
 
   const { selectedChat, setSelectedChatId } = useChat();
 
@@ -57,24 +55,6 @@ const MainChatWindow: React.FC = () => {
   }, []);
   const handleHeaderClick = () => {
     setSideBarVisible(true);
-  };
-
-  const [appearanceMenuVisible, setAppearanceMenuVisible] = useState(true);
-  const tabs: Array<'chats' | 'appearance'> = ['chats', 'appearance'];
-  const [activeTab, setActiveTab] = useState<'chats' | 'appearance'>(
-    'appearance',
-  );
-
-  const handleNextTab = () => {
-    const currentIndex = tabs.indexOf(activeTab);
-    const nextIndex = (currentIndex + 1) % tabs.length;
-    setActiveTab(tabs[nextIndex]);
-  };
-
-  const handlePrevTab = () => {
-    const currentIndex = tabs.indexOf(activeTab);
-    const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-    setActiveTab(tabs[prevIndex]);
   };
 
   return (
@@ -144,43 +124,7 @@ const MainChatWindow: React.FC = () => {
       )}
       {!selectedChat &&
         (!settingsFullWindow || current === 'chats' || !activeProfileTab) && (
-          <div className={styles.noChatContainer}>
-            <div
-              className={styles.menuSwitch}
-              onClick={() => setAppearanceMenuVisible(!appearanceMenuVisible)}
-            >
-              {appearanceMenuVisible ? 'X' : '?'}
-            </div>
-            {!appearanceMenuVisible && (
-              <div className={styles.noChatText}>
-                Select a chat to start messaging
-              </div>
-            )}
-            {appearanceMenuVisible && (
-              <div className={styles.tipsMenu}>
-                {activeTab === 'appearance' && (
-                  <div className={styles.mainContent}>
-                    <div className={styles.header}>
-                      {t('tipsMenu.appearance')}
-                    </div>
-                  </div>
-                )}
-                {activeTab === 'chats' && (
-                  <div className={styles.mainContent}>
-                    <div className={styles.header}>{t('tipsMenu.chats')}</div>
-                  </div>
-                )}
-                <div className={styles.pageSwitch}>
-                  <div className={styles.switchButton} onClick={handlePrevTab}>
-                    {'<'} {t('tipsMenu.previousTip')}
-                  </div>
-                  <div className={styles.switchButton} onClick={handleNextTab}>
-                    {t('tipsMenu.nextTip')} {'>'}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <AppearanceMenu />
         )}
     </div>
   );
