@@ -55,6 +55,8 @@ const Input: React.FC<InputProps> = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           autoComplete='off'
+          autoCapitalize='off'
+          spellCheck={false}
         />
         <label
           className={`${styles.placeholderStatus} ${

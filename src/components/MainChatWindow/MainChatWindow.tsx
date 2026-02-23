@@ -69,7 +69,7 @@ const MainChatWindow: React.FC = () => {
                   alt='Wallpaper'
                   className={wallpaperStyles.wallpaper}
                   style={{
-                    filter: `blur(${activeWallpaper.blur}px)`,
+                    filter: `blur(${activeWallpaper.blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
                   }}
                 />
               )}
@@ -83,7 +83,7 @@ const MainChatWindow: React.FC = () => {
                   preload='metadata'
                   className={wallpaperStyles.wallpaper}
                   style={{
-                    filter: `blur(${activeWallpaper.blur}px)`,
+                    filter: `blur(${activeWallpaper.blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
                   }}
                 />
               )}

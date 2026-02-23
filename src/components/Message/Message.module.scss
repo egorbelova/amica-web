@@ -4,7 +4,6 @@
   word-wrap: break-word;
   display: inline;
   max-width: 100%;
-  // min-width: 18px;
   vertical-align: baseline;
   line-height: normal;
 }
@@ -12,9 +11,8 @@
 .message_div_temp_separator {
   padding: 6px 8px;
   text-align: left;
-  display: inline-flex;
-  align-items: flex-end;
-  flex-wrap: nowrap;
+  flex: 1;
+  flex-shrink: 0;
 
   color: var(--message_font_color);
   position: relative;
@@ -22,10 +20,10 @@
   left: 0;
   right: 0;
   bottom: 0;
-  width: 100%;
-  /* gap: 10px; */
+  flex: 1;
+  width: max-content;
   max-width: 100%;
-  min-height: fit-content;
+  min-height: max-content;
   transition:
     color 1s,
     background 1s,
@@ -33,7 +31,7 @@
     transform 0.3s;
 
   .message_div_subdata {
-    display: flex;
+    display: inline;
     flex-direction: row;
     margin-left: 4px;
     gap: 8px;
@@ -41,13 +39,16 @@
     justify-content: space-between;
     padding: 0 6px 0 10px;
     flex-shrink: 0;
-    margin-left: auto;
+    // margin-left: auto;
+    float: right;
+    margin-top: 10px;
   }
 
   &.textEmpty {
     position: absolute;
     top: unset;
     bottom: 6px;
+    margin-left: auto;
   }
 
   &.hasOnlyMediaFiles {
@@ -68,9 +69,15 @@
   font-size: 1rem;
   overflow: hidden;
   position: relative;
-  transition-duration: 0.2s;
-  transition-timing-function: ease-out;
-  transition-property: margin-left, width, height, opacity, translate;
+  --td: 0.15s;
+  --ttf: ease-out;
+  transition:
+    margin-left var(--td) var(--ttf),
+    width var(--td) var(--ttf),
+    height var(--td) var(--ttf),
+    opacity var(--td) var(--ttf),
+    translate var(--td) var(--ttf),
+    background-color 0.4s var(--ttf);
 
   &.right {
     margin-left: auto;
@@ -81,21 +88,23 @@
   &.darker {
     background-color: rgb(from var(--mainColor) r g b / 90%);
   }
+}
 
-  .message {
-    text-align: left;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-    align-items: flex-start;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    max-width: 100%;
-    height: fit-content;
-    position: relative;
-  }
+.message {
+  text-align: left;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  // align-items: flex-start;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  // max-width: 100%;
+  height: fit-content;
+  position: relative;
+  width: max-content;
+  max-width: min(432px, calc(100dvw - 60px));
 }
 
 .avatar {
@@ -118,6 +127,7 @@
 }
 
 .message_and_reaction {
-  display: inline;
+  display: inline-block;
+  width: max-content;
   max-width: 100%;
 }

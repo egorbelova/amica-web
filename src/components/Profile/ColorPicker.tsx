@@ -2,7 +2,24 @@ import { useRef, useCallback, useMemo } from 'react';
 import styles from './Profile.module.scss';
 import { useSettings } from '@/contexts/settings/context';
 import Input from '../SideBarMedia/Input';
+import ColorPreview from './ColorPreview';
 
+const suggestedColors = [
+  '#007AFF',
+  '#5AC8FA',
+  '#5856D6',
+  '#6A5ACD',
+  '#30B0C7',
+  '#20B2AA',
+  '#34C759',
+  '#FF3B30',
+  '#FF2D55',
+  '#FF375F',
+  '#FFB07C',
+  '#FF9E7B',
+  '#8E8E93',
+  '#000000',
+];
 const parseToHSL = (inputColor: string) => {
   const temp = document.createElement('div');
   temp.style.color = inputColor;
@@ -63,9 +80,19 @@ const ColorPicker = () => {
   const saturation = parsed?.s ?? 100;
   const lightness = parsed?.l ?? 50;
 
+  const animationFrameRef = useRef<number | null>(null);
+  const targetColorRef = useRef({ h: hue, s: saturation, l: lightness });
+
   const updateColor = useCallback(
     (h: number, s: number, l: number) => {
-      setColor(`hsl(${h}, ${s}%, ${l}%)`);
+      targetColorRef.current = { h, s, l };
+      if (animationFrameRef.current === null) {
+        animationFrameRef.current = requestAnimationFrame(() => {
+          const { h, s, l } = targetColorRef.current;
+          setColor(`hsl(${h}, ${s}%, ${l}%)`);
+          animationFrameRef.current = null;
+        });
+      }
     },
     [setColor],
   );
@@ -101,8 +128,28 @@ const ColorPicker = () => {
     [hue, updateColor],
   );
 
+  const handleSuggestedColorClick = useCallback(
+    (color: string) => {
+      setColor(color);
+    },
+    [setColor],
+  );
+
   return (
     <div className={styles.colorPickerContainer}>
+      <div className={styles.suggestedColors}>
+        <div className={styles.suggestedColorsTitle}>Suggestions</div>
+        <div className={styles.suggestedColorsContainer}>
+          {suggestedColors.map((color) => (
+            <ColorPreview
+              onClick={() => handleSuggestedColorClick(color)}
+              key={color}
+              color={color}
+            />
+          ))}
+        </div>
+      </div>
+
       <div className={styles.colorInfo}>
         <div className={styles.colorPickerPreview} />
         <Input

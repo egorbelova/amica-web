@@ -39,24 +39,30 @@ const Message: React.FC<MessageProps> = ({
   const [height, setHeight] = useState(0);
 
   useLayoutEffect(() => {
-    const messageContainer = messageContainerRef.current;
-    if (!messageContainer) return;
+    const el = messageRef.current;
+    if (!el) return;
 
-    const updateWidth = () => {
-      const message = messageRef.current;
-      if (message) {
-        setWidth(message.scrollWidth);
-        setHeight(message.scrollHeight);
-      }
+    const updateSize = () => {
+      const rect = el.getBoundingClientRect();
+
+      // берём scrollWidth как базу
+      const width = el.scrollWidth;
+      const height = el.scrollHeight;
+
+      // добавляем дробную часть из rect
+      const preciseWidth = width + (rect.width - Math.floor(rect.width));
+      const preciseHeight = height + (rect.height - Math.floor(rect.height));
+
+      setWidth(preciseWidth);
+      setHeight(preciseHeight);
     };
 
-    updateWidth();
+    updateSize();
 
-    const resizeObserver = new ResizeObserver(updateWidth);
-    const message = messageRef.current;
-    if (message) resizeObserver.observe(message);
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(el);
 
-    return () => resizeObserver.disconnect();
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -86,6 +92,7 @@ const Message: React.FC<MessageProps> = ({
           height: height ? `${height}px` : 'auto',
         }}
       >
+        {/* <div className={styles.message_container}> */}
         <div className={styles.message} ref={messageRef}>
           {message.files && message.files.length > 0 && (
             <SmartMediaLayout files={message.files} />
@@ -96,12 +103,12 @@ const Message: React.FC<MessageProps> = ({
               !message.value ? styles.textEmpty : ''
             } ${!message.value && hasOnlyMediaFiles ? styles.hasOnlyMediaFiles : ''}`}
           >
-            <div className={styles.message_and_reaction}>
-              {message.value && (
-                <span className={styles.message__text}>{message.value}</span>
-              )}
-              {message.liked > 0 && <div className='message-reaction'>❤️</div>}
-            </div>
+            {/* <div className={styles.message_and_reaction}> */}
+            {message.value && (
+              <span className={styles.message__text}>{message.value}</span>
+            )}
+            {/* {message.liked > 0 && <div className='message-reaction'>❤️</div>}
+            </div> */}
 
             <div className={styles.message_div_subdata}>
               <div className='message_div_temp_time_view'>
@@ -121,6 +128,7 @@ const Message: React.FC<MessageProps> = ({
                       />
                     ))}
                 </span>
+                {/* </div> */}
               </div>
             </div>
           </div>

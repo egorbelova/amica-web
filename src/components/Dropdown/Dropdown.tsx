@@ -23,9 +23,9 @@ export function Dropdown<T extends string | number>({
   items,
   value,
   onChange,
-  buttonStyles,
+  buttonStyles = '',
+  dropdownStyles = '',
   placeholder = 'Select...',
-  dropdownStyles,
 }: DropdownProps<T>) {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState({

@@ -370,8 +370,7 @@
   min-width: 32px;
   height: 32px;
   border-radius: 32px;
-  border: 2px solid #ccc;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(0, 0, 0, 0.1);
   background-color: var(--mainColor);
 }
 
@@ -456,7 +455,6 @@
 .colorChangeContainer {
   padding: 10px 0;
   max-width: 100%;
-  overflow: hidden;
 }
 
 .colorInfo {
@@ -480,4 +478,40 @@
   top: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
+}
+
+.suggestedColorsTitle {
+  font-size: 1.375rem;
+  font-weight: 500;
+}
+
+$suggestedColorPreviewSize: 40px;
+
+.suggestedColorsContainer {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax($suggestedColorPreviewSize, 1fr)
+  );
+  gap: 10px;
+}
+
+.suggestedColorPreview {
+  height: $suggestedColorPreviewSize;
+  width: $suggestedColorPreviewSize;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  scale: 1;
+  transition: scale 0.2s ease;
+}
+
+.active {
+  scale: 1.2;
+}
+
+.suggestedColors {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
