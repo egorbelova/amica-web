@@ -33,6 +33,14 @@
     width 0.2s,
     height 0.2s;
   white-space: nowrap;
+
+  &:hover {
+    background-color: rgba(127, 127, 127, 0.3);
+  }
+}
+
+.active {
+  scale: 1.1;
 }
 
 .content {

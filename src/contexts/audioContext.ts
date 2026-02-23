@@ -18,6 +18,7 @@ export interface AudioContextType {
   setCurrentAudioId: (currentAudioId: number | null) => void;
   setCoverUrl: (coverUrl: string | null) => void;
   setCurrentTime: (currentTime: number) => void;
+  audioRef: React.RefObject<HTMLAudioElement> | null;
 }
 
 export const AudioContext = createContext<AudioContextType | undefined>(

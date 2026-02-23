@@ -1,6 +1,8 @@
 import styles from './ChatHeader.module.scss';
 import { useAudio } from '@/contexts/audioContext';
 import { Icon } from '../Icons/AutoIcons';
+import AudioEqualizer from './AudioEqualizer';
+import Button from '../ui/button/Button';
 
 export const MediaHeader: React.FC = () => {
   const {
@@ -39,13 +41,15 @@ export const MediaHeader: React.FC = () => {
           </div>
         )}
       </div>
-      <button
-        type='button'
-        onClick={() => setCurrentAudioId(null)}
-        className={styles['media-header__rightside']}
-      >
-        <Icon name='Cross' className={styles.close} />
-      </button>
+      <div className={styles['media-header__rightside']}>
+        <AudioEqualizer />
+        <Button
+          onClick={() => setCurrentAudioId(null)}
+          className={styles['media-header__close']}
+        >
+          <Icon name='Cross' className={styles.close} />
+        </Button>
+      </div>
     </div>
   );
 };

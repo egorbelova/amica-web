@@ -278,6 +278,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
         setCurrentAudioId,
         setCoverUrl,
         setCurrentTime,
+        audioRef,
       }}
     >
       <audio ref={audioRef} preload='metadata' />

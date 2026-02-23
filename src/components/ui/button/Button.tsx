@@ -26,7 +26,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const buttonRef = useRef<HTMLButtonElement>(null);
+    const releaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+      null,
+    );
     const [width, setWidth] = useState(0);
+    const [isPulsing, setIsPulsing] = useState(false);
 
     useLayoutEffect(() => {
       const button = buttonRef.current;
@@ -66,6 +70,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       styles.button,
       styles[variant],
       disabled ? styles.disabled : '',
+      isPulsing ? styles.active : '',
       className,
     ]
       .filter(Boolean)
@@ -77,6 +82,33 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         type={type}
         disabled={disabled}
         className={classes}
+        onPointerDown={() => {
+          if (releaseTimeoutRef.current) {
+            clearTimeout(releaseTimeoutRef.current);
+            releaseTimeoutRef.current = null;
+          }
+          if (isPulsing) {
+            setIsPulsing(false);
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => setIsPulsing(true));
+            });
+          } else {
+            setIsPulsing(true);
+          }
+        }}
+        onPointerUp={() => {
+          releaseTimeoutRef.current = setTimeout(() => {
+            setIsPulsing(false);
+            releaseTimeoutRef.current = null;
+          }, 70);
+        }}
+        onPointerLeave={() => {
+          if (releaseTimeoutRef.current) {
+            clearTimeout(releaseTimeoutRef.current);
+            releaseTimeoutRef.current = null;
+          }
+          setIsPulsing(false);
+        }}
         style={{
           width: width ? `${width}px` : 'auto',
         }}

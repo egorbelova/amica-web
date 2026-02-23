@@ -133,12 +133,7 @@
 .button {
   min-width: 40px;
   width: fit-content;
-  &:active {
-    scale: 0.95;
-  }
-  &:hover {
-    background-color: rgba(127, 127, 127, 0.5);
-  }
+
   svg {
     width: 20px;
     height: 20px;
