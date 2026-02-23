@@ -1,38 +1,12 @@
-const CACHE_NAME = 'app-cache-' + '__BUILD_HASH__';
-
-const STATIC_ASSETS = ['/'];
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    }),
-  );
-
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter((key) => key !== CACHE_NAME)
-            .map((key) => caches.delete(key)),
-        ),
-      ),
-  );
-  self.clients.claim();
-});
+const CACHE_NAME = 'app-cache-v3';
+const STATIC_ASSETS = ['/', '/index.html'];
 
 const STATIC_EXTENSIONS = [
-  // '.js',
-  // 'tsx',
-  // 'ts',
-  // '.css',
-  // '.scss',
+  '.js',
+  '.ts',
+  '.tsx',
+  '.css',
+  '.scss',
   '.png',
   '.jpg',
   '.jpeg',
@@ -41,58 +15,72 @@ const STATIC_EXTENSIONS = [
   '.woff2',
   '.woff',
   '.ttf',
-  // '.html',
   '.json',
   '.xml',
   '.txt',
-  '.ico',
-  // '.webmanifest',
 ];
 
 const STATIC_PATHS = ['/assets/'];
 
+// ---------- INSTALL ----------
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)),
+  );
+  self.skipWaiting();
+});
+
+// ---------- FETCH ----------
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  const url = new URL(request.url);
 
+  // Навигация (SPA) -> всегда отдаём index.html
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put('/index.html', clone);
-          });
-          return response;
-        })
-        .catch(() => caches.match('/index.html')),
+      caches.match('/index.html').then((cached) => {
+        const networkFetch = fetch(request)
+          .then((response) => {
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put('/index.html', response.clone());
+            });
+            return response;
+          })
+          .catch(() => cached);
+
+        return cached || networkFetch;
+      }),
     );
     return;
   }
 
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
+  // Проверка, является ли запрос статическим файлом
+  const isStatic =
+    STATIC_PATHS.some((path) => url.pathname.startsWith(path)) ||
+    STATIC_EXTENSIONS.some((ext) => url.pathname.endsWith(ext));
 
-      return fetch(request).then((response) => {
-        if (
-          response &&
-          response.status === 200 &&
-          (response.type === 'basic' || response.type === 'cors')
-        ) {
-          const url = new URL(request.url);
-          const isStatic =
-            STATIC_EXTENSIONS.some((ext) => url.pathname.endsWith(ext)) ||
-            STATIC_PATHS.some((path) => url.pathname.startsWith(path));
+  // Кэширование API и статических ресурсов
+  if (isStatic || url.pathname.startsWith('/api/protected-file/')) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(CACHE_NAME);
+        const cachedResponse = await cache.match(request);
+        if (cachedResponse) return cachedResponse;
 
-          if (isStatic) {
-            const responseClone = response.clone();
-            caches
-              .open(CACHE_NAME)
-              .then((cache) => cache.put(request, responseClone));
+        try {
+          const response = await fetch(request);
+          if (response && response.status === 200) {
+            cache.put(request, response.clone());
           }
+          return response;
+        } catch (err) {
+          return cachedResponse; // fallback, если сеть не доступна
         }
-        return response;
-      });
-    }),
-  );
+      })(),
+    );
+    return;
+  }
+
+  // Все остальные запросы просто через сеть
+  // event.respondWith(fetch(request));
 });
