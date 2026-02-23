@@ -109,4 +109,6 @@ export interface Session {
   expires_at: string;
   last_active: string;
   is_current: boolean;
+  city: string | null;
+  country: string | null;
 }

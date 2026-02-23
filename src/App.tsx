@@ -23,6 +23,13 @@ const App: React.FC = () => {
     );
   }, []);
 
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      console.log('Service Worker registration');
+      navigator.serviceWorker.register('/sw.js');
+    }
+  }, []);
+
   if (loading) {
     return <div className='loader'></div>;
   }

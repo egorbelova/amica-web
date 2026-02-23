@@ -23,7 +23,7 @@ const ColorPreview = ({
       onPointerUp={() => {
         setTimeout(() => {
           setIsPulsing(false);
-        }, 70);
+        }, 100);
       }}
     />
   );

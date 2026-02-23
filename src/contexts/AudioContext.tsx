@@ -236,8 +236,6 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
     };
     const onEnded = () => setIsPlaying(false);
 
-    // На iOS кнопки prev/next на экране блокировки появляются только если
-    // обработчики установлены после начала воспроизведения (событие playing).
     const onPlaying = () => {
       if (!('mediaSession' in navigator)) return;
       navigator.mediaSession.setActionHandler('previoustrack', () => {

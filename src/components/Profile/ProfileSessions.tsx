@@ -191,6 +191,11 @@ export default function ProfileSessions() {
                 </span>
 
                 <span className={styles.subInfo}>
+                  {session.city ? `${session.city}, ` : ''}
+                  {session.country ? session.country : ''}
+                </span>
+
+                <span className={styles.subInfo}>
                   Created {formatDate(session.created_at)}
                 </span>
 

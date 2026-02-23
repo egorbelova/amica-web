@@ -45,11 +45,9 @@ const Message: React.FC<MessageProps> = ({
     const updateSize = () => {
       const rect = el.getBoundingClientRect();
 
-      // берём scrollWidth как базу
       const width = el.scrollWidth;
       const height = el.scrollHeight;
 
-      // добавляем дробную часть из rect
       const preciseWidth = width + (rect.width - Math.floor(rect.width));
       const preciseHeight = height + (rect.height - Math.floor(rect.height));
 
