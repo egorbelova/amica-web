@@ -4,21 +4,16 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  bottom: calc(min(env(safe-area-inset-bottom, 0px), 10px) + 65px);
+  bottom: calc(min(var(--sab), 10px) + 65px);
   right: 15px;
   overflow: hidden;
   border-radius: 100%;
-  width: 40px !important;
-  height: 40px !important;
+  width: 45px !important;
+  height: 45px !important;
   text-align: center;
   user-select: none;
   opacity: 0;
   transform: scale(0);
-
-  transition:
-    opacity 0.2s ease-in,
-    background 1s,
-    transform 0.2s ease-in;
 }
 
 .liquidGlass-effect-scroll {
@@ -33,9 +28,6 @@
 
 .visible {
   opacity: 1;
-  transition:
-    opacity 0.2s ease-in,
-    transform 0.2s ease-in;
   transform: scale(1);
   /* backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px); */

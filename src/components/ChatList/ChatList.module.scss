@@ -12,9 +12,7 @@
 
   position: absolute;
 
-  padding-bottom: calc(
-    (min(env(safe-area-inset-bottom, 0px), 10px) + 10px) * 2 + 48px
-  );
+  padding-bottom: calc((min(var(--sab), 10px) + 10px) * 2 + 48px);
   transition-duration: var(--appear-duration);
   transition-timing-function: ease;
   transition-property: opacity, transform;

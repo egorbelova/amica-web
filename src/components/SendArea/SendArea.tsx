@@ -2,13 +2,14 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { websocketManager } from '../../utils/websocket-manager';
 import { useChat } from '../../contexts/ChatContextCore';
 import { useUser } from '../../contexts/UserContextCore';
-import { apiFetch, apiUpload } from '../../utils/apiFetch';
 import DropZone from '../DropZone/DropZone';
 import { Icon } from '../Icons/AutoIcons';
 import { useSearchContext } from '@/contexts/search/SearchContextCore';
 import styles from './SendArea.module.scss';
 import JumpToBottom from '../JumpToBottom/JumpToBottom';
 import './SendArea.css';
+import Button from '../ui/button/Button';
+import { apiUpload } from '../../utils/apiFetch';
 
 const MessageInput: React.FC = () => {
   const [message, setMessage] = useState('');
@@ -104,64 +105,30 @@ const MessageInput: React.FC = () => {
     [user?.id, roomId],
   );
 
-  const mirrorRef = useRef<HTMLDivElement>(document.createElement('div'));
-
-  useEffect(() => {
-    const el = editableRef.current;
-    const mirror = mirrorRef.current;
-    if (!el) return;
-
-    mirror.id = 'mirror';
-
-    document.body.appendChild(mirror);
-
-    return () => {
-      document.body.removeChild(mirror);
-    };
-  }, []);
-
-  const adjustHeight = useCallback(() => {
-    const el = editableRef.current;
-    const mirror = mirrorRef.current;
-    if (!el || !mirror) return;
-
-    mirror.textContent = el.textContent || '\u200b';
-
-    const contentHeight = mirror.offsetHeight;
-
-    const maxHeight = 200;
-
-    if (contentHeight <= maxHeight) {
-      el.style.height = contentHeight + 'px';
-      el.style.overflowY = 'visible';
-    } else {
-      el.style.height = maxHeight + 'px';
-      el.style.overflowY = 'auto';
-    }
-  }, []);
-
   const handleInput = useCallback(() => {
     const el = editableRef.current;
     if (!el) return;
     setMessage(el.innerText || '');
-    adjustHeight();
-  }, [adjustHeight]);
-
-  useEffect(() => {
-    adjustHeight();
-  }, [adjustHeight]);
+  }, []);
 
   useEffect(() => {
     if (!editingMessage || !roomId) return;
     const text = editingMessage.value ?? '';
     setMessage(text);
     if (editableRef.current) {
-      editableRef.current.innerText = text;
-      editableRef.current.style.height = '20px';
-      adjustHeight();
-      editableRef.current.focus();
+      const el = editableRef.current;
+      el.innerText = text;
+      el.style.height = '20px';
+      el.focus();
+
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
     }
-  }, [editingMessage?.id, roomId, adjustHeight, editingMessage]);
+  }, [editingMessage?.id, roomId, editingMessage]);
 
   const cancelEdit = useCallback(() => {
     setEditingMessage(null);
@@ -181,26 +148,26 @@ const MessageInput: React.FC = () => {
         setTerm('');
         setResults([]);
         const newValue = message.trim();
-        const previousValue = editingMessage.value ?? '';
+        // const previousValue = editingMessage.value ?? '';
         updateMessageInChat(roomId, editingMessage.id, { value: newValue });
         cancelEdit();
-        try {
-          const res = await apiFetch(`/api/messages/${editingMessage.id}/`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ value: newValue }),
-          });
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err?.value?.[0] || err?.error || 'Failed to edit');
-          }
-        } catch (err) {
-          console.error('Edit message error:', err);
-          updateMessageInChat(roomId, editingMessage.id, {
-            value: previousValue,
-          });
-          alert(err instanceof Error ? err.message : String(err));
-        }
+        // try {
+        //   const res = await apiFetch(`/api/messages/${editingMessage.id}/`, {
+        //     method: 'PATCH',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ value: newValue }),
+        //   });
+        //   if (!res.ok) {
+        //     const err = await res.json().catch(() => ({}));
+        //     throw new Error(err?.value?.[0] || err?.error || 'Failed to edit');
+        //   }
+        // } catch (err) {
+        //   console.error('Edit message error:', err);
+        //   updateMessageInChat(roomId, editingMessage.id, {
+        //     value: previousValue,
+        //   });
+        //   alert(err instanceof Error ? err.message : String(err));
+        // }
         return;
       }
 
@@ -419,19 +386,6 @@ const MessageInput: React.FC = () => {
       <JumpToBottom />
       <DropZone onFiles={handleFiles} />
       <div className='send_div_container'>
-        {editingMessage && (
-          <div className={styles['edit-bar']}>
-            <span className={styles['edit-bar-label']}>Editing message</span>
-            <button
-              type='button'
-              className={styles['edit-bar-cancel']}
-              onClick={cancelEdit}
-              aria-label='Cancel edit'
-            >
-              Cancel
-            </button>
-          </div>
-        )}
         <form
           id='post-form'
           className='send_div send_div_class'
@@ -460,28 +414,44 @@ const MessageInput: React.FC = () => {
 
           <div
             className='textarea_container'
-            onMouseDown={(e) => {
-              e.preventDefault();
-              editableRef.current?.focus();
-            }}
-            onClick={(e) => {
-              e.preventDefault();
-              editableRef.current?.focus();
-            }}
+            // onMouseDown={(e) => {
+            //   // e.preventDefault();
+            //   // editableRef.current?.focus();
+            // }}
+            // onClick={(e) => {
+            //   // e.preventDefault();
+            //   // editableRef.current?.focus();
+            // }}
           >
-            <div
-              ref={editableRef}
-              onInput={handleInput}
-              onKeyDown={handleKeyDown}
-              onPaste={handlePaste}
-              className='textarea'
-              contentEditable
-              suppressContentEditableWarning
-              spellCheck={false}
-            />
-            <span className='textarea_placeholder'>
-              {message ? '' : 'Message'}
-            </span>
+            {editingMessage && (
+              <div className={styles['edit-bar']}>
+                <span className={styles['edit-bar-label']}>
+                  <Icon name='Edit' /> Editing message
+                </span>
+                <Button
+                  onClick={cancelEdit}
+                  aria-label='Cancel edit'
+                  className={styles['edit-bar-cancel']}
+                >
+                  <Icon name='Cross' />
+                </Button>
+              </div>
+            )}
+            <div className={styles['textarea-container']}>
+              <div
+                ref={editableRef}
+                onInput={handleInput}
+                onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
+                className='textarea'
+                contentEditable
+                suppressContentEditableWarning
+                spellCheck={false}
+              />
+              <span className='textarea_placeholder'>
+                {message ? '' : 'Message'}
+              </span>
+            </div>
           </div>
 
           <div

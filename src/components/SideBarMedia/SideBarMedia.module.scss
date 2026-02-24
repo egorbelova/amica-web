@@ -1,11 +1,8 @@
-:root {
+.container {
   --sidebar-width: 420px;
   --ttd: 0.4s;
   --ttf: cubic-bezier(0.19, 1, 0.22, 1);
-}
-
-.container {
-  position: fixed;
+  position: absolute;
   width: 384px;
   height: 100%;
   transform: translateX(100%);
@@ -142,7 +139,7 @@
 }
 
 .button {
-  min-width: 40px;
+  min-width: 45px;
   width: fit-content;
 
   svg {

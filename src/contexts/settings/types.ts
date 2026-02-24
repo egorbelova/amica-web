@@ -7,7 +7,10 @@ export type WallpaperSetting = {
   blur?: number;
 };
 
-export type ActiveWallpaperEditMode = 'natural' | 'black-and-white';
+export type ActiveWallpaperEditMode =
+  | 'natural'
+  | 'black-and-white'
+  | 'colour-wash';
 
 export type Settings = {
   language: string;

@@ -78,11 +78,31 @@
   }
 
   background-color: rgb(from var(--message_color) r g b / 50%);
-  outline: 1px solid rgba(127, 127, 127, 0.7);
+  backdrop-filter: blur(10px);
+  outline: 1px solid rgba(127, 127, 127, 0.3);
 
   &.darker {
-    background-color: rgb(from var(--mainColor) r g b / 90%);
+    // background-color: rgb(from var(--mainColor) r g b / 90%);
+    backdrop-filter: none;
+    background-attachment: fixed;
+    background-image: linear-gradient(
+      180deg,
+      var(--mainColor) 0%,
+      color-mix(in srgb, var(--mainColor) 50%, #000) 100%
+    );
     outline: none;
+  }
+  animation: message_loaded 0.2s ease-in-out;
+}
+
+@keyframes message_loaded {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px);
   }
 }
 

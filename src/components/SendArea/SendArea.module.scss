@@ -90,18 +90,35 @@
   padding: 6px 12px;
   background: rgba(255, 255, 255, 0.06);
   border-radius: 8px 8px 0 0;
-  font-size: 12px;
-}
-
-.edit-bar-label {
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+  border-radius: 32px;
+  margin-bottom: 8px;
 }
 
 .edit-bar-cancel {
-  border: none;
-  background: transparent;
-  color: var(--accent, #7c9cff);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 2px 6px;
+  height: 20px !important;
+  width: 20px !important;
+  padding: 3px !important;
+}
+
+// .edit-bar-cancel {
+//   border: none;
+//   background: transparent;
+//   color: var(--accent, #7c9cff);
+//   cursor: pointer;
+//   font-size: 12px;
+//   padding: 2px 6px;
+// }
+
+.edit-bar-label {
+  height: 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.textarea-container {
+  position: relative;
 }

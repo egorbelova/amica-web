@@ -45,7 +45,7 @@ export function Tabs() {
             }}
           >
             <Icon name='Wallpaper' className={styles['new-wallpaper__icon']} />
-            <span>Add New Wallpaper</span>
+            Add New Wallpaper
           </Button>
           <input
             ref={wallpaperInputRef}

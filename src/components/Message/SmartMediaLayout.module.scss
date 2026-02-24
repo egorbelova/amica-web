@@ -109,12 +109,16 @@
 .progress {
   cursor: pointer;
   position: relative;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-width: 200px;
 }
 
 .waveformCanvas {
   display: block;
   vertical-align: top;
+  min-width: 200px;
+  flex-shrink: 0;
 }
 
 .progressFillWrapper {
@@ -156,6 +160,7 @@
   flex-direction: column;
   gap: 8px;
   width: 100%;
+  width: fit-content;
   z-index: 999;
   padding: 7px;
 }

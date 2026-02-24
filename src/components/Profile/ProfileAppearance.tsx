@@ -144,13 +144,17 @@ export default function ProfileAppearance() {
                       items={[
                         { label: 'Natural', value: 'natural' },
                         { label: 'Black and White', value: 'black-and-white' },
+                        { label: 'Colour Wash', value: 'colour-wash' },
                       ]}
                       value={settings.activeWallpaperEditMode ?? 'natural'}
                       placeholder='Edit'
                       onChange={(value) =>
                         setSetting(
                           'activeWallpaperEditMode',
-                          value as 'natural' | 'black-and-white',
+                          value as
+                            | 'natural'
+                            | 'black-and-white'
+                            | 'colour-wash',
                         )
                       }
                       buttonStyles={styles.editSelectedWallpaper}

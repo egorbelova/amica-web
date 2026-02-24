@@ -62,7 +62,15 @@ const MainChatWindow: React.FC = () => {
       {windowWidth <= 768 && (
         <>
           {activeWallpaper?.url && (
-            <div className={wallpaperStyles.wallpaperContainer}>
+            <div
+              className={wallpaperStyles.wallpaperContainer}
+              style={{
+                backgroundColor:
+                  settings.activeWallpaperEditMode === 'colour-wash'
+                    ? 'var(--mainColor)'
+                    : 'transparent',
+              }}
+            >
               {activeWallpaper?.type === 'photo' && (
                 <img
                   src={activeWallpaper.url}
@@ -70,6 +78,10 @@ const MainChatWindow: React.FC = () => {
                   className={wallpaperStyles.wallpaper}
                   style={{
                     filter: `blur(${activeWallpaper.blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
+                    mixBlendMode:
+                      settings.activeWallpaperEditMode === 'colour-wash'
+                        ? 'overlay'
+                        : 'normal',
                   }}
                 />
               )}
@@ -84,6 +96,10 @@ const MainChatWindow: React.FC = () => {
                   className={wallpaperStyles.wallpaper}
                   style={{
                     filter: `blur(${activeWallpaper.blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
+                    mixBlendMode:
+                      settings.activeWallpaperEditMode === 'colour-wash'
+                        ? 'overlay'
+                        : 'normal',
                   }}
                 />
               )}

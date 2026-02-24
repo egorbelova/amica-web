@@ -83,19 +83,48 @@ const RoomPage: React.FC = () => {
               {activeWallpaper?.type === 'photo' && (
                 <>
                   {windowWidth > 768 && (
-                    <img
-                      src={activeWallpaper.url}
-                      alt='Wallpaper'
+                    <div
                       className={styles.wallpaperGlow}
-                    />
+                      style={{
+                        backgroundColor:
+                          settings.activeWallpaperEditMode === 'colour-wash'
+                            ? 'var(--mainColor)'
+                            : 'transparent',
+                        filter: `blur(50px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
+                      }}
+                    >
+                      <img
+                        src={activeWallpaper.url}
+                        alt='Wallpaper'
+                        className={styles.wallpaper}
+                        style={{
+                          mixBlendMode:
+                            settings.activeWallpaperEditMode === 'colour-wash'
+                              ? 'multiply'
+                              : 'normal',
+                        }}
+                      />
+                    </div>
                   )}
-                  <div className={styles.wallpaperContainer}>
+                  <div
+                    className={styles.wallpaperContainer}
+                    style={{
+                      backgroundColor:
+                        settings.activeWallpaperEditMode === 'colour-wash'
+                          ? 'var(--mainColor)'
+                          : 'transparent',
+                    }}
+                  >
                     <img
                       src={activeWallpaper.url}
                       alt='Wallpaper'
                       className={styles.wallpaper}
                       style={{
                         filter: `blur(${activeWallpaper.blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
+                        mixBlendMode:
+                          settings.activeWallpaperEditMode === 'colour-wash'
+                            ? 'overlay'
+                            : 'normal',
                       }}
                     />
                   </div>
@@ -104,15 +133,40 @@ const RoomPage: React.FC = () => {
               {activeWallpaper?.type === 'video' && (
                 <>
                   {windowWidth > 768 && (
-                    <video
-                      src={activeWallpaper.url + '#t=0.001'}
-                      playsInline
-                      muted
-                      preload='metadata'
+                    <div
                       className={styles.wallpaperGlow}
-                    />
+                      style={{
+                        backgroundColor:
+                          settings.activeWallpaperEditMode === 'colour-wash'
+                            ? 'var(--mainColor)'
+                            : 'transparent',
+                        filter: `blur(50px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
+                      }}
+                    >
+                      <video
+                        src={activeWallpaper.url + '#t=0.001'}
+                        playsInline
+                        muted
+                        preload='metadata'
+                        className={styles.wallpaper}
+                        style={{
+                          mixBlendMode:
+                            settings.activeWallpaperEditMode === 'colour-wash'
+                              ? 'multiply'
+                              : 'normal',
+                        }}
+                      />
+                    </div>
                   )}
-                  <div className={styles.wallpaperContainer}>
+                  <div
+                    className={styles.wallpaperContainer}
+                    style={{
+                      backgroundColor:
+                        settings.activeWallpaperEditMode === 'colour-wash'
+                          ? 'var(--mainColor)'
+                          : 'transparent',
+                    }}
+                  >
                     <video
                       ref={videoRef}
                       src={activeWallpaper.url + '#t=0.001'}
@@ -123,6 +177,10 @@ const RoomPage: React.FC = () => {
                       className={styles.wallpaper}
                       style={{
                         filter: `blur(${activeWallpaper.blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
+                        mixBlendMode:
+                          settings.activeWallpaperEditMode === 'colour-wash'
+                            ? 'overlay'
+                            : 'normal',
                       }}
                     />
                   </div>
@@ -133,9 +191,10 @@ const RoomPage: React.FC = () => {
         </>
       )}
       {/* {windowWidth > 768 && <BackgroundComponent />} */}
-
-      <LeftSideBar />
-      <MainChatWindow />
+      <div className={styles.roomPageContainer}>
+        <LeftSideBar />
+        <MainChatWindow />
+      </div>
     </>
   );
 };

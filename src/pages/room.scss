@@ -103,8 +103,8 @@ body {
   overflow: hidden;
   overscroll-behavior-x: none;
   overscroll-behavior-y: none;
-  height: calc(env(safe-area-inset-top) + 100%);
-  max-height: calc(env(safe-area-inset-top) + 100%);
+  height: calc(var(--sat) + 100%);
+  max-height: calc(var(--sat) + 100%);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -125,15 +125,14 @@ body {
   background-color: rgb(30, 30, 30);
   max-height: calc(100%);
   border-radius: var(--device-corner-radius);
-  animation: page-loaded 0.3s ease-in-out;
 }
 
 @keyframes page-loaded {
   0% {
-    scale: 1.5;
+    transform: scale(1.5);
   }
   100% {
-    scale: 1;
+    transform: scale(1);
   }
 }
 
@@ -147,22 +146,21 @@ body {
   flex-direction: row;
   flex-wrap: nowrap;
   z-index: 999;
-  will-change: transform;
   position: relative;
   border-radius: var(--device-corner-radius);
   container: main_chat_window / inline-size;
 }
 
-.main_chat_window.swipe {
-  transform: translateX(var(--swipe-margin));
-  transition: transform 0s;
-}
+// .main_chat_window.swiped {
+//   // margin-left: calc(10px + var(--swipe-margin));
+//   transition: margin-left 0s;
+// }
 
-.main_chat_window:not(.swipe) {
-  transition:
-    background 0.2s ease-in,
-    transform 0.35s;
-}
+// .main_chat_window:not(.swiped) {
+//   transition:
+//     background 0.2s ease-in,
+//     margin-left 0.35s;
+// }
 
 svg {
   display: block;
@@ -205,21 +203,20 @@ svg {
   flex-direction: column;
   align-items: center;
   overflow: hidden;
-  max-width: 384px;
-  min-width: 384px;
+  width: 384px;
+  flex-shrink: 0;
   position: relative;
   border-radius: 24px;
-  will-change: transform;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.6);
   background: color-mix(in srgb, rgb(0, 0, 0) 50%, transparent);
   margin: 10px 0px 10px 10px;
+  transform: translateZ(0);
 }
 
 .room_div {
   overscroll-behavior: contain;
-  // padding-top: calc(env(safe-area-inset-top) + 50px);
-  padding-bottom: calc(min(env(safe-area-inset-bottom, 0px), 10px) + 50px);
+  padding-bottom: calc(min(var(--sat), 10px) + 50px);
   max-width: 100%;
   min-height: 100px;
   height: 100%;
@@ -229,6 +226,7 @@ svg {
   align-items: flex-end;
   width: 700px;
   position: relative;
+  isolation: isolate;
 
   mask-image: linear-gradient(
     to bottom,
@@ -294,13 +292,13 @@ svg {
   margin: 0 auto;
   min-height: 100%;
   height: 100%;
-  display: flex;
+  // display: flex;
   justify-content: center;
   position: relative;
-  animation: chat-loaded 0.3s ease-in-out;
+  animation: page-loaded 0.5s ease-in-out backwards;
 }
 
-@keyframes chat-loaded {
+@keyframes page-loaded {
   0% {
     opacity: 0;
   }
@@ -336,18 +334,6 @@ svg {
   transition: background 1.5s;
   position: relative;
   width: 100%;
-  animation: message_loaded 0.2s ease-in-out;
-}
-
-@keyframes message_loaded {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0px);
-  }
 }
 
 .temp_full.active {
@@ -582,15 +568,8 @@ svg {
     transition: padding-bottom 300ms cubic-bezier(0.075, 0.82, 0.165, 1) !important;
   }
 
-  .room_div.focus {
-    /* padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 50px); */
-    padding-bottom: calc(
-      max(var(--send_div_height_focus), 10px) + 50px
-    ) !important;
-  }
-
   .send_div_container {
-    // padding-bottom: calc(min(env(safe-area-inset-bottom, 0px), 10px) + 10px);
+    // padding-bottom: calc(min(var(--sab), 10px) + 10px);
     transition: padding-bottom 300ms cubic-bezier(0.075, 0.82, 0.165, 1);
   }
   .send_div_container:focus-within {
@@ -603,12 +582,17 @@ svg {
 
   .main_chat_window {
     width: 100%;
-    transform: translateX(calc(var(--swipe-margin-inactive)));
+    // transform: translateX(var(--swipe-margin-inactive));
     position: fixed;
+    display: none;
+  }
+
+  .main_chat_window.swiped {
+    display: flex;
   }
 
   .scroll_down {
-    bottom: calc(min(env(safe-area-inset-bottom, 0px), 10px) + 65px);
+    bottom: calc(min(var(--sab), 10px) + 65px);
   }
   #opponent_title_name {
     min-width: 100%;
@@ -631,8 +615,8 @@ svg {
   }
 
   .left-menu {
-    // padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 45px + 30px);
-    /* bottom: calc(min(env(safe-area-inset-bottom, 0px), 10px) + 10px); */
+    // padding-bottom: calc(var(--sab) + 45px + 30px);
+    /* bottom: calc(min(var(--sab), 10px) + 10px); */
     order: 2;
   }
 

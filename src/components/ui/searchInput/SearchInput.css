@@ -304,9 +304,9 @@
     /* margin: 0 auto; */
     /* max-width: calc(100% - 100px); */
     /* opacity: 0.5; */
-    /* bottom: env(safe-area-inset-bottom, 20px); */
-    /* bottom: calc(env(safe-area-inset-bottom, 20px) + 10px); */
-    /* bottom: calc(min(env(safe-area-inset-bottom, 0px), 10px) + 10px); */
+    /* bottom: var(--sab); */
+    /* bottom: calc(var(--sab) + 10px); */
+    /* bottom: calc(min(var(--sab), 10px) + 10px); */
     border-radius: 99rem;
     /* margin-top: 50px; */
     /* background: rgba(30, 30, 30, 1) !important; */
