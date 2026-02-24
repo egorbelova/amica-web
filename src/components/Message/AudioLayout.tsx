@@ -13,6 +13,29 @@ import { useChat } from '@/contexts/ChatContextCore';
 
 const SPEEDS = [0.5, 1, 1.5, 2];
 
+function roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+) {
+  if (w <= 0 || h <= 0) return;
+  const radius = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + w - radius, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+  ctx.lineTo(x + w, y + h - radius);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+  ctx.lineTo(x + radius, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
 interface AudioLayoutProps {
   waveform: number[] | null;
   duration: number | null;
@@ -39,6 +62,7 @@ export default function AudioLayout({
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const progressRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const volumeRef = useRef<HTMLDivElement | null>(null);
   const currentTimeRef = useRef(0);
   const [visualTime, setVisualTime] = useState(0);
@@ -264,16 +288,78 @@ export default function AudioLayout({
   const barWidth = 3;
   const gap = 1;
   const totalBars = waveform?.length || 0;
+  const height = 40;
+  const padding = 5;
+  const center = (height - 2 * padding) / 2 + padding;
 
-  const [svgWidth, setSvgWidth] = useState(() => totalBars * (barWidth + gap));
+  const [canvasWidth, setCanvasWidth] = useState(0);
+
+  const drawWaveform = useCallback(
+    (width: number) => {
+      const canvas = canvasRef.current;
+      if (!canvas || !waveform?.length || width <= 0) return;
+
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const w = Math.round(width * dpr);
+      const h = Math.round(height * dpr);
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.save();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      const progressX = (visualTime / safeDuration) * width;
+
+      for (let i = 0; i < waveform.length; i++) {
+        const value = waveform[i];
+        const lineHeight = value * (height - 2 * padding);
+        const x =
+          waveform.length > 1
+            ? (i / (waveform.length - 1)) * width
+            : width / 2 - barWidth / 2;
+        const y = center - lineHeight / 2;
+
+        const barLeft = x;
+        const barRight = x + barWidth;
+
+        if (progressX <= barLeft) {
+          ctx.fillStyle = '#c7d2fe';
+          roundRect(ctx, barLeft, y, barWidth, lineHeight, barWidth / 2);
+          ctx.fill();
+        } else if (progressX >= barRight) {
+          ctx.fillStyle = '#ffffffff';
+          roundRect(ctx, barLeft, y, barWidth, lineHeight, barWidth / 2);
+          ctx.fill();
+        } else {
+          const playedWidth = progressX - barLeft;
+          const unplayedWidth = barRight - progressX;
+          ctx.fillStyle = '#ffffffff';
+          roundRect(ctx, barLeft, y, playedWidth, lineHeight, barWidth / 2);
+          ctx.fill();
+          ctx.fillStyle = '#c7d2fe';
+          roundRect(ctx, progressX, y, unplayedWidth, lineHeight, barWidth / 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    },
+    [waveform, visualTime, safeDuration, center],
+  );
 
   useLayoutEffect(() => {
     const el = progressRef.current;
     const fallback = totalBars * (barWidth + gap);
 
     const update = () => {
-      if (el) setSvgWidth(el.clientWidth);
-      else setSvgWidth(fallback);
+      const w = el ? el.clientWidth : fallback;
+      setCanvasWidth(w);
+      drawWaveform(w);
     };
 
     update();
@@ -290,11 +376,7 @@ export default function AudioLayout({
       if (ro) ro.disconnect();
       else window.removeEventListener('resize', update);
     };
-  }, [progressRef, totalBars, barWidth, gap]);
-
-  const height = 40;
-  const padding = 5;
-  const center = (height - 2 * padding) / 2 + padding;
+  }, [progressRef, totalBars, barWidth, gap, drawWaveform]);
 
   return (
     <div
@@ -325,69 +407,17 @@ export default function AudioLayout({
               <div
                 className={styles.progressFill}
                 style={{
-                  width: `${(visualTime / safeDuration) * svgWidth}px`,
+                  width: `${(visualTime / safeDuration) * (canvasWidth || 1)}px`,
                 }}
               />
             </div>
           )}
           {waveform && (
-            <svg width={svgWidth} height={height}>
-              <defs>
-                <mask
-                  id={id.toString()}
-                  maskUnits='userSpaceOnUse'
-                  x='0'
-                  y='0'
-                  width={svgWidth}
-                  height={height}
-                >
-                  {waveform.map((value, i) => {
-                    const lineHeight = value * (height - 2 * padding);
-                    const x = (i / (waveform.length - 1)) * svgWidth;
-                    const y = center - lineHeight / 2;
-                    return (
-                      <rect
-                        key={i}
-                        x={x}
-                        y={y}
-                        width={barWidth}
-                        height={lineHeight}
-                        rx={barWidth / 2}
-                        ry={barWidth / 2}
-                        fill='white'
-                      />
-                    );
-                  })}
-                </mask>
-              </defs>
-
-              {waveform.map((value, i) => {
-                const lineHeight = value * (height - 2 * padding);
-                const x = (i / (waveform.length - 1)) * svgWidth;
-                const y = center - lineHeight / 2;
-                return (
-                  <rect
-                    key={i}
-                    x={x}
-                    y={y}
-                    width={barWidth}
-                    height={lineHeight}
-                    rx={barWidth / 2}
-                    ry={barWidth / 2}
-                    fill='#c7d2fe'
-                  />
-                );
-              })}
-
-              <rect
-                x={0}
-                y={0}
-                width={(visualTime / safeDuration) * svgWidth}
-                height={height}
-                fill='#ffffffff'
-                mask={`url(#${id})`}
-              />
-            </svg>
+            <canvas
+              ref={canvasRef}
+              className={styles.waveformCanvas}
+              style={{ width: '100%', height: `${height}px`, display: 'block' }}
+            />
           )}
         </div>
       </div>

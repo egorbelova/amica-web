@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { websocketManager } from '../../utils/websocket-manager';
 import { useChat } from '../../contexts/ChatContextCore';
 import { useUser } from '../../contexts/UserContextCore';
-import { apiUpload } from '../../utils/apiFetch';
+import { apiFetch, apiUpload } from '../../utils/apiFetch';
 import DropZone from '../DropZone/DropZone';
 import { Icon } from '../Icons/AutoIcons';
 import { useSearchContext } from '@/contexts/search/SearchContextCore';
@@ -20,7 +20,12 @@ const MessageInput: React.FC = () => {
   const editableRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { selectedChat } = useChat();
+  const {
+    selectedChat,
+    editingMessage,
+    setEditingMessage,
+    updateMessageInChat,
+  } = useChat();
   const { user } = useUser();
   const { setTerm, setResults } = useSearchContext();
 
@@ -146,9 +151,58 @@ const MessageInput: React.FC = () => {
     adjustHeight();
   }, [adjustHeight]);
 
+  useEffect(() => {
+    if (!editingMessage || !roomId) return;
+    const text = editingMessage.value ?? '';
+    setMessage(text);
+    if (editableRef.current) {
+      editableRef.current.innerText = text;
+      editableRef.current.style.height = '20px';
+      adjustHeight();
+      editableRef.current.focus();
+    }
+  }, [editingMessage?.id, roomId, adjustHeight, editingMessage]);
+
+  const cancelEdit = useCallback(() => {
+    setEditingMessage(null);
+    setMessage('');
+    if (editableRef.current) {
+      editableRef.current.innerText = '';
+      editableRef.current.style.height = '20px';
+    }
+  }, [setEditingMessage]);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
+
+      if (editingMessage && roomId) {
+        if (!message.trim()) return;
+        setTerm('');
+        setResults([]);
+        const newValue = message.trim();
+        const previousValue = editingMessage.value ?? '';
+        updateMessageInChat(roomId, editingMessage.id, { value: newValue });
+        cancelEdit();
+        try {
+          const res = await apiFetch(`/api/messages/${editingMessage.id}/`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ value: newValue }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err?.value?.[0] || err?.error || 'Failed to edit');
+          }
+        } catch (err) {
+          console.error('Edit message error:', err);
+          updateMessageInChat(roomId, editingMessage.id, {
+            value: previousValue,
+          });
+          alert(err instanceof Error ? err.message : String(err));
+        }
+        return;
+      }
 
       if (!message.trim() && files.length === 0) return;
       setTerm('');
@@ -240,6 +294,9 @@ const MessageInput: React.FC = () => {
       sendFilesViaHttp,
       setTerm,
       setResults,
+      editingMessage,
+      updateMessageInChat,
+      cancelEdit,
     ],
   );
 
@@ -281,12 +338,17 @@ const MessageInput: React.FC = () => {
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (editingMessage && e.key === 'Escape') {
+        e.preventDefault();
+        cancelEdit();
+        return;
+      }
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         handleSubmit(e);
       }
     },
-    [handleSubmit],
+    [handleSubmit, editingMessage, cancelEdit],
   );
 
   const handlePaste = useCallback(
@@ -357,6 +419,19 @@ const MessageInput: React.FC = () => {
       <JumpToBottom />
       <DropZone onFiles={handleFiles} />
       <div className='send_div_container'>
+        {editingMessage && (
+          <div className={styles['edit-bar']}>
+            <span className={styles['edit-bar-label']}>Editing message</span>
+            <button
+              type='button'
+              className={styles['edit-bar-cancel']}
+              onClick={cancelEdit}
+              aria-label='Cancel edit'
+            >
+              Cancel
+            </button>
+          </div>
+        )}
         <form
           id='post-form'
           className='send_div send_div_class'

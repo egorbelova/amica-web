@@ -14,7 +14,7 @@ import { useSnackbar } from '@/contexts/snackbar/SnackbarContextCore';
 import type { Message as MessageType, File, User } from '@/types';
 
 const MessageList: React.FC = () => {
-  const { messages, selectedChat, updateMessages } = useChat();
+  const { messages, selectedChat, setEditingMessage } = useChat();
   const selectedChatRef = useRef(selectedChat);
   const messagesRef = useRef(messages);
   const { containerRef: jumpContainerRef, setIsVisible } = useJump();
@@ -244,12 +244,9 @@ const MessageList: React.FC = () => {
   ];
 
   const handleEditMessage = (msg: MessageType) => {
-    const newText = prompt('Edit message', msg.value);
-
-    const newMessages = messages.map((m) =>
-      m.id === msg.id ? { ...m, value: newText } : m,
-    );
-    updateMessages(newMessages, selectedChat?.id || 0);
+    setMenuVisible(false);
+    setMenuPos(null);
+    setEditingMessage(msg);
   };
 
   const handleCopyMessage = (msg: MessageType) => {

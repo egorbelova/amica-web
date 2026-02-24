@@ -27,7 +27,6 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
       if (currentChatId !== chatId) {
         setPlaylistState(newPlaylist);
       } else {
-        // still update playlist to the new one even if the chat is same
         setPlaylistState(newPlaylist);
       }
 
@@ -37,7 +36,6 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
         setCoverUrl(cover);
       }
 
-      // If caller requested autoplay, handle it here using the provided playlist
       if (opts?.autoPlayId != null && newPlaylist) {
         void (async () => {
           const audio = audioRef.current;

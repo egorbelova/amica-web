@@ -541,53 +541,56 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
       className={`${styles.container} ${visible ? styles.visible : ''}`}
       ref={sidebarRef}
     >
-      <div
-        className={
-          styles.mask + ' ' + (attachmentsActive ? styles.visible : '')
-        }
-      />
-      <div
-        className={
-          styles.maskBlur + ' ' + (attachmentsActive ? styles.visible : '')
-        }
-      />
-      <div className={`${styles.sidebar}`} ref={sidebarInnerRef}>
-        <div className={styles.header}>
-          <Button
-            onClick={interlocutorEditVisible ? onInterlocutorEditBack : onClose}
-            className={styles.button}
-          >
-            {interlocutorEditVisible ? (
-              <Icon name='Arrow' style={{ transform: 'rotate(180deg)' }} />
-            ) : (
-              <Icon name='Cross' />
-            )}
-          </Button>
+      <div className={styles.content}>
+        <div
+          className={
+            styles.mask + ' ' + (attachmentsActive ? styles.visible : '')
+          }
+        />
+        <div
+          className={
+            styles.maskBlur + ' ' + (attachmentsActive ? styles.visible : '')
+          }
+        />
+        <div className={`${styles.sidebar}`} ref={sidebarInnerRef}>
+          <div className={styles.header}>
+            <Button
+              onClick={
+                interlocutorEditVisible ? onInterlocutorEditBack : onClose
+              }
+              className={styles.button}
+            >
+              {interlocutorEditVisible ? (
+                <Icon name='Arrow' style={{ transform: 'rotate(180deg)' }} />
+              ) : (
+                <Icon name='Cross' />
+              )}
+            </Button>
 
-          {selectedChat &&
-            selectedChat.type === 'D' &&
-            selectedChat?.members &&
-            !attachmentsActive && (
+            {selectedChat &&
+              selectedChat.type === 'D' &&
+              selectedChat?.members &&
+              !attachmentsActive && (
+                <>
+                  <Button
+                    className={`${styles.button} ${
+                      interlocutorEditVisible ? styles.hidden : ''
+                    }`}
+                    onClick={
+                      selectedChat.members[0].is_contact
+                        ? onInterlocutorEdit
+                        : () => addContact(selectedChat.members[0].id)
+                    }
+                  >
+                    {selectedChat.members[0].is_contact
+                      ? 'Edit'
+                      : 'Add to Contacts'}
+                  </Button>
+                </>
+              )}
+            {attachmentsActive && activeTab === 'media' && (
               <>
-                <Button
-                  className={`${styles.button} ${
-                    interlocutorEditVisible ? styles.hidden : ''
-                  }`}
-                  onClick={
-                    selectedChat.members[0].is_contact
-                      ? onInterlocutorEdit
-                      : () => addContact(selectedChat.members[0].id)
-                  }
-                >
-                  {selectedChat.members[0].is_contact
-                    ? 'Edit'
-                    : 'Add to Contacts'}
-                </Button>
-              </>
-            )}
-          {attachmentsActive && activeTab === 'media' && (
-            <>
-              {/* <button
+                {/* <button
                 type='button'
                 className={`${styles.button} ${
                   interlocutorEditVisible ? styles.hidden : ''
@@ -595,70 +598,70 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
               >
                 ...
               </button> */}
-              <Dropdown
-                items={items}
-                placeholder=''
-                value={
-                  items.find((item) => item.label === effectiveFilterType)
-                    ?.value || 0
-                }
-                onChange={(value) => {
-                  const selected = items.find((item) => item.value === value);
-                  if (selected) setFilterType(selected.label);
-                }}
-              />
-            </>
-          )}
-        </div>
+                <Dropdown
+                  items={items}
+                  placeholder=''
+                  value={
+                    items.find((item) => item.label === effectiveFilterType)
+                      ?.value || 0
+                  }
+                  onChange={(value) => {
+                    const selected = items.find((item) => item.value === value);
+                    if (selected) setFilterType(selected.label);
+                  }}
+                />
+              </>
+            )}
+          </div>
 
-        <div
-          className={`${styles['sidebar__avatar-container']} ${
-            isAvatarRollerOpen && !interlocutorEditVisible
-              ? styles['sidebar__avatar-container--roller']
-              : ''
-          } `}
-        >
           <div
-            className={`${styles['sidebar__avatar-wrapper']} ${
-              interlocutorEditVisible
-                ? styles['sidebar__avatar-wrapper--edit']
-                : ''
-            } ${
+            className={`${styles['sidebar__avatar-container']} ${
               isAvatarRollerOpen && !interlocutorEditVisible
-                ? styles['sidebar__avatar-wrapper--roller']
+                ? styles['sidebar__avatar-container--roller']
                 : ''
-            }`}
-            style={{
-              transform: `translateX(${effectiveRollPosition * -100}%)`,
-            }}
-            onClick={handleRollPositionChange}
+            } `}
           >
-            <EditableAvatar
-              key={selectedChat.id}
-              displayName={selectedChat.name}
-              avatar={selectedChat.primary_media}
-              objectId={interlocutor?.contact_id}
-              contentType='contact'
-              className={styles['sidebar__avatar']}
-              classNameAvatar={styles['sidebar__editable-avatar']}
-              isAvatarRollerOpen={isAvatarRollerOpen}
-              onClick={
-                selectedChat.primary_media && !interlocutorEditVisible
-                  ? () => setIsAvatarRollerOpen(true)
-                  : undefined
-              }
-              onAvatarChange={() => {
-                // setUser({
-                //   ...user,
-                //   profile: {
-                //     ...user.profile,
-                //     primary_media,
-                //   },
-                // });
+            <div
+              className={`${styles['sidebar__avatar-wrapper']} ${
+                interlocutorEditVisible
+                  ? styles['sidebar__avatar-wrapper--edit']
+                  : ''
+              } ${
+                isAvatarRollerOpen && !interlocutorEditVisible
+                  ? styles['sidebar__avatar-wrapper--roller']
+                  : ''
+              }`}
+              style={{
+                transform: `translateX(${effectiveRollPosition * -100}%)`,
               }}
-              isEditable={interlocutorEditVisible}
-            />
-            {/* <Avatar
+              onClick={handleRollPositionChange}
+            >
+              <EditableAvatar
+                key={selectedChat.id}
+                displayName={selectedChat.name}
+                avatar={selectedChat.primary_media}
+                objectId={interlocutor?.contact_id}
+                contentType='contact'
+                className={styles['sidebar__avatar']}
+                classNameAvatar={styles['sidebar__editable-avatar']}
+                isAvatarRollerOpen={isAvatarRollerOpen}
+                onClick={
+                  selectedChat.primary_media && !interlocutorEditVisible
+                    ? () => setIsAvatarRollerOpen(true)
+                    : undefined
+                }
+                onAvatarChange={() => {
+                  // setUser({
+                  //   ...user,
+                  //   profile: {
+                  //     ...user.profile,
+                  //     primary_media,
+                  //   },
+                  // });
+                }}
+                isEditable={interlocutorEditVisible}
+              />
+              {/* <Avatar
             key={selectedChat.id}
             displayName={selectedChat.name}
             displayMedia={selectedChat.primary_media}
@@ -671,185 +674,186 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                 : undefined
             }
           /> */}
-            {selectedChat.media && selectedChat.media.length > 0 && (
-              <>
-                {selectedChat.media.map((media: DisplayMedia) => (
-                  <Avatar
-                    key={media.id}
-                    displayName={selectedChat.name}
-                    displayMedia={media as unknown as DisplayMedia}
-                    size={isAvatarRollerOpen ? 'medium' : 'small'}
-                    className={`${styles['sidebar__avatar']} ${
-                      isAvatarRollerOpen && !interlocutorEditVisible
-                        ? ''
-                        : styles['hidden']
-                    }`}
-                  />
-                ))}
-              </>
-            )}
-          </div>
-        </div>
-        <div className={styles['sidebar__info']} ref={tabsRef}>
-          <div
-            contentEditable={interlocutorEditVisible}
-            suppressContentEditableWarning
-            className={styles['sidebar__name']}
-            onInput={
-              interlocutorEditVisible
-                ? (e) => setValue((e.target as HTMLDivElement).innerText)
-                : undefined
-            }
-          >
-            {visibleName}
-          </div>
-          <span className={styles['sidebar__subtitle']}>{subtitle}</span>
-        </div>
-        {!interlocutorEditVisible && selectedChat.type === 'D' && (
-          <div className={styles['sidebar__info-secondary']}>
-            {selectedChat.type === 'D' && (
-              <button
-                className={styles['sidebar__info-secondary__item']}
-                type='button'
-                onClick={handleCopyEmail}
-              >
-                {interlocutor?.email}
-              </button>
-            )}
-          </div>
-        )}
-
-        <div
-          className={`${styles.sidebar__media} ${
-            interlocutorEditVisible ? styles.hidden : ''
-          }`}
-        >
-          <div className={styles.tabs}>
-            <div className={styles['tabs-inner']}>
-              <div
-                className={styles.indicator}
-                style={{
-                  transform: `translateX(${indicatorPosition}px)`,
-                  width: `${indicatorWidth - 4}px`,
-                }}
-              />
-
-              {selectedChat?.members && selectedChat.type === 'G' && (
-                <button
-                  ref={membersRef}
-                  className={`${styles.tab}`}
-                  onClick={() => setActiveTab('members')}
-                >
-                  Members
-                </button>
-              )}
-
-              {mediaFiles.length > 0 && (
-                <button
-                  ref={mediaRef}
-                  className={`${styles.tab} ${
-                    activeTab === 'media' ? styles.active : ''
-                  }`}
-                  onClick={() => setActiveTab('media')}
-                >
-                  Media
-                </button>
-              )}
-
-              {audioFiles.length > 0 && (
-                <button
-                  ref={audioRef}
-                  className={`${styles.tab} ${
-                    activeTab === 'audio' ? styles.active : ''
-                  }`}
-                  onClick={() => setActiveTab('audio')}
-                >
-                  Audio
-                </button>
+              {selectedChat.media && selectedChat.media.length > 0 && (
+                <>
+                  {selectedChat.media.map((media: DisplayMedia) => (
+                    <Avatar
+                      key={media.id}
+                      displayName={selectedChat.name}
+                      displayMedia={media as unknown as DisplayMedia}
+                      size={isAvatarRollerOpen ? 'medium' : 'small'}
+                      className={`${styles['sidebar__avatar']} ${
+                        isAvatarRollerOpen && !interlocutorEditVisible
+                          ? ''
+                          : styles['hidden']
+                      }`}
+                    />
+                  ))}
+                </>
               )}
             </div>
           </div>
-
-          <div className={styles.content} ref={gridRef}>
-            {activeTab === 'members' && selectedChat.type === 'G' && (
-              <div className={styles.membersList}>
-                {selectedChat?.members?.map((member: User) => (
-                  <div key={member?.id} className={styles.memberItem}>
-                    <Avatar
-                      className={styles.memberAvatar}
-                      displayMedia={member.profile.primary_media}
-                      displayName={member.username}
-                    />
-                    <div className={styles.memberInfo}>
-                      <span className={styles.memberName}>
-                        {member.username}
-                      </span>
-                      <span className={styles.memberLastSeen}>
-                        {formatLastSeen(member.last_seen)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'media' && mediaFiles.length > 0 && (
-              <div
-                className={styles.grid}
-                style={{
-                  gridTemplateColumns: `repeat(${rowScale}, 1fr)`,
-                }}
-              >
-                {filteredMediaFilesMemo.map((file) => (
-                  <div key={file.id} className={styles.mediaWrapper}>
-                    {file.category === 'image' && (
-                      <ProgressiveImage
-                        small={file.thumbnail_small_url ?? null}
-                        full={
-                          (file.thumbnail_medium_url ?? file.file_url) as string
-                        }
-                        dominant_color={file.dominant_color ?? undefined}
-                      />
-                    )}
-                    {file.category === 'video' && (
-                      <VideoLayout
-                        full={(file.file_url ?? '') as string}
-                        has_audio={!!file.has_audio}
-                        // className={styles.mediaItem}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'audio' && audioFiles.length > 0 && (
-              <div className={styles.audioGrid}>
-                {audioFiles.map((file: File) => (
-                  <AudioLayout
-                    key={file.id}
-                    waveform={file.waveform || null}
-                    duration={file.duration || 0}
-                    id={file.id || 0}
-                    cover_url={file.cover_url || null}
-                  />
-                ))}
-              </div>
-            )}
+          <div className={styles['sidebar__info']} ref={tabsRef}>
+            <div
+              contentEditable={interlocutorEditVisible}
+              suppressContentEditableWarning
+              className={styles['sidebar__name']}
+              onInput={
+                interlocutorEditVisible
+                  ? (e) => setValue((e.target as HTMLDivElement).innerText)
+                  : undefined
+              }
+            >
+              {visibleName}
+            </div>
+            <span className={styles['sidebar__subtitle']}>{subtitle}</span>
           </div>
-        </div>
-        {interlocutorEditVisible && (
-          <div className={`${styles.interlocutorEdit} ${styles.visible}`}>
-            <div className={styles.form}>
+          {!interlocutorEditVisible && selectedChat.type === 'D' && (
+            <div className={styles['sidebar__info-secondary']}>
               {selectedChat.type === 'D' && (
-                <>
-                  <Input
-                    placeholder='Username'
-                    isRequired
-                    value={editValue}
-                    onChange={setValue}
-                  />
-                  {/* <Input
+                <button
+                  className={styles['sidebar__info-secondary__item']}
+                  type='button'
+                  onClick={handleCopyEmail}
+                >
+                  {interlocutor?.email}
+                </button>
+              )}
+            </div>
+          )}
+
+          <div
+            className={`${styles.sidebar__media} ${
+              interlocutorEditVisible ? styles.hidden : ''
+            }`}
+          >
+            <div className={styles.tabs}>
+              <div className={styles['tabs-inner']}>
+                <div
+                  className={styles.indicator}
+                  style={{
+                    transform: `translateX(${indicatorPosition}px)`,
+                    width: `${indicatorWidth - 4}px`,
+                  }}
+                />
+
+                {selectedChat?.members && selectedChat.type === 'G' && (
+                  <button
+                    ref={membersRef}
+                    className={`${styles.tab}`}
+                    onClick={() => setActiveTab('members')}
+                  >
+                    Members
+                  </button>
+                )}
+
+                {mediaFiles.length > 0 && (
+                  <button
+                    ref={mediaRef}
+                    className={`${styles.tab} ${
+                      activeTab === 'media' ? styles.active : ''
+                    }`}
+                    onClick={() => setActiveTab('media')}
+                  >
+                    Media
+                  </button>
+                )}
+
+                {audioFiles.length > 0 && (
+                  <button
+                    ref={audioRef}
+                    className={`${styles.tab} ${
+                      activeTab === 'audio' ? styles.active : ''
+                    }`}
+                    onClick={() => setActiveTab('audio')}
+                  >
+                    Audio
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.content} ref={gridRef}>
+              {activeTab === 'members' && selectedChat.type === 'G' && (
+                <div className={styles.membersList}>
+                  {selectedChat?.members?.map((member: User) => (
+                    <div key={member?.id} className={styles.memberItem}>
+                      <Avatar
+                        className={styles.memberAvatar}
+                        displayMedia={member.profile.primary_media}
+                        displayName={member.username}
+                      />
+                      <div className={styles.memberInfo}>
+                        <span className={styles.memberName}>
+                          {member.username}
+                        </span>
+                        <span className={styles.memberLastSeen}>
+                          {formatLastSeen(member.last_seen)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === 'media' && mediaFiles.length > 0 && (
+                <div
+                  className={styles.grid}
+                  style={{
+                    gridTemplateColumns: `repeat(${rowScale}, 1fr)`,
+                  }}
+                >
+                  {filteredMediaFilesMemo.map((file) => (
+                    <div key={file.id} className={styles.mediaWrapper}>
+                      {file.category === 'image' && (
+                        <ProgressiveImage
+                          small={file.thumbnail_small_url ?? null}
+                          full={
+                            (file.thumbnail_medium_url ??
+                              file.file_url) as string
+                          }
+                          dominant_color={file.dominant_color ?? undefined}
+                        />
+                      )}
+                      {file.category === 'video' && (
+                        <VideoLayout
+                          full={(file.file_url ?? '') as string}
+                          has_audio={!!file.has_audio}
+                          // className={styles.mediaItem}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === 'audio' && audioFiles.length > 0 && (
+                <div className={styles.audioGrid}>
+                  {audioFiles.map((file: File) => (
+                    <AudioLayout
+                      key={file.id}
+                      waveform={file.waveform || null}
+                      duration={file.duration || 0}
+                      id={file.id || 0}
+                      cover_url={file.cover_url || null}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          {interlocutorEditVisible && (
+            <div className={`${styles.interlocutorEdit} ${styles.visible}`}>
+              <div className={styles.form}>
+                {selectedChat.type === 'D' && (
+                  <>
+                    <Input
+                      placeholder='Username'
+                      isRequired
+                      value={editValue}
+                      onChange={setValue}
+                    />
+                    {/* <Input
                     placeholder='Last Name'
                     value={editValue}
                     onChange={setValue}
@@ -859,40 +863,43 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                     value={editValue}
                     onChange={setValue}
                   /> */}
-                </>
-              )}
-              {selectedChat.type === 'G' && (
-                <>
-                  <Input
-                    placeholder='Group Name'
-                    isRequired
-                    value={editValue}
-                    onChange={setValue}
-                  />
-                  {/* <Input placeholder='Description' /> */}
-                </>
-              )}
+                  </>
+                )}
+                {selectedChat.type === 'G' && (
+                  <>
+                    <Input
+                      placeholder='Group Name'
+                      isRequired
+                      value={editValue}
+                      onChange={setValue}
+                    />
+                    {/* <Input placeholder='Description' /> */}
+                  </>
+                )}
 
-              <Button
-                className={`${styles.button} ${styles.save}`}
-                type='button'
-                onClick={() => saveContact(interlocutor?.contact_id, editValue)}
-              >
-                {t('buttons.save')}
-              </Button>
-              <Button
-                className={`${styles.button} ${styles.delete}`}
-                type='button'
-                onClick={() => {
-                  deleteContact(interlocutor?.contact_id);
-                  setInterlocutorEditVisible(false);
-                }}
-              >
-                Delete from Contacts
-              </Button>
+                <Button
+                  className={`${styles.button} ${styles.save}`}
+                  type='button'
+                  onClick={() =>
+                    saveContact(interlocutor?.contact_id, editValue)
+                  }
+                >
+                  {t('buttons.save')}
+                </Button>
+                <Button
+                  className={`${styles.button} ${styles.delete}`}
+                  type='button'
+                  onClick={() => {
+                    deleteContact(interlocutor?.contact_id);
+                    setInterlocutorEditVisible(false);
+                  }}
+                >
+                  Delete from Contacts
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

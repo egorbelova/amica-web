@@ -23,22 +23,19 @@
   // align-items: center;
   // justify-content: center;
   // flex-direction: column;
-  transition: all 0.2s;
+  // transition: all 0.2s;
   container: settingsContainer / inline-size;
   animation: settingsContainerShow 0.4s;
-  transform-origin: right top;
+  transform-origin: left center;
 }
 
 @keyframes settingsContainerShow {
   0% {
-    scale: 0;
     opacity: 0;
-    translate: -150% 0;
   }
+
   100% {
-    scale: 1;
     opacity: 1;
-    translate: 0 0;
   }
 }
 

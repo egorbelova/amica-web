@@ -3,7 +3,7 @@ import type { Message as MessageType } from '../../types';
 import styles from './Message.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 import SmartMediaLayout from './SmartMediaLayout.tsx';
-import { useRef, useState, useLayoutEffect } from 'react';
+import React, { useRef, useState, useLayoutEffect, useMemo } from 'react';
 
 interface MessageProps {
   message: MessageType;
@@ -20,39 +20,43 @@ const Message: React.FC<MessageProps> = ({
   onPointerUp,
 }) => {
   const messageRef = useRef<HTMLDivElement>(null);
+
   const isOwnMessage = (): boolean => {
     return message.is_own;
   };
   const isMessageViewed = (): boolean => message.viewers?.length > 0;
-
-  const hasOnlyMediaFiles =
-    Array.isArray(message.files) &&
-    message.files.length > 0 &&
-    message.files.every(
-      (file) => file.category === 'image' || file.category === 'video',
+  const hasOnlyMediaFiles = useMemo(() => {
+    return (
+      Array.isArray(message.files) &&
+      message.files.length > 0 &&
+      message.files.every(
+        (file) => file.category === 'image' || file.category === 'video',
+      )
     );
+  }, [message.files]);
 
   const handleDoubleClick = () => {};
 
   const messageContainerRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(0);
-  const [height, setHeight] = useState(0);
+  const [dimensions, setDimensions] = useState<{
+    width: number | null;
+    height: number | null;
+  }>({
+    width: null,
+    height: null,
+  });
 
   useLayoutEffect(() => {
     const el = messageRef.current;
     if (!el) return;
 
     const updateSize = () => {
-      const rect = el.getBoundingClientRect();
-
-      const width = el.scrollWidth;
-      const height = el.scrollHeight;
-
-      const preciseWidth = width + (rect.width - Math.floor(rect.width));
-      const preciseHeight = height + (rect.height - Math.floor(rect.height));
-
-      setWidth(preciseWidth);
-      setHeight(preciseHeight);
+      setDimensions((prev) => {
+        if (prev.width !== el.offsetWidth || prev.height !== el.offsetHeight) {
+          return { width: el.offsetWidth, height: el.offsetHeight };
+        }
+        return prev;
+      });
     };
 
     updateSize();
@@ -85,10 +89,14 @@ const Message: React.FC<MessageProps> = ({
           isOwnMessage() ? `${styles.darker} ${styles.right}` : ''
         }`}
         ref={messageContainerRef}
-        style={{
-          width: width ? `${width}px` : 'auto',
-          height: height ? `${height}px` : 'auto',
-        }}
+        style={
+          dimensions.width
+            ? {
+                width: `${dimensions.width}px`,
+                height: `${dimensions.height}px`,
+              }
+            : undefined
+        }
       >
         {/* <div className={styles.message_container}> */}
         <div className={styles.message} ref={messageRef}>
@@ -136,4 +144,4 @@ const Message: React.FC<MessageProps> = ({
   );
 };
 
-export default Message;
+export default React.memo(Message);

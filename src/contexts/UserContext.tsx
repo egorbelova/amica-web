@@ -16,8 +16,6 @@ import { UserContext, postJson } from './UserContextCore';
 import type { UserState, ApiResponse } from './UserContextCore';
 import type { File as FileType } from '@/types';
 
-// postJson moved to UserContextCore.ts
-
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -146,5 +144,3 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     </UserContext.Provider>
   );
 };
-
-// useUser moved to UserContextCore.ts

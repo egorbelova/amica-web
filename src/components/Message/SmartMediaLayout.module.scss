@@ -112,6 +112,11 @@
   overflow: hidden;
 }
 
+.waveformCanvas {
+  display: block;
+  vertical-align: top;
+}
+
 .progressFillWrapper {
   height: 6px;
   background: rgba(255, 255, 255, 0.2);

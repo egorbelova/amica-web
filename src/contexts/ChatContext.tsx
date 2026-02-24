@@ -25,6 +25,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const [messagesCache, setMessagesCache] = useState<{
     [roomId: number]: Message[];
   }>({});
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const { setActiveProfileTab } = useSettings();
 
   const messages = selectedChatId ? (messagesCache[selectedChatId] ?? []) : [];
@@ -36,6 +37,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 
   const selectChat = useCallback((chatId: number | null) => {
     setSelectedChatId(chatId);
+    setEditingMessage(null);
   }, []);
 
   const handleNewMessage = (data: WebSocketMessage) => {
@@ -108,6 +110,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           );
         });
       }
+    },
+    [],
+  );
+
+  const updateMessageInChat = useCallback(
+    (chatId: number, messageId: number, updates: Partial<Message>) => {
+      const mid = Number(messageId);
+      setMessagesCache((prev) => {
+        const list = prev[chatId] ?? [];
+        const newList = list.map((m) =>
+          Number(m.id) === mid ? { ...m, ...updates } : m,
+        );
+        return { ...prev, [chatId]: newList };
+      });
     },
     [],
   );
@@ -348,8 +364,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     loading,
     error,
     messagesCache,
+    editingMessage,
+    setEditingMessage,
     selectChat,
     updateMessages,
+    updateMessageInChat,
     setChats,
     setLoading,
     getCachedMessages,

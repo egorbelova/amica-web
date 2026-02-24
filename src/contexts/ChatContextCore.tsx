@@ -9,9 +9,16 @@ export interface ChatContextType {
   loading: boolean;
   messagesCache: { [roomId: number]: Message[] };
   error: string | null;
+  editingMessage: Message | null;
+  setEditingMessage: (message: Message | null) => void;
 
   selectChat: (chatId: number | null) => void;
   updateMessages: (messages: Message[], chatId: number) => void;
+  updateMessageInChat: (
+    chatId: number,
+    messageId: number,
+    updates: Partial<Message>,
+  ) => void;
   setChats: (chats: Chat[]) => void;
   setLoading: (loading: boolean) => void;
   getCachedMessages: (roomId: number) => Message[] | null;

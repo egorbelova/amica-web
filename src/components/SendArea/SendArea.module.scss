@@ -81,3 +81,27 @@
   flex-direction: row;
   gap: 8px;
 }
+
+.edit-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px 8px 0 0;
+  font-size: 12px;
+}
+
+.edit-bar-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.edit-bar-cancel {
+  border: none;
+  background: transparent;
+  color: var(--accent, #7c9cff);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 6px;
+}
