@@ -23,12 +23,14 @@ const App: React.FC = () => {
     );
   }, []);
 
+  const isProduction = import.meta.env.PROD;
+
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
+    if (isProduction && 'serviceWorker' in navigator) {
       console.log('Service Worker registration');
       navigator.serviceWorker.register('/sw.js');
     }
-  }, []);
+  }, [isProduction]);
 
   if (loading) {
     return <div className='loader'></div>;

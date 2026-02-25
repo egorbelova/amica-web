@@ -49,4 +49,5 @@ export interface SettingsContextValue {
   setIsResizingPermitted: (value: boolean) => void;
   setColor: (color: string) => void;
   color: string;
+  keyboardHeight: number;
 }

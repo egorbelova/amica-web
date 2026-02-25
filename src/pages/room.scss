@@ -25,6 +25,7 @@ $mainColor: #2c77d1;
   --glass-reflex-light: 0.3;
 
   --mainColor: #{$mainColor};
+  --keyboard-height: 0px;
 }
 
 ::-webkit-scrollbar {
@@ -565,15 +566,20 @@ svg {
   }
 
   .room_div {
+    padding-bottom: calc(60px);
     transition: padding-bottom 300ms cubic-bezier(0.075, 0.82, 0.165, 1) !important;
   }
 
   .send_div_container {
-    // padding-bottom: calc(min(var(--sab), 10px) + 10px);
+    // padding-bottom: var(--sab);
     transition: padding-bottom 300ms cubic-bezier(0.075, 0.82, 0.165, 1);
   }
   .send_div_container:focus-within {
-    padding-bottom: max(var(--send_div_height_focus), 10px) !important;
+    padding-bottom: calc(var(--keyboard-height)) !important;
+  }
+
+  .room_wrapper:has(.send_div_container:focus-within) .room_div {
+    padding-bottom: calc(var(--keyboard-height) + 60px) !important;
   }
 
   .textarea:focus {

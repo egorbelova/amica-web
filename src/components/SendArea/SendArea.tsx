@@ -426,7 +426,8 @@ const MessageInput: React.FC = () => {
             {editingMessage && (
               <div className={styles['edit-bar']}>
                 <span className={styles['edit-bar-label']}>
-                  <Icon name='Edit' /> Editing message
+                  <Icon name='Edit' className={styles['edit-bar-icon']} />{' '}
+                  Editing message
                 </span>
                 <Button
                   onClick={cancelEdit}

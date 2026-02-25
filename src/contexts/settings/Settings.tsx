@@ -64,6 +64,32 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const [isResizingPermitted, setIsResizingPermitted] = useState(false);
 
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    if (!window.visualViewport) return;
+
+    const handleKeyboardHeight = () => {
+      const { height, offsetTop } = window.visualViewport;
+
+      const keyboard = window.innerHeight - height - offsetTop;
+
+      const safeHeight = keyboard > 0 ? keyboard : 0;
+
+      setKeyboardHeight(safeHeight);
+
+      document.documentElement.style.setProperty(
+        '--keyboard-height',
+        `${safeHeight}px`,
+      );
+    };
+
+    window.visualViewport.addEventListener('resize', handleKeyboardHeight);
+
+    return () =>
+      window.visualViewport.removeEventListener('resize', handleKeyboardHeight);
+  }, []);
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 768) {
@@ -326,6 +352,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setIsResizingPermitted,
       setColor,
       color,
+      keyboardHeight,
     }),
     [
       settings,
@@ -342,6 +369,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setBlur,
       setSetting,
       setColor,
+      keyboardHeight,
     ],
   );
 

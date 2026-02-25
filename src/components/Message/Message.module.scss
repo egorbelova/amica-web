@@ -84,9 +84,7 @@
   &.darker {
     // background-color: rgb(from var(--mainColor) r g b / 90%);
     // position: absolute;
-    width: 100px;
-    height: 300px;
-    clip-path: inset(0 round 16px);
+    clip-path: inset(0 round 20px);
 
     // background-attachment: fixed;
     background: none;
@@ -117,11 +115,9 @@
 @keyframes message_loaded {
   0% {
     opacity: 0;
-    transform: translateY(10px);
   }
   100% {
     opacity: 1;
-    transform: translateY(0px);
   }
 }
 
