@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  startTransition,
   useLayoutEffect,
   useRef,
   useState,
@@ -25,12 +26,29 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) => {
+    const BLUR_DURATION_MS = 150;
+
     const buttonRef = useRef<HTMLButtonElement>(null);
     const releaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
       null,
     );
+    const prevChildrenRef = useRef<React.ReactNode>(undefined);
     const [width, setWidth] = useState(0);
     const [isPulsing, setIsPulsing] = useState(false);
+    const [isBlurring, setIsBlurring] = useState(false);
+
+    useLayoutEffect(() => {
+      if (
+        prevChildrenRef.current !== undefined &&
+        prevChildrenRef.current !== children
+      ) {
+        prevChildrenRef.current = children;
+        startTransition(() => setIsBlurring(true));
+        const id = setTimeout(() => setIsBlurring(false), BLUR_DURATION_MS);
+        return () => clearTimeout(id);
+      }
+      prevChildrenRef.current = children;
+    }, [children]);
 
     useLayoutEffect(() => {
       const button = buttonRef.current;
@@ -71,6 +89,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       styles[variant],
       disabled ? styles.disabled : '',
       isPulsing ? styles.active : '',
+      isBlurring ? styles.blurring : '',
       className,
     ]
       .filter(Boolean)
@@ -87,14 +106,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             clearTimeout(releaseTimeoutRef.current);
             releaseTimeoutRef.current = null;
           }
-          if (isPulsing) {
-            setIsPulsing(false);
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => setIsPulsing(true));
-            });
-          } else {
-            setIsPulsing(true);
-          }
+          setIsPulsing(true);
         }}
         onPointerUp={() => {
           releaseTimeoutRef.current = setTimeout(() => {

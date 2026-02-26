@@ -307,3 +307,61 @@
   touch-action: none;
   z-index: 1;
 }
+
+.documentList {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: scroll;
+  max-width: 100%;
+}
+
+.documentLayoutContent {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+.documentLayoutContentIcon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.documentLayoutContentTitle {
+  // text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 100%;
+  display: flex;
+}
+
+.documentLayoutContentHeader {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 1;
+  min-width: 0;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.documentLayoutContentSize {
+  font-size: 0.875rem;
+  color: #d5eaff;
+}
+
+.documentLayoutContentTitleFilename {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.documentLayoutContentTitleExtension {
+  max-width: 100%;
+  flex-shrink: 0;
+}

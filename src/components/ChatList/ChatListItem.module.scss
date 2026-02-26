@@ -194,6 +194,7 @@
     background-size: cover;
     object-fit: cover;
     display: block;
+    overflow: hidden;
 
     &--audio-cover {
       height: 20px;

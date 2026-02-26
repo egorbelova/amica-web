@@ -1,6 +1,6 @@
 import React from "react";
 
-export type IconName = "AddPlus" | "Appearance" | "Arrow" | "Attachment" | "Chats" | "Circle" | "ContactHeart" | "CopyText" | "Cross" | "Delete" | "Edit" | "Forward" | "Fullscreen" | "FullscreenExit" | "Language" | "Logout" | "Notification" | "Passkey" | "Pause" | "Photo" | "Play" | "Privacy" | "Read" | "Reply" | "SaveAs" | "Search" | "Select" | "Selfie" | "SendDestkop" | "SendMobile" | "Sessions" | "Sound" | "SoundMaxFill" | "SoundMinFill" | "SoundMuteFill" | "Unread" | "Video" | "Wallpaper" | "Spinner";
+export type IconName = "AddPlus" | "Appearance" | "Arrow" | "Attachment" | "Chats" | "Circle" | "ContactHeart" | "CopyText" | "Cross" | "Delete" | "Edit" | "File" | "Forward" | "Fullscreen" | "FullscreenExit" | "Language" | "Logout" | "Notification" | "Passkey" | "Pause" | "Photo" | "Play" | "Privacy" | "Read" | "Reply" | "SaveAs" | "Search" | "Select" | "Selfie" | "SendDestkop" | "SendMobile" | "Sessions" | "Sound" | "SoundMaxFill" | "SoundMinFill" | "SoundMuteFill" | "Unread" | "Video" | "Wallpaper" | "Spinner";
 export type IconProps = React.SVGProps<SVGSVGElement> & { name: IconName };
 
 
@@ -30,6 +30,7 @@ export const IconsSprite = () => (
     <symbol id="icon-Cross" viewBox="0 0 24 24"><title>Cross SVG Icon</title><path fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" d="M20 20L4 4m16 0L4 20"/></symbol>
     <symbol id="icon-Delete" viewBox="0 0 16 16"><title>Delete-16-regular SVG Icon</title><path fill="currentColor" d="M7 3h2a1 1 0 0 0-2 0M6 3a2 2 0 1 1 4 0h4a.5.5 0 0 1 0 1h-.564l-1.205 8.838A2.5 2.5 0 0 1 9.754 15H6.246a2.5 2.5 0 0 1-2.477-2.162L2.564 4H2a.5.5 0 0 1 0-1zm1 3.5a.5.5 0 0 0-1 0v5a.5.5 0 0 0 1 0zM9.5 6a.5.5 0 0 1 .5.5v5a.5.5 0 0 1-1 0v-5a.5.5 0 0 1 .5-.5m-4.74 6.703A1.5 1.5 0 0 0 6.246 14h3.508a1.5 1.5 0 0 0 1.487-1.297L12.427 4H3.573z"/></symbol>
     <symbol id="icon-Edit" viewBox="0 0 24 24"><title>Edit SVG Icon</title><g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="m16.475 5.408l2.117 2.117m-.756-3.982L12.109 9.27a2.118 2.118 0 0 0-.58 1.082L11 13l2.648-.53c.41-.082.786-.283 1.082-.579l5.727-5.727a1.853 1.853 0 1 0-2.621-2.621"/><path d="M19 15v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h3"/></g></symbol>
+    <symbol id="icon-File" viewBox="0 0 24 24"><title>File SVG Icon</title><g fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2"><path strokeLinecap="round" d="M4 4v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.342a2 2 0 0 0-.602-1.43l-4.44-4.342A2 2 0 0 0 13.56 2H6a2 2 0 0 0-2 2m5 9h6m-6 4h3"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></g></symbol>
     <symbol id="icon-Forward" viewBox="0 0 24 24"><title>Arrow-forward-thick SVG Icon</title><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m22 11l-7-9v5C3.047 7 1.668 16.678 2 22c.502-2.685.735-7 13-7v5z"/></symbol>
     <symbol id="icon-Fullscreen" viewBox="0 0 512 512"><title>Fullscreen SVG Icon</title><path fill="#ffffff" d="M208 48V16H16v192h32V70.627l160.687 160.686l22.626-22.626L70.627 48zm256 256v137.373L299.313 276.687l-22.626 22.626L441.373 464H304v32h192V304z"/></symbol>
     <symbol id="icon-FullscreenExit" viewBox="0 0 512 512"><title>Fullscreen-exit SVG Icon</title><path fill="#ffffff" d="M204 181.372L38.628 16H16v22.628L181.372 204H44v32h192V44h-32zM326.628 304H464v-32H272v192h32V326.628L473.372 496H496v-22.628z"/></symbol>
@@ -83,6 +84,7 @@ const staticViewBoxes: Record<string, string> = {
   "Cross": "0 0 24 24",
   "Delete": "0 0 16 16",
   "Edit": "0 0 24 24",
+  "File": "0 0 24 24",
   "Forward": "0 0 24 24",
   "Fullscreen": "0 0 512 512",
   "FullscreenExit": "0 0 512 512",

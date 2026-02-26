@@ -136,11 +136,7 @@ const MessageList: React.FC = () => {
   const handleSaveFile = async (msg: MessageType) => {
     if (!msg?.files?.length) return;
 
-    const firstFile = msg.files.find((file: File) =>
-      ['image', 'video', 'audio', 'pdf', 'document'].includes(
-        file?.category || '',
-      ),
-    );
+    const firstFile = msg.files.length > 0 ? msg.files[0] : null;
     if (!firstFile) return;
 
     try {
@@ -195,11 +191,7 @@ const MessageList: React.FC = () => {
           },
         ]
       : []),
-    ...(menuMessage?.files?.some((f: File) =>
-      ['image', 'video', 'audio', 'pdf', 'document'].includes(
-        f?.category || '',
-      ),
-    )
+    ...(menuMessage?.files?.length > 0
       ? [
           {
             label: 'Save As...',
@@ -251,8 +243,6 @@ const MessageList: React.FC = () => {
 
   const handleCopyMessage = (msg: MessageType) => {
     if (!msg?.value) return;
-
-    // console.log(msg);
 
     const text = msg.value;
 

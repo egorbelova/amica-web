@@ -49,4 +49,9 @@
   justify-content: center;
   gap: inherit;
   white-space: nowrap;
+  transition: filter 0.15s ease;
+}
+
+.blurring .content {
+  filter: blur(4px);
 }

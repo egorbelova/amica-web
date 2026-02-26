@@ -7,13 +7,10 @@ import React, {
 } from 'react';
 import type { ReactNode } from 'react';
 import type { Message, Chat, User } from '@/types';
-import {
-  websocketManager,
-  type WebSocketMessage,
-} from '@/utils/websocket-manager';
 import { apiFetch, apiUpload } from '@/utils/apiFetch';
 import { useSettings } from './settings/context';
 import { ChatContext, type ChatContextType } from './ChatContextCore';
+import { useMessages } from './useMessages';
 
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -22,110 +19,30 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [messagesCache, setMessagesCache] = useState<{
-    [roomId: number]: Message[];
-  }>({});
-  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const { setActiveProfileTab } = useSettings();
 
-  const messages = selectedChatId ? (messagesCache[selectedChatId] ?? []) : [];
+  const {
+    messagesCache,
+    messages,
+    editingMessage,
+    setEditingMessage,
+    updateMessages,
+    updateMessageInChat,
+    getCachedMessages,
+    handleNewMessage,
+  } = useMessages({ selectedChatId, setChats });
 
   const selectedChat = useMemo(
     () => chats.find((c) => c.id === selectedChatId) ?? null,
     [chats, selectedChatId],
   );
 
-  const selectChat = useCallback((chatId: number | null) => {
-    setSelectedChatId(chatId);
-    setEditingMessage(null);
-  }, []);
-
-  const handleNewMessage = (data: WebSocketMessage) => {
-    console.log('New message received:', data);
-    if (data.type === 'chat_message' && data.chat_id && data.data) {
-      const roomId = data.chat_id;
-      const newMessage = data.data as unknown as Message;
-
-      setChats((prevChats) => {
-        return prevChats.map((chat) =>
-          chat.id === roomId
-            ? {
-                ...chat,
-                last_message: newMessage,
-              }
-            : chat,
-        );
-      });
-
-      setMessagesCache((prevCache) => {
-        const existingMessages = prevCache[roomId] || [];
-
-        const isDuplicate = existingMessages.some(
-          (msg) => msg.id === newMessage.id,
-        );
-        if (isDuplicate) return prevCache;
-
-        return {
-          ...prevCache,
-          [roomId]: [...existingMessages, newMessage],
-        };
-      });
-    }
-  };
-
-  useEffect(() => {
-    websocketManager.on('chat_message', handleNewMessage);
-    return () => {
-      websocketManager.off('chat_message', handleNewMessage);
-    };
-  }, []);
-
-  const updateMessages = useCallback(
-    (newMessages: Message[], chatId: number) => {
-      setMessagesCache((prev) => ({
-        ...prev,
-        [chatId]: newMessages,
-      }));
-
-      if (newMessages.length > 0) {
-        const lastMessage = newMessages[newMessages.length - 1];
-
-        setChats((prevChats) => {
-          const targetChat = prevChats.find((chat) => chat.id === chatId);
-          if (!targetChat) return prevChats;
-
-          const currentLastMessage = targetChat.last_message;
-          const shouldUpdate =
-            !currentLastMessage || lastMessage.id !== currentLastMessage.id;
-
-          if (!shouldUpdate) return prevChats;
-
-          return prevChats.map((chat) =>
-            chat.id === chatId
-              ? {
-                  ...chat,
-                  last_message: lastMessage,
-                }
-              : chat,
-          );
-        });
-      }
+  const selectChat = useCallback(
+    (chatId: number | null) => {
+      setSelectedChatId(chatId);
+      setEditingMessage(null);
     },
-    [],
-  );
-
-  const updateMessageInChat = useCallback(
-    (chatId: number, messageId: number, updates: Partial<Message>) => {
-      const mid = Number(messageId);
-      setMessagesCache((prev) => {
-        const list = prev[chatId] ?? [];
-        const newList = list.map((m) =>
-          Number(m.id) === mid ? { ...m, ...updates } : m,
-        );
-        return { ...prev, [chatId]: newList };
-      });
-    },
-    [],
+    [setEditingMessage],
   );
 
   const fetchChat = useCallback(
@@ -134,7 +51,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         const res = await apiFetch(`/api/get_chat/${chatId}/`);
         if (!res.ok) throw new Error(`Failed: ${res.status}`);
         const data = await res.json();
-        // console.log('fetchChat', data);
+
         if (data.media) {
           setChats((prevChats) => {
             const updatedChats = prevChats.map((chat) =>
@@ -252,13 +169,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     [selectedChatId],
   );
 
-  const getCachedMessages = useCallback(
-    (roomId: number) => {
-      return messagesCache[roomId] || null;
-    },
-    [messagesCache],
-  );
-
   const updateChatLastMessage = useCallback(
     (chatId: number, lastMessage: Message | null) => {
       setChats((prevChats) =>
@@ -290,7 +200,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       });
       if (!res.ok) throw new Error(`Failed: ${res.status}`);
       const data = await res.json();
-      // console.log(data);
+
       setChats(Array.isArray(data.chats) ? data.chats : []);
       const hashRoomId = location.hash
         ? Number(location.hash.substring(1))

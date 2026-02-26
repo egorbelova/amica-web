@@ -44,7 +44,6 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
         const data = await res.json();
         throw new Error(data.error || 'Signup failed');
       }
-      console.log('Signup successful');
 
       await refreshUser();
     } catch (err) {

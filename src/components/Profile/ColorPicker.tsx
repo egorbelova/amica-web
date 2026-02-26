@@ -3,9 +3,12 @@ import styles from './Profile.module.scss';
 import { useSettings } from '@/contexts/settings/context';
 import Input from '../SideBarMedia/Input';
 import ColorPreview from './ColorPreview';
+import type { GradientSuggested as GradientSuggestedType } from '@/contexts/settings/types';
+import Button from '../ui/button/Button';
 
 const suggestedColors = [
   '#007AFF',
+  '#2c77d1',
   '#5AC8FA',
   '#5856D6',
   '#6A5ACD',
@@ -20,6 +23,94 @@ const suggestedColors = [
   '#8E8E93',
   '#000000',
 ];
+
+const suggestedGradients: GradientSuggestedType[] = [
+  {
+    name: 'Sunset Candy',
+    degree: '90deg',
+    colors: [
+      {
+        color: '#ff0f7b',
+        stop: '0%',
+      },
+      {
+        color: '#f89b29',
+        stop: '100%',
+      },
+    ],
+  },
+  {
+    name: 'Midnight Calm',
+    degree: '90deg',
+    colors: [
+      {
+        color: '#9bafd9',
+        stop: '0%',
+      },
+      {
+        color: '#103783',
+        stop: '100%',
+      },
+    ],
+  },
+  {
+    name: 'Purple Shift',
+    degree: '180deg',
+    colors: [
+      {
+        color: '#d397fa',
+        stop: '0%',
+      },
+      {
+        color: '#8364e8',
+        stop: '100%',
+      },
+    ],
+  },
+  {
+    name: 'Deep Sea',
+    degree: '168deg',
+    colors: [
+      {
+        color: '#E57C00',
+        stop: '0%',
+      },
+      {
+        color: '#5e0000',
+        stop: '100%',
+      },
+    ],
+  },
+  {
+    name: 'Midnight Mist',
+    degree: '270deg',
+    colors: [
+      {
+        color: '#211F2F',
+        stop: '0%',
+      },
+      {
+        color: '#918ca9',
+        stop: '100%',
+      },
+    ],
+  },
+  {
+    name: 'Blue Abyss',
+    degree: '180deg',
+    colors: [
+      {
+        color: '#0968e5',
+        stop: '0%',
+      },
+      {
+        color: '#091970',
+        stop: '100%',
+      },
+    ],
+  },
+];
+
 const parseToHSL = (inputColor: string) => {
   const temp = document.createElement('div');
   temp.style.color = inputColor;
@@ -70,7 +161,7 @@ const parseToHSL = (inputColor: string) => {
 };
 
 const ColorPicker = () => {
-  const { setColor, color } = useSettings();
+  const { setColor, color, setGradient } = useSettings();
 
   const hueRef = useRef<HTMLDivElement>(null);
   const areaRef = useRef<HTMLDivElement>(null);
@@ -139,6 +230,7 @@ const ColorPicker = () => {
     <div className={styles.colorPickerContainer}>
       <div className={styles.suggestedColors}>
         <div className={styles.suggestedColorsTitle}>Suggestions</div>
+        <div className={styles.suggestedColorsSubtitle}>Accent</div>
         <div className={styles.suggestedColorsContainer}>
           {suggestedColors.map((color) => (
             <ColorPreview
@@ -148,6 +240,32 @@ const ColorPicker = () => {
             />
           ))}
         </div>
+        <div className={styles.suggestedColorsSubtitle}>Background</div>
+
+        <div className={styles.suggestedColorsContainer}>
+          {suggestedGradients.map((g) => (
+            <ColorPreview
+              onClick={() => setGradient(g)}
+              key={g.name}
+              gradient={g}
+            />
+          ))}
+        </div>
+        <Button
+          className={styles.setSameAsAccentButton}
+          onClick={() =>
+            setGradient({
+              name: 'Accent',
+              degree: '168deg',
+              colors: [
+                { color, stop: '0%' },
+                { color, stop: '100%' },
+              ],
+            })
+          }
+        >
+          Set the Same as Accent
+        </Button>
       </div>
 
       <div className={styles.colorInfo}>

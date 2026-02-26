@@ -118,7 +118,7 @@ const MessageInput: React.FC = () => {
     if (editableRef.current) {
       const el = editableRef.current;
       el.innerText = text;
-      el.style.height = '20px';
+      // el.style.height = '20px';
       el.focus();
 
       const range = document.createRange();
@@ -385,7 +385,79 @@ const MessageInput: React.FC = () => {
     <>
       <JumpToBottom />
       <DropZone onFiles={handleFiles} />
+
       <div className='send_div_container'>
+        {files.length > 0 && (
+          <div className={styles['files-preview']}>
+            <div className={styles['files-preview-header']}>
+              <span>Attached Files ({files.length})</span>
+              <Button
+                className={styles['clear-all-btn']}
+                onClick={() => setFiles([])}
+                aria-label='Clear all files'
+              >
+                Clear All
+              </Button>
+            </div>
+            <div className={styles['files-preview-list']}>
+              {files.map((file, index) => {
+                const getFileType = (file: File) => {
+                  if (file.type.startsWith('image/')) return 'image';
+                  if (file.type.startsWith('video/')) return 'video';
+                  if (file.type === 'application/pdf') return 'pdf';
+                  return 'file';
+                };
+
+                const fileType = getFileType(file);
+
+                const previewUrl =
+                  fileType === 'image' || fileType === 'video'
+                    ? URL.createObjectURL(file)
+                    : null;
+
+                return (
+                  <div key={index} className={styles['file-preview-item']}>
+                    {fileType === 'image' && (
+                      <img
+                        src={previewUrl || ''}
+                        alt={file.name}
+                        className={styles['file-preview-image']}
+                      />
+                    )}
+
+                    {fileType === 'video' && (
+                      <video
+                        src={previewUrl || ''}
+                        muted
+                        autoPlay
+                        playsInline
+                        className={styles['file-preview-image']}
+                      />
+                    )}
+                    {fileType === 'file' && (
+                      <div className={styles['file-preview-file']}>📄</div>
+                    )}
+
+                    <div className={styles['file-info']}>
+                      <span className={styles['file-name']}>{file.name}</span>
+                      <span className={styles['file-size']}>
+                        <span>{formatFileSize(file.size)}</span>
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => removeFile(index)}
+                      type='button'
+                      className={styles['remove-file-btn']}
+                    >
+                      <Icon name='Cross' />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <form
           id='post-form'
           className='send_div send_div_class'
@@ -485,79 +557,6 @@ const MessageInput: React.FC = () => {
             <Icon name='SendMobile' className='send_svg' />
           </button>
         </form>
-
-        {files.length > 0 && (
-          <div className={styles['files-preview']}>
-            <div className={styles['files-preview-header']}>
-              <span>Attached Files ({files.length})</span>
-              <button
-                type='button'
-                className={styles['clear-all-btn']}
-                onClick={() => setFiles([])}
-                aria-label='Clear all files'
-              >
-                Clear All
-              </button>
-            </div>
-            <div className={styles['files-preview-list']}>
-              {files.map((file, index) => {
-                const getFileType = (file: File) => {
-                  if (file.type.startsWith('image/')) return 'image';
-                  if (file.type.startsWith('video/')) return 'video';
-                  if (file.type === 'application/pdf') return 'pdf';
-                  return 'file';
-                };
-
-                const fileType = getFileType(file);
-
-                const previewUrl =
-                  fileType === 'image' || fileType === 'video'
-                    ? URL.createObjectURL(file)
-                    : null;
-
-                return (
-                  <div key={index} className={styles['file-preview-item']}>
-                    {fileType === 'image' && (
-                      <img
-                        src={previewUrl || ''}
-                        alt={file.name}
-                        className={styles['file-preview-image']}
-                      />
-                    )}
-
-                    {fileType === 'video' && (
-                      <video
-                        src={previewUrl || ''}
-                        muted
-                        autoPlay
-                        playsInline
-                        className={styles['file-preview-image']}
-                      />
-                    )}
-                    {fileType === 'file' && (
-                      <div className={styles['file-preview-file']}>📄</div>
-                    )}
-
-                    <div className={styles['file-info']}>
-                      <span className={styles['file-name']}>{file.name}</span>
-                      <span className={styles['file-size']}>
-                        <span>{formatFileSize(file.size)}</span>
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => removeFile(index)}
-                      type='button'
-                      className={styles['remove-file-btn']}
-                    >
-                      <Icon name='Cross' />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
     </>
   );

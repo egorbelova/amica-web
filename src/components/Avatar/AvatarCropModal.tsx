@@ -193,7 +193,6 @@ export default function AvatarCropModal({
   const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || !isOpen) return;
-    console.log('drawCanvas');
 
     const ctx = canvas.getContext('2d')!;
     const ratio = getRatio();

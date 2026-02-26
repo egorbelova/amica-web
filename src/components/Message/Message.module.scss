@@ -54,6 +54,78 @@
   }
 }
 
+@property --mainColor {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #000000;
+}
+
+@property --messageGradientDegree {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 168deg;
+}
+
+@property --messageColor1 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #000000;
+}
+
+@property --messageColor2 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #000000;
+}
+
+@property --messageColor3 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #000000;
+}
+
+@property --messageColor4 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #000000;
+}
+
+@property --messageColor5 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #000000;
+}
+
+@property --messageStop1 {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
+@property --messageStop2 {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 100%;
+}
+
+@property --messageStop3 {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 100%;
+}
+
+@property --messageStop4 {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 100%;
+}
+
+@property --messageStop5 {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 100%;
+}
+
 .message_div {
   display: flex;
   margin: 3px 15px;
@@ -66,12 +138,23 @@
   --td: 0.15s;
   --ttf: ease-out;
   transition:
+    --mainColor 0.4s var(--ttf),
+    --messageGradientDegree 0.4s var(--ttf),
+    --messageColor1 0.4s var(--ttf),
+    --messageColor2 0.4s var(--ttf),
+    --messageColor3 0.4s var(--ttf),
+    --messageColor4 0.4s var(--ttf),
+    --messageColor5 0.4s var(--ttf),
+    --messageStop1 0.4s var(--ttf),
+    --messageStop2 0.4s var(--ttf),
+    --messageStop3 0.4s var(--ttf),
+    --messageStop4 0.4s var(--ttf),
+    --messageStop5 0.4s var(--ttf),
     margin-left var(--td) var(--ttf),
     width var(--td) var(--ttf),
     height var(--td) var(--ttf),
     opacity var(--td) var(--ttf),
-    translate var(--td) var(--ttf),
-    background-color 0.4s var(--ttf);
+    translate var(--td) var(--ttf);
 
   &.right {
     margin-left: auto;
@@ -97,11 +180,22 @@
       right: 0;
       bottom: 0;
       left: 0;
-      background-image: linear-gradient(
-        180deg,
-        var(--mainColor) 0%,
-        color-mix(in srgb, var(--mainColor) 70%, #000) 100%
+      // background-image: linear-gradient(
+      //   180deg,
+      //   var(--mainColor) 0%,
+      //   color-mix(in srgb, var(--mainColor) 70%, #000) 100%
+      // );
+      background: linear-gradient(
+        var(--messageGradientDegree, 168deg),
+        var(--messageColor1) var(--messageStop1),
+        var(--messageColor2) var(--messageStop2),
+        var(--messageColor3) var(--messageStop3),
+        var(--messageColor4) var(--messageStop4),
+        var(--messageColor5) var(--messageStop5)
       );
+
+      // background: linear-gradient(168deg, rgb(229, 124, 0), rgb(94, 0, 0));
+      // background: linear-gradient(90deg, #08203e, #557c93);
     }
     backdrop-filter: none;
     // background-size: cover;

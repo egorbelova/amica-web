@@ -4,6 +4,7 @@ import type {
   WallpaperSetting,
   SubTab,
   WallpaperType,
+  GradientSuggested,
 } from './types';
 import {
   websocketManager,
@@ -52,6 +53,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       autoplayVideos?: boolean;
       settingsFullWindow?: boolean;
       color?: string;
+      gradient?: GradientSuggested;
     }
   > = {};
   if (saved) {
@@ -143,10 +145,47 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   });
 
   const [color, setColor] = useState<string>(parsed.color ?? '#2c77d1');
+  const [gradient, setGradient] = useState<GradientSuggested | null>(
+    parsed.gradient,
+  );
 
   useEffect(() => {
     document.documentElement.style.setProperty('--mainColor', color);
   }, [color]);
+
+  useEffect(() => {
+    const degree = gradient?.degree ?? '168deg';
+    document.documentElement.style.setProperty(
+      '--messageGradientDegree',
+      degree,
+    );
+
+    if (gradient?.colors?.length) {
+      const colors = gradient.colors;
+      const lastColor = colors[colors.length - 1].color;
+      const lastStop = colors[colors.length - 1].stop;
+
+      for (let i = 0; i < 5; i++) {
+        const c = colors[i];
+        document.documentElement.style.setProperty(
+          `--messageColor${i + 1}`,
+          c ? c.color : lastColor,
+        );
+        document.documentElement.style.setProperty(
+          `--messageStop${i + 1}`,
+          c ? c.stop : lastStop || '100%',
+        );
+      }
+    } else {
+      for (let i = 1; i <= 5; i++) {
+        document.documentElement.style.setProperty(`--messageColor${i}`, color);
+        document.documentElement.style.setProperty(
+          `--messageStop${i}`,
+          i === 1 ? '0%' : '100%',
+        );
+      }
+    }
+  }, [gradient, color]);
 
   const [loading, setLoading] = useState(true);
   const [activeProfileTab, setActiveProfileTab] = useState<SubTab>(null);
@@ -158,9 +197,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       ...rest,
       autoplayVideos,
       color,
+      gradient,
     };
     localStorage.setItem('app-settings', JSON.stringify(toSave));
-  }, [settings, autoplayVideos, color]);
+  }, [settings, autoplayVideos, color, gradient]);
 
   const setSetting = useCallback(
     <K extends keyof Settings>(key: K, value: Settings[K]) =>
@@ -353,6 +393,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setColor,
       color,
       keyboardHeight,
+      gradient,
+      setGradient,
     }),
     [
       settings,
@@ -370,6 +412,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setSetting,
       setColor,
       keyboardHeight,
+      gradient,
+      setGradient,
     ],
   );
 

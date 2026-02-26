@@ -15,6 +15,8 @@ export interface File {
   duration?: number;
   waveform?: number[];
   cover_url?: string;
+  file_size?: number;
+  extension?: string;
 }
 
 export interface Message {

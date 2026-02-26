@@ -11,39 +11,66 @@ function AttachmentPreview({ file }: { file: File }) {
 
   // const { objectUrl: audioCoverUrl } = usePrivateMedia(file.cover_url);
 
-  if (!objectUrl) return null;
+  // if (!objectUrl) return null;
 
   switch (file.category) {
     case 'image':
       return (
-        <img
+        <span
           className={styles['chat-list-item__attachment']}
-          src={objectUrl}
-          alt={file.original_name || 'Attachment'}
-        />
+          style={{
+            aspectRatio:
+              file.width && file.height ? file.width / file.height : 1,
+            backgroundColor: file.dominant_color,
+          }}
+        >
+          {objectUrl && (
+            <img src={objectUrl} alt={file.original_name || 'Attachment'} />
+          )}
+        </span>
       );
 
     case 'video':
       return (
-        <video
+        <span
           className={styles['chat-list-item__attachment']}
-          src={file.file_url ? file.file_url + '#t=0.001' : ''}
-          loop
-          muted
-          playsInline
-          autoPlay={autoplayVideos}
-        />
+          style={{
+            aspectRatio:
+              file.width && file.height ? file.width / file.height : 1,
+            backgroundColor: file.dominant_color,
+          }}
+        >
+          {objectUrl && (
+            <video
+              className={styles['chat-list-item__attachment']}
+              src={file.file_url ? file.file_url + '#t=0.001' : ''}
+              loop
+              muted
+              playsInline
+              autoPlay={autoplayVideos}
+            />
+          )}
+        </span>
       );
 
     case 'audio':
       return (
         <>
           {file.cover_url && (
-            <img
+            <span
               className={styles['chat-list-item__attachment--audio-cover']}
-              src={objectUrl}
-              alt={file.original_name}
-            />
+              style={{
+                backgroundColor: file.dominant_color,
+              }}
+            >
+              {objectUrl && (
+                <img
+                  className={styles['chat-list-item__attachment--audio-cover']}
+                  src={objectUrl}
+                  alt={file.original_name}
+                />
+              )}
+            </span>
           )}
         </>
       );

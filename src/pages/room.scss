@@ -92,6 +92,10 @@ img {
 
   -webkit-touch-callout: none;
   -webkit-user-drag: none;
+
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
 }
 
 html {
@@ -102,8 +106,8 @@ html,
 body {
   user-select: none;
   overflow: hidden;
-  overscroll-behavior-x: none;
-  overscroll-behavior-y: none;
+  // overscroll-behavior-x: none;
+  // overscroll-behavior-y: none;
   height: calc(var(--sat) + 100%);
   max-height: calc(var(--sat) + 100%);
   -webkit-text-size-adjust: 100%;
@@ -421,6 +425,7 @@ svg {
 }
 
 .left-menu {
+  overscroll-behavior: contain;
   order: 0;
   display: flex;
   flex-direction: column;

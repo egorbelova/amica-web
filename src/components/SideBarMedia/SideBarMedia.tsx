@@ -22,7 +22,7 @@ import { Dropdown } from '../Dropdown/Dropdown';
 import { useSnackbar } from '@/contexts/snackbar/SnackbarContextCore';
 import type { IconName } from '../Icons/AutoIcons';
 import type { DropdownItem } from '../Dropdown/Dropdown';
-import type { Message, File, User, DisplayMedia } from '@/types';
+import type { File, User, DisplayMedia, Message } from '@/types';
 import type { ChatContextType } from '@/contexts/ChatContextCore';
 import Button from '../ui/button/Button';
 

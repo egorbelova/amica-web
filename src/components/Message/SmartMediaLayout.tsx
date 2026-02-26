@@ -7,6 +7,7 @@ import AudioLayout from './AudioLayout';
 import { useChat } from '@/contexts/ChatContextCore';
 import Reel from './Reel';
 import type { File } from '@/types';
+import DocumentLayout from './DocumentLayout';
 
 interface Props {
   files: File[];
@@ -17,12 +18,30 @@ const SmartMediaLayout: React.FC<Props> = ({ files }) => {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const mediaFiles = useMemo(
-    () => files.filter((f) => f.category !== 'audio'),
+    () =>
+      files.filter(
+        (f) =>
+          f.category !== 'audio' &&
+          f.category !== 'document' &&
+          f.category !== 'other',
+      ),
     [files],
   );
 
   const audioFiles = useMemo(
     () => files.filter((f) => f.category === 'audio'),
+    [files],
+  );
+
+  const documentFiles = useMemo(
+    () =>
+      files.filter(
+        (f) =>
+          f.category !== 'document' &&
+          f.category !== 'audio' &&
+          f.category !== 'video' &&
+          f.category !== 'image',
+      ),
     [files],
   );
 
@@ -162,6 +181,14 @@ const SmartMediaLayout: React.FC<Props> = ({ files }) => {
               duration={file.duration || null}
               cover_url={file.cover_url || null}
             />
+          ))}
+        </div>
+      )}
+
+      {!!documentFiles.length && (
+        <div className={styles.documentList}>
+          {documentFiles.map((file) => (
+            <DocumentLayout key={file.id} file={file} />
           ))}
         </div>
       )}

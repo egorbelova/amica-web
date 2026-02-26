@@ -1,5 +1,14 @@
 export type WallpaperType = 'photo' | 'video' | string;
 
+export interface GradientSuggested {
+  name: string;
+  degree: string;
+  colors: {
+    color: string;
+    stop: string;
+  }[];
+}
+
 export type WallpaperSetting = {
   id: number | string | null;
   url: string | null;
@@ -50,4 +59,6 @@ export interface SettingsContextValue {
   setColor: (color: string) => void;
   color: string;
   keyboardHeight: number;
+  gradient: GradientSuggested | null;
+  setGradient: (gradient: GradientSuggested | null) => void;
 }
