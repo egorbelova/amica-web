@@ -106,12 +106,19 @@ html,
 body {
   user-select: none;
   overflow: hidden;
-  // overscroll-behavior-x: none;
-  // overscroll-behavior-y: none;
+
   height: calc(var(--sat) + 100%);
   max-height: calc(var(--sat) + 100%);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  overscroll-behavior: contain;
+}
+
+@supports (-webkit-touch-callout: none) {
+  html,
+  body {
+    overscroll-behavior: none;
+  }
 }
 
 body {
@@ -221,6 +228,7 @@ svg {
 
 .room_div {
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: calc(min(var(--sat), 10px) + 50px);
   max-width: 100%;
   min-height: 100px;
@@ -231,7 +239,6 @@ svg {
   align-items: flex-end;
   width: 700px;
   position: relative;
-  isolation: isolate;
 
   mask-image: linear-gradient(
     to bottom,
