@@ -311,8 +311,12 @@ const MessageInput: React.FC = () => {
         return;
       }
       if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        handleSubmit(e);
+        const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+        if (!isMobile) {
+          e.preventDefault();
+          handleSubmit(e);
+        }
+        // на мобильных — не перехватываем Enter, остаётся перенос строки
       }
     },
     [handleSubmit, editingMessage, cancelEdit],

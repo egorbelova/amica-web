@@ -180,7 +180,8 @@ export async function apiUpload(
       }
     };
 
-    xhr.onerror = () => reject(new Error('Network error'));
+    xhr.onerror = () =>
+      reject(new Error(`Network error: ${API_BASE_URL}${url}`));
     xhr.ontimeout = () => reject(new Error('Timeout'));
 
     xhr.send(formData);

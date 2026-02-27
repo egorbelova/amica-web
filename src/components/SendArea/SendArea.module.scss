@@ -141,4 +141,5 @@
   overflow: scroll;
   height: fit-content;
   flex-shrink: 0;
+  overscroll-behavior: contain;
 }

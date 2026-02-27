@@ -724,126 +724,128 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
             </div>
           )}
 
-          <div
-            className={`${styles.sidebar__media} ${
-              interlocutorEditVisible ? styles.hidden : ''
-            }`}
-          >
-            <div className={styles.tabs}>
-              <div className={styles['tabs-inner']}>
-                <div
-                  className={styles.indicator}
-                  style={{
-                    transform: `translateX(${indicatorPosition}px)`,
-                    width: `${indicatorWidth - 4}px`,
-                  }}
-                />
+          {availableTabs.length > 0 && (
+            <div
+              className={`${styles.sidebar__media} ${
+                interlocutorEditVisible ? styles.hidden : ''
+              }`}
+            >
+              <div className={styles.tabs}>
+                <div className={styles['tabs-inner']}>
+                  <div
+                    className={styles.indicator}
+                    style={{
+                      transform: `translateX(${indicatorPosition}px)`,
+                      width: `${indicatorWidth - 4}px`,
+                    }}
+                  />
 
-                {selectedChat?.members && selectedChat.type === 'G' && (
-                  <button
-                    ref={membersRef}
-                    className={`${styles.tab}`}
-                    onClick={() => setActiveTab('members')}
-                  >
-                    Members
-                  </button>
+                  {selectedChat?.members && selectedChat.type === 'G' && (
+                    <button
+                      ref={membersRef}
+                      className={`${styles.tab}`}
+                      onClick={() => setActiveTab('members')}
+                    >
+                      Members
+                    </button>
+                  )}
+
+                  {mediaFiles.length > 0 && (
+                    <button
+                      ref={mediaRef}
+                      className={`${styles.tab} ${
+                        activeTab === 'media' ? styles.active : ''
+                      }`}
+                      onClick={() => setActiveTab('media')}
+                    >
+                      Media
+                    </button>
+                  )}
+
+                  {audioFiles.length > 0 && (
+                    <button
+                      ref={audioRef}
+                      className={`${styles.tab} ${
+                        activeTab === 'audio' ? styles.active : ''
+                      }`}
+                      onClick={() => setActiveTab('audio')}
+                    >
+                      Audio
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.content} ref={gridRef}>
+                {activeTab === 'members' && selectedChat.type === 'G' && (
+                  <div className={styles.membersList}>
+                    {selectedChat?.members?.map((member: User) => (
+                      <div key={member?.id} className={styles.memberItem}>
+                        <Avatar
+                          className={styles.memberAvatar}
+                          displayMedia={member.profile.primary_media}
+                          displayName={member.username}
+                        />
+                        <div className={styles.memberInfo}>
+                          <span className={styles.memberName}>
+                            {member.username}
+                          </span>
+                          <span className={styles.memberLastSeen}>
+                            {formatLastSeen(member.last_seen)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
 
-                {mediaFiles.length > 0 && (
-                  <button
-                    ref={mediaRef}
-                    className={`${styles.tab} ${
-                      activeTab === 'media' ? styles.active : ''
-                    }`}
-                    onClick={() => setActiveTab('media')}
+                {activeTab === 'media' && mediaFiles.length > 0 && (
+                  <div
+                    className={styles.grid}
+                    style={{
+                      gridTemplateColumns: `repeat(${rowScale}, 1fr)`,
+                    }}
                   >
-                    Media
-                  </button>
+                    {filteredMediaFilesMemo.map((file) => (
+                      <div key={file.id} className={styles.mediaWrapper}>
+                        {file.category === 'image' && (
+                          <ProgressiveImage
+                            small={file.thumbnail_small_url ?? null}
+                            full={
+                              (file.thumbnail_medium_url ??
+                                file.file_url) as string
+                            }
+                            dominant_color={file.dominant_color ?? undefined}
+                          />
+                        )}
+                        {file.category === 'video' && (
+                          <VideoLayout
+                            full={(file.file_url ?? '') as string}
+                            has_audio={!!file.has_audio}
+                            // className={styles.mediaItem}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
 
-                {audioFiles.length > 0 && (
-                  <button
-                    ref={audioRef}
-                    className={`${styles.tab} ${
-                      activeTab === 'audio' ? styles.active : ''
-                    }`}
-                    onClick={() => setActiveTab('audio')}
-                  >
-                    Audio
-                  </button>
+                {activeTab === 'audio' && audioFiles.length > 0 && (
+                  <div className={styles.audioGrid}>
+                    {audioFiles.map((file: File) => (
+                      <AudioLayout
+                        key={file.id}
+                        waveform={file.waveform || null}
+                        duration={file.duration || 0}
+                        id={file.id || 0}
+                        cover_url={file.cover_url || null}
+                      />
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
-
-            <div className={styles.content} ref={gridRef}>
-              {activeTab === 'members' && selectedChat.type === 'G' && (
-                <div className={styles.membersList}>
-                  {selectedChat?.members?.map((member: User) => (
-                    <div key={member?.id} className={styles.memberItem}>
-                      <Avatar
-                        className={styles.memberAvatar}
-                        displayMedia={member.profile.primary_media}
-                        displayName={member.username}
-                      />
-                      <div className={styles.memberInfo}>
-                        <span className={styles.memberName}>
-                          {member.username}
-                        </span>
-                        <span className={styles.memberLastSeen}>
-                          {formatLastSeen(member.last_seen)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {activeTab === 'media' && mediaFiles.length > 0 && (
-                <div
-                  className={styles.grid}
-                  style={{
-                    gridTemplateColumns: `repeat(${rowScale}, 1fr)`,
-                  }}
-                >
-                  {filteredMediaFilesMemo.map((file) => (
-                    <div key={file.id} className={styles.mediaWrapper}>
-                      {file.category === 'image' && (
-                        <ProgressiveImage
-                          small={file.thumbnail_small_url ?? null}
-                          full={
-                            (file.thumbnail_medium_url ??
-                              file.file_url) as string
-                          }
-                          dominant_color={file.dominant_color ?? undefined}
-                        />
-                      )}
-                      {file.category === 'video' && (
-                        <VideoLayout
-                          full={(file.file_url ?? '') as string}
-                          has_audio={!!file.has_audio}
-                          // className={styles.mediaItem}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {activeTab === 'audio' && audioFiles.length > 0 && (
-                <div className={styles.audioGrid}>
-                  {audioFiles.map((file: File) => (
-                    <AudioLayout
-                      key={file.id}
-                      waveform={file.waveform || null}
-                      duration={file.duration || 0}
-                      id={file.id || 0}
-                      cover_url={file.cover_url || null}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          )}
           {interlocutorEditVisible && (
             <div className={`${styles.interlocutorEdit} ${styles.visible}`}>
               <div className={styles.form}>

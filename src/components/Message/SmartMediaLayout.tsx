@@ -35,13 +35,7 @@ const SmartMediaLayout: React.FC<Props> = ({ files }) => {
 
   const documentFiles = useMemo(
     () =>
-      files.filter(
-        (f) =>
-          f.category !== 'document' &&
-          f.category !== 'audio' &&
-          f.category !== 'video' &&
-          f.category !== 'image',
-      ),
+      files.filter((f) => f.category === 'document' || f.category === 'other'),
     [files],
   );
 
