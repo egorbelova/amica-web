@@ -54,7 +54,6 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
     ): void => {
       e.preventDefault();
       e.stopPropagation();
-      onChatClick(chatId);
 
       const ripple = document.createElement('span');
       ripple.className = styles.ripple;
@@ -68,6 +67,12 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
       ripple.addEventListener('animationend', () => {
         ripple.remove();
       });
+
+      // Defer to avoid [Violation] 'mousedown' handler took Nms (onChatClick triggers setState + fetch)
+      const id = chatId;
+      setTimeout(() => {
+        onChatClick(id);
+      }, 0);
     };
     const getAttachmentText = (files: File[] = []) => {
       if (!files.length) return '';

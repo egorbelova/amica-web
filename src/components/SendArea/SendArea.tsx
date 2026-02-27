@@ -135,7 +135,7 @@ const MessageInput: React.FC = () => {
     setMessage('');
     if (editableRef.current) {
       editableRef.current.innerText = '';
-      editableRef.current.style.height = '20px';
+      // editableRef.current.style.height = '20px';
     }
   }, [setEditingMessage]);
 
@@ -392,6 +392,7 @@ const MessageInput: React.FC = () => {
             <div className={styles['files-preview-header']}>
               <span>Attached Files ({files.length})</span>
               <Button
+                key={'send-area-clear-all-button'}
                 className={styles['clear-all-btn']}
                 onClick={() => setFiles([])}
                 aria-label='Clear all files'
@@ -502,6 +503,7 @@ const MessageInput: React.FC = () => {
                   Editing message
                 </span>
                 <Button
+                  key={'send-area-cancel-edit-button'}
                   onClick={cancelEdit}
                   aria-label='Cancel edit'
                   className={styles['edit-bar-cancel']}

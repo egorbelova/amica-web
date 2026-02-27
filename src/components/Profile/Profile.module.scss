@@ -491,9 +491,9 @@ $suggestedColorPreviewSize: 40px;
   display: grid;
   grid-template-columns: repeat(
     auto-fit,
-    minmax($suggestedColorPreviewSize, 1fr)
+    minmax($suggestedColorPreviewSize, auto)
   );
-  gap: 10px;
+  gap: 20px;
 }
 
 .suggestedColorPreview {

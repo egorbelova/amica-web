@@ -111,6 +111,7 @@ const MainChatWindow: React.FC = () => {
       {current === 'profile' && settingsFullWindow && activeProfileTab && (
         <div className={styles.settingsContainer}>
           <Button
+            key={'main-chat-window-minimize-button'}
             onClick={() => setSettingsFullWindow(false)}
             className={styles.minimize}
           >

@@ -3,6 +3,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useMemo,
   type ReactNode,
 } from 'react';
 
@@ -43,15 +44,18 @@ function useCreateStackHistory<T>(initial?: T): StackHistory<T> {
   const current = stack[stack.length - 1];
   const canGoBack = stack.length > 1;
 
-  return {
-    stack,
-    current,
-    push,
-    replace,
-    back,
-    canGoBack,
-    clear,
-  };
+  return useMemo(
+    () => ({
+      stack,
+      current,
+      push,
+      replace,
+      back,
+      canGoBack,
+      clear,
+    }),
+    [stack, current, canGoBack, push, replace, back, clear],
+  );
 }
 
 export function createStackHistory<T>() {

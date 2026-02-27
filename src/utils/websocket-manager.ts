@@ -4,6 +4,7 @@ import {
   getAccessTokenOrThrow,
 } from './authStore';
 import type { Session } from '@/types';
+import { startTransition } from 'react';
 
 export interface WebSocketMessageData {
   id?: number | string;
@@ -174,8 +175,6 @@ class WebSocketManager {
       // url = `${ws_protocol}${window.location.host}/ws/socket-server/`;
     }
 
-    // console.log('Connecting to WebSocket:', url);
-
     try {
       this.socket = new WebSocket(url);
 
@@ -228,36 +227,40 @@ class WebSocketManager {
   }
 
   private handleMessage(e: MessageEvent) {
+    let data: WebSocketMessage;
     try {
-      const data: WebSocketMessage = JSON.parse(e.data);
-      this.emit('message', data);
-
-      switch (data.type) {
-        case 'connection_established':
-          this.emit('connection_established', data);
-          // this.startPingInterval();
-          break;
-        case 'pong':
-          break;
-        case 'error':
-          console.error('WS error:', data.message);
-          this.emit('error', data);
-          break;
-        case 'chat_message':
-          if (data.data && data.chat_id !== undefined)
-            this.emit('chat_message', data);
-          break;
-        case 'message_reaction':
-          if (data.message_id) this.emit('message_reaction', data);
-          break;
-        case 'message_viewed':
-          if (data.message_id) this.emit('message_viewed', data);
-          break;
-      }
+      data = JSON.parse(e.data);
     } catch (err) {
       console.error('Error parsing WS message:', err);
       this.emit('error', err);
+      return;
     }
+    queueMicrotask(() => {
+      this.emit('message', data);
+      startTransition(() => {
+        switch (data.type) {
+          case 'connection_established':
+            this.emit('connection_established', data);
+            break;
+          case 'pong':
+            break;
+          case 'error':
+            console.error('WS error:', data.message);
+            this.emit('error', data);
+            break;
+          case 'chat_message':
+            if (data.data && data.chat_id !== undefined)
+              this.emit('chat_message', data);
+            break;
+          case 'message_reaction':
+            if (data.message_id) this.emit('message_reaction', data);
+            break;
+          case 'message_viewed':
+            if (data.message_id) this.emit('message_viewed', data);
+            break;
+        }
+      });
+    });
   }
 
   private attemptReconnection(): void {

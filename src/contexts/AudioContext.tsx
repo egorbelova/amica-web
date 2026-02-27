@@ -1,4 +1,10 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, {
+  useRef,
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+} from 'react';
 import { fetchPrivateMedia } from '@/utils/audio';
 import type { File } from '@/types';
 import { AudioContext } from '@/contexts/audioContext';
@@ -205,8 +211,6 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [playlist, currentAudioId]);
 
   useEffect(() => {
-    // console.log('currentTime', currentTime);
-
     const audio = audioRef.current;
     if (!audio) return;
     audio.currentTime = currentTime;
@@ -261,24 +265,41 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [playPrev, playNext]);
 
+  const value = useMemo(
+    () => ({
+      coverUrl,
+      playlist,
+      setPlaylist,
+      currentChatId,
+      togglePlay,
+      playPrev,
+      playNext,
+      isPlaying,
+      currentAudioId,
+      setCurrentAudioId,
+      setCoverUrl,
+      setCurrentTime,
+      audioRef,
+    }),
+    [
+      coverUrl,
+      playlist,
+      setPlaylist,
+      currentChatId,
+      togglePlay,
+      playPrev,
+      playNext,
+      isPlaying,
+      currentAudioId,
+      setCurrentAudioId,
+      setCoverUrl,
+      setCurrentTime,
+      audioRef,
+    ],
+  );
+
   return (
-    <AudioContext.Provider
-      value={{
-        coverUrl,
-        playlist,
-        setPlaylist,
-        currentChatId,
-        togglePlay,
-        playPrev,
-        playNext,
-        isPlaying,
-        currentAudioId,
-        setCurrentAudioId,
-        setCoverUrl,
-        setCurrentTime,
-        audioRef,
-      }}
-    >
+    <AudioContext.Provider value={value}>
       <audio ref={audioRef} preload='metadata' />
       {children}
     </AudioContext.Provider>

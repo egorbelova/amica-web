@@ -43,6 +43,7 @@ export const MediaHeader: React.FC = () => {
       <div className={styles['media-header__rightside']}>
         <AudioEqualizer />
         <Button
+          key={'media-header-close-button'}
           onClick={() => setCurrentAudioId(null)}
           className={styles['media-header__close']}
         >

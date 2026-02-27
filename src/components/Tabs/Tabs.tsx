@@ -39,6 +39,7 @@ export function Tabs() {
       {activeProfileTab === 'appearance' && activeTab === 'profile' && (
         <div className={styles['new-wallpaper']}>
           <Button
+            key={'new-wallpaper-button'}
             className={styles['new-wallpaper__button']}
             onClick={() => {
               wallpaperInputRef.current?.click();

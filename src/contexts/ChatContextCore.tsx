@@ -27,7 +27,7 @@ export interface ChatContextType {
 
   fetchChats: () => Promise<void>;
   fetchChat: (chatId: number) => Promise<void>;
-  handleChatClick: (chatId: number) => Promise<void>;
+  handleChatClick: (chatId: number) => void;
   handleCreateTemporaryChat: (user: User) => void;
   setSelectedChatId: (chatId: number | null) => void;
   addContact: (userId: number) => void;

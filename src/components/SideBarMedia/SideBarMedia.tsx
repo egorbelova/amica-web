@@ -555,6 +555,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
         <div className={`${styles.sidebar}`} ref={sidebarInnerRef}>
           <div className={styles.header}>
             <Button
+              key={'sidebar-header-button'}
               onClick={
                 interlocutorEditVisible ? onInterlocutorEditBack : onClose
               }
@@ -573,6 +574,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
               !attachmentsActive && (
                 <>
                   <Button
+                    key={'sidebar-header-button-edit'}
                     className={`${styles.button} ${
                       interlocutorEditVisible ? styles.hidden : ''
                     }`}
@@ -878,6 +880,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                 )}
 
                 <Button
+                  key={'sidebar-media-save-button'}
                   className={`${styles.button} ${styles.save}`}
                   type='button'
                   onClick={() =>
@@ -887,6 +890,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                   {t('buttons.save')}
                 </Button>
                 <Button
+                  key={'sidebar-media-delete-button'}
                   className={`${styles.button} ${styles.delete}`}
                   type='button'
                   onClick={() => {

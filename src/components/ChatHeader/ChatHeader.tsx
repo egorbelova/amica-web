@@ -40,6 +40,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
     <div className={styles['header-container']}>
       <div className={styles['chat-header']} onClick={onChatInfoClick}>
         <Button
+          key={'chat-header-back-button'}
           onClick={handleGoHome}
           className={styles['chat-header__back-button']}
         >

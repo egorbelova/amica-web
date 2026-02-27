@@ -77,6 +77,7 @@ export default function Profile() {
           <>Settings</>
         ) : (
           <Button
+            key={'profile-header-button'}
             onClick={() => setActiveProfileTab(null)}
             className={styles.close}
           >
@@ -96,6 +97,7 @@ export default function Profile() {
         )}
         {isResizingPermitted && activeProfileTab && !settingsFullWindow && (
           <Button
+            key={'profile-header-button-maximize'}
             className={styles.maximize}
             onClick={() => setSettingsFullWindow(true)}
           >

@@ -256,44 +256,72 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const [, startTransition] = useTransition();
 
   const handleChatClick = useCallback(
-    async (chatId: number) => {
+    (chatId: number) => {
       if (chatId === selectedChatId) return;
-      setSelectedChatId(chatId);
-
       startTransition(() => {
+        setSelectedChatId(chatId);
         fetchChat(chatId);
       });
     },
     [selectedChatId, fetchChat],
   );
 
-  const value: ChatContextType = {
-    selectedChat,
-    messages,
-    chats,
-    loading,
-    error,
-    messagesCache,
-    editingMessage,
-    setEditingMessage,
-    selectChat,
-    updateMessages,
-    updateMessageInChat,
-    setChats,
-    setLoading,
-    getCachedMessages,
-    updateChatLastMessage,
-    updateChatUnreadCount,
-    fetchChats,
-    fetchChat,
-    handleChatClick,
-    handleCreateTemporaryChat,
-    setSelectedChatId,
-    addContact,
-    deleteContact,
-    saveContact,
-    handleNewMessage,
-  };
+  const value: ChatContextType = useMemo(
+    () => ({
+      selectedChat,
+      messages,
+      chats,
+      loading,
+      error,
+      messagesCache,
+      editingMessage,
+      setEditingMessage,
+      selectChat,
+      updateMessages,
+      updateMessageInChat,
+      setChats,
+      setLoading,
+      getCachedMessages,
+      updateChatLastMessage,
+      updateChatUnreadCount,
+      fetchChats,
+      fetchChat,
+      handleChatClick,
+      handleCreateTemporaryChat,
+      setSelectedChatId,
+      addContact,
+      deleteContact,
+      saveContact,
+      handleNewMessage,
+    }),
+    [
+      selectedChat,
+      messages,
+      chats,
+      loading,
+      error,
+      messagesCache,
+      editingMessage,
+      setEditingMessage,
+      selectChat,
+      updateMessages,
+      updateMessageInChat,
+      setChats,
+      setLoading,
+      getCachedMessages,
+      updateChatLastMessage,
+      updateChatUnreadCount,
+      fetchChats,
+      fetchChat,
+      handleChatClick,
+      handleCreateTemporaryChat,
+      setSelectedChatId,
+      addContact,
+      deleteContact,
+      saveContact,
+      handleNewMessage,
+    ],
+  );
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 };

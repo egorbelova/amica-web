@@ -6,15 +6,9 @@ import './room.scss';
 import styles from './RoomPage.module.scss';
 import { useSettings } from '@/contexts/settings/context';
 // import BackgroundComponent from '../components/BackgroundComponent/BackgroundComponent';
-// import { usePageStack } from '@/contexts/useStackHistory';
+// import LiquidBackground from '../components/LiquidBackground/LiquidBackground';
 
 const RoomPage: React.FC = () => {
-  // const { push } = usePageStack();
-
-  // useEffect(() => {
-  //   push('home');
-  // }, []);
-
   useEffect(() => {
     websocketManager.connect();
     return () => {
@@ -191,6 +185,7 @@ const RoomPage: React.FC = () => {
         </>
       )}
       {/* {windowWidth > 768 && <BackgroundComponent />} */}
+      {/* <LiquidBackground /> */}
       <div className={styles.roomPageContainer}>
         <LeftSideBar />
         <MainChatWindow />

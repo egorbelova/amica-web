@@ -24,7 +24,7 @@ export interface Message {
   value: string;
   date: string;
   user: number;
-  viewers: User[];
+  viewers?: User[];
   liked: number;
   files: File[];
   is_own: boolean;

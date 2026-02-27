@@ -1,5 +1,5 @@
 // contexts/search/useSearch.ts
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useMemo } from 'react';
 
 interface UseSearchOptions<T> {
   searchFn: (query: string) => Promise<T[]>;
@@ -59,14 +59,17 @@ export function useSearch<T>({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, []);
 
-  return {
-    term,
-    setTerm,
-    results,
-    setResults,
-    loading,
-    error,
-    onChange,
-    clear,
-  };
+  return useMemo(
+    () => ({
+      term,
+      setTerm,
+      results,
+      setResults,
+      loading,
+      error,
+      onChange,
+      clear,
+    }),
+    [term, results, loading, error, onChange, clear],
+  );
 }

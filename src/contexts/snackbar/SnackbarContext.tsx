@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import Snackbar from '@/components/Snackbar/Snackbar';
 import { SnackbarContext } from './SnackbarContextCore';
 import type { SnackbarType } from './SnackbarContextCore';
@@ -32,8 +32,13 @@ export const SnackbarProvider = ({
     setSnackbar(null);
   };
 
+  const value = useMemo(
+    () => ({ showSnackbar }),
+    [showSnackbar],
+  );
+
   return (
-    <SnackbarContext.Provider value={{ showSnackbar }}>
+    <SnackbarContext.Provider value={value}>
       {children}
       {snackbar && (
         <Snackbar

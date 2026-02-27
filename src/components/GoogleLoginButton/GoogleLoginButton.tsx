@@ -32,7 +32,6 @@ function GooglePopupLoginButton({ className }: GooglePopupLoginButtonProps) {
       if (!access_token) return;
 
       try {
-        console.log('Google access token:', access_token);
         await loginWithGoogle(access_token);
       } catch (err) {
         console.error('Google login error', err);

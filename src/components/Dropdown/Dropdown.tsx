@@ -213,6 +213,7 @@ export function Dropdown<T extends string | number>({
   return (
     <div className={`${styles.dropdown} ${dropdownStyles}`} ref={containerRef}>
       <Button
+        key={'dropdown-button'}
         ref={btnRef}
         onClick={() => setOpen((prev) => !prev)}
         className={`${styles.toggle} ${buttonStyles}`}

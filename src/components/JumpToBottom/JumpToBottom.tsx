@@ -8,6 +8,7 @@ export default function JumpToBottom() {
 
   return (
     <Button
+      key={'jump-to-bottom-button'}
       className={`${styles['jump-to-bottom']} ${
         isVisible ? styles.visible : styles.hidden
       }`}

@@ -109,6 +109,56 @@ const suggestedGradients: GradientSuggestedType[] = [
       },
     ],
   },
+  {
+    name: 'Plum Glow',
+    degree: '168deg',
+    colors: [
+      { color: '#3e196e', stop: '0%' },
+      { color: '#d46c76', stop: '50%' },
+      { color: '#ffc07c', stop: '100%' },
+    ],
+  },
+  {
+    name: 'Rust Furnace',
+    degree: '0deg',
+    colors: [
+      { color: '#8c1105', stop: '0%' },
+      { color: '#25221e', stop: '100%' },
+    ],
+  },
+  {
+    name: 'Dust & Ember',
+    degree: '225deg',
+    colors: [
+      { color: '#1f140d', stop: '0%' },
+      { color: '#9b8074', stop: '100%' },
+    ],
+  },
+  {
+    name: 'Steel & Flame',
+    degree: '0deg',
+    colors: [
+      { color: '#5a6776', stop: '0%' },
+      { color: '#ff7b74', stop: '100%' },
+    ],
+  },
+  {
+    name: 'Deep Abyss',
+    degree: '270deg',
+    colors: [
+      { color: '#0e1c26', stop: '0%' },
+      { color: '#2a454b', stop: '50%' },
+      { color: '#294861', stop: '100%' },
+    ],
+  },
+  {
+    name: 'Tropical Mist',
+    degree: '12deg',
+    colors: [
+      { color: '#239eab', stop: '0%' },
+      { color: '#74deee', stop: '100%' },
+    ],
+  },
 ];
 
 const parseToHSL = (inputColor: string) => {
@@ -252,6 +302,7 @@ const ColorPicker = () => {
           ))}
         </div>
         <Button
+          key={'color-picker-set-same-as-accent-button'}
           className={styles.setSameAsAccentButton}
           onClick={() =>
             setGradient({

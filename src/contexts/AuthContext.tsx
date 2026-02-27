@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { AuthContext } from './AuthContextCore';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -6,8 +6,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [loggedIn, setLoggedIn] = useState(true);
 
+  const value = useMemo(
+    () => ({ loggedIn, setLoggedIn }),
+    [loggedIn],
+  );
+
   return (
-    <AuthContext.Provider value={{ loggedIn, setLoggedIn }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

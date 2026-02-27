@@ -27,7 +27,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (isProduction && 'serviceWorker' in navigator) {
-      console.log('Service Worker registration');
       navigator.serviceWorker.register('/sw.js');
     }
   }, [isProduction]);

@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { apiJson, setApiFetchUnauthorizedHandler } from '../utils/apiFetch';
 import {
   setAccessToken,
@@ -16,7 +17,7 @@ import { UserContext, postJson } from './UserContextCore';
 import type { UserState, ApiResponse } from './UserContextCore';
 import type { File as FileType } from '@/types';
 
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
+export const UserProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [state, setState] = useState<UserState>({
@@ -100,47 +101,66 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     [fetchUser],
   );
 
-  const loginWithPassword = (username: string, password: string) =>
-    postJson<ApiResponse>('/api/login/', { username, password }).then(
-      handleLoginSuccess,
-    );
+  const setUser = useCallback((user: User | null) => {
+    setState((prev) => ({ ...prev, user }));
+  }, []);
 
-  const loginWithGoogle = (idToken: string) =>
-    postJson<ApiResponse>('/api/google/', { access_token: idToken }).then(
-      handleLoginSuccess,
-    );
+  const loginWithPassword = useCallback(
+    (username: string, password: string) =>
+      postJson<ApiResponse>('/api/login/', { username, password }).then(
+        handleLoginSuccess,
+      ),
+    [handleLoginSuccess],
+  );
 
-  const loginWithPasskey = (passkeyData: unknown) =>
-    postJson<ApiResponse>('/api/passkey_auth_finish/', passkeyData).then(
-      handleLoginSuccess,
-    );
+  const loginWithGoogle = useCallback(
+    (idToken: string) =>
+      postJson<ApiResponse>('/api/google/', { access_token: idToken }).then(
+        handleLoginSuccess,
+      ),
+    [handleLoginSuccess],
+  );
 
-  const logout = async () => {
+  const loginWithPasskey = useCallback(
+    (passkeyData: unknown) =>
+      postJson<ApiResponse>('/api/passkey_auth_finish/', passkeyData).then(
+        handleLoginSuccess,
+      ),
+    [handleLoginSuccess],
+  );
+
+  const logout = useCallback(async () => {
     try {
       await apiJson('/api/logout/', { method: 'POST' });
     } finally {
       authLogout();
       setState({ user: null, loading: false, error: null });
     }
-  };
+  }, []);
 
-  return (
-    <UserContext.Provider
-      value={{
-        ...state,
-        isAuthenticated: !!state.user,
-        refreshUser: fetchUser,
-        setUser: useCallback(
-          (user: User | null) => setState((prev) => ({ ...prev, user })),
-          [],
-        ),
-        loginWithPassword,
-        loginWithGoogle,
-        loginWithPasskey,
-        logout,
-      }}
-    >
-      {children}
-    </UserContext.Provider>
+  const value = useMemo(
+    () => ({
+      ...state,
+      isAuthenticated: !!state.user,
+      refreshUser: fetchUser,
+      setUser,
+      loginWithPassword,
+      loginWithGoogle,
+      loginWithPasskey,
+      logout,
+    }),
+    [
+      state,
+      fetchUser,
+      setUser,
+      loginWithPassword,
+      loginWithGoogle,
+      loginWithPasskey,
+      logout,
+    ],
   );
+
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
+
+UserProvider.displayName = 'UserProvider';

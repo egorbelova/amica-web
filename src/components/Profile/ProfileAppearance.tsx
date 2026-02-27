@@ -112,6 +112,7 @@ export default function ProfileAppearance() {
             )}
             <div className={styles.colorChangeContainer}>
               <Button
+                key={'profile-appearance-change-color-button'}
                 onClick={() => setColorPickerOpen(!colorPickerOpen)}
                 className={styles.changeColorButton}
               >

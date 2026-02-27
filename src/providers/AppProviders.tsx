@@ -34,6 +34,7 @@ const GlobalSearchProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => <SearchProvider searchFn={searchGlobal}>{children}</SearchProvider>;
 
 const AppProvidersComponent = composeProviders(
+  LanguageProvider,
   SnackbarProvider,
   PageStackProvider,
   AuthProvider,
@@ -43,7 +44,6 @@ const AppProvidersComponent = composeProviders(
   ChatProvider,
   MessagesProvider,
   AudioProvider,
-  LanguageProvider,
   JumpProvider,
 );
 

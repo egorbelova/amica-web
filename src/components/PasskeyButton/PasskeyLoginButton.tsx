@@ -78,8 +78,7 @@ export function PasskeyLoginButton({ styles }: PasskeyLoginButtonProps) {
       });
 
       if (finishRes.ok) {
-        const result = await finishRes.json();
-        console.log('✅ Passkey login success:', result);
+        await finishRes.json();
         window.location.reload();
       } else {
         const err = await finishRes.json();

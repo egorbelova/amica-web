@@ -102,7 +102,7 @@ const AudioEqualizer = () => {
   if (!currentAudioId) return null;
 
   return (
-    <Button>
+    <Button key={'audio-equalizer-button'}>
       <div className={styles['audio-equalizer']}>
         {Array.from({ length: BARS_COUNT }, (_, i) => (
           <div key={i} className={styles['audio-equalizer__bar']}>

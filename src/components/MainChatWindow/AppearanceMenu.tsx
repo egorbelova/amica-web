@@ -9,7 +9,9 @@ const tabs: Array<'chats' | 'appearance'> = ['chats', 'appearance'];
 const AppearanceMenu: React.FC = () => {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(true);
-  const [activeTab, setActiveTab] = useState<'chats' | 'appearance'>('appearance');
+  const [activeTab, setActiveTab] = useState<'chats' | 'appearance'>(
+    'appearance',
+  );
 
   const handleNextTab = () => {
     const currentIndex = tabs.indexOf(activeTab);
@@ -25,10 +27,7 @@ const AppearanceMenu: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div
-        className={styles.menuSwitch}
-        onClick={() => setVisible(!visible)}
-      >
+      <div className={styles.menuSwitch} onClick={() => setVisible(!visible)}>
         {visible ? 'X' : '?'}
       </div>
       {!visible && (
@@ -40,9 +39,7 @@ const AppearanceMenu: React.FC = () => {
         <div className={styles.tipsMenu}>
           {activeTab === 'appearance' && (
             <div className={styles.mainContent}>
-              <div className={styles.header}>
-                {t('tipsMenu.appearance')}
-              </div>
+              <div className={styles.header}>{t('tipsMenu.appearance')}</div>
             </div>
           )}
           {activeTab === 'chats' && (
@@ -52,6 +49,7 @@ const AppearanceMenu: React.FC = () => {
           )}
           <div className={styles.pageSwitch}>
             <Button
+              key={'appearance-menu-previous-button'}
               className={styles.switchButton}
               onClick={handlePrevTab}
             >
@@ -63,6 +61,7 @@ const AppearanceMenu: React.FC = () => {
               {t('tipsMenu.previousTip')}
             </Button>
             <Button
+              key={'appearance-menu-next-button'}
               className={styles.switchButton}
               onClick={handleNextTab}
             >

@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import type { Message, Chat } from '@/types';
 import type { WebSocketMessage } from '@/utils/websocket-manager';
 import { websocketManager } from '@/utils/websocket-manager';
@@ -32,36 +32,41 @@ export function useMessages({
   }>({});
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
 
-  const messages = selectedChatId
-    ? (messagesCache[selectedChatId] ?? [])
-    : [];
+  const messagesCacheRef = useRef(messagesCache);
 
-  const handleNewMessage = useCallback((data: WebSocketMessage) => {
-    if (data.type === 'chat_message' && data.chat_id && data.data) {
-      const roomId = data.chat_id;
-      const newMessage = data.data as unknown as Message;
+  useEffect(() => {
+    messagesCacheRef.current = messagesCache;
+  }, [messagesCache]);
 
-      setChats((prevChats) =>
-        prevChats.map((chat) =>
-          chat.id === roomId
-            ? { ...chat, last_message: newMessage }
-            : chat,
-        ),
-      );
+  const messages = selectedChatId ? (messagesCache[selectedChatId] ?? []) : [];
 
-      setMessagesCache((prevCache) => {
-        const existingMessages = prevCache[roomId] || [];
-        const isDuplicate = existingMessages.some(
-          (msg) => msg.id === newMessage.id,
+  const handleNewMessage = useCallback(
+    (data: WebSocketMessage) => {
+      if (data.type === 'chat_message' && data.chat_id && data.data) {
+        const roomId = data.chat_id;
+        const newMessage = data.data as unknown as Message;
+
+        setChats((prevChats) =>
+          prevChats.map((chat) =>
+            chat.id === roomId ? { ...chat, last_message: newMessage } : chat,
+          ),
         );
-        if (isDuplicate) return prevCache;
-        return {
-          ...prevCache,
-          [roomId]: [...existingMessages, newMessage],
-        };
-      });
-    }
-  }, [setChats]);
+
+        setMessagesCache((prevCache) => {
+          const existingMessages = prevCache[roomId] || [];
+          const isDuplicate = existingMessages.some(
+            (msg) => msg.id === newMessage.id,
+          );
+          if (isDuplicate) return prevCache;
+          return {
+            ...prevCache,
+            [roomId]: [...existingMessages, newMessage],
+          };
+        });
+      }
+    },
+    [setChats],
+  );
 
   useEffect(() => {
     websocketManager.on('chat_message', handleNewMessage);
@@ -87,9 +92,7 @@ export function useMessages({
             !currentLastMessage || lastMessage.id !== currentLastMessage.id;
           if (!shouldUpdate) return prevChats;
           return prevChats.map((chat) =>
-            chat.id === chatId
-              ? { ...chat, last_message: lastMessage }
-              : chat,
+            chat.id === chatId ? { ...chat, last_message: lastMessage } : chat,
           );
         });
       }
@@ -112,8 +115,8 @@ export function useMessages({
   );
 
   const getCachedMessages = useCallback((roomId: number) => {
-    return messagesCache[roomId] || null;
-  }, [messagesCache]);
+    return messagesCacheRef.current[roomId] || null;
+  }, []);
 
   return {
     messagesCache,
