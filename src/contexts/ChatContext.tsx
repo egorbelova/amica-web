@@ -8,7 +8,7 @@ import React, {
 import type { ReactNode } from 'react';
 import type { Message, Chat, User } from '@/types';
 import { apiFetch, apiUpload } from '@/utils/apiFetch';
-import { useSettings } from './settings/context';
+import { useSettingsActions } from './settings/context';
 import { ChatContext, type ChatContextType } from './ChatContextCore';
 import { useMessages } from './useMessages';
 
@@ -19,7 +19,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { setActiveProfileTab } = useSettings();
+  const { setActiveProfileTab } = useSettingsActions();
 
   const {
     messagesCache,
@@ -236,7 +236,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       const tempId = Math.min(...chats.map((c) => c.id), 0) - 1;
       const tempChat: Chat = {
         id: tempId,
-        info: user.username,
+        info: null,
         name: user.username,
         media: [],
         members: [user],

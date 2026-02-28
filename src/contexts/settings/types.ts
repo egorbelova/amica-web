@@ -39,26 +39,34 @@ export type SubTab =
   | 'appearance'
   | 'active_sessions'
   | null;
-export interface SettingsContextValue {
+
+export interface SettingsStateValue {
   settings: Settings;
+  loading: boolean;
+  activeProfileTab: SubTab;
+  autoplayVideos: boolean;
+  settingsFullWindow: boolean;
+  isResizingPermitted: boolean;
+  color: string;
+  gradient: GradientSuggested | null;
+  keyboardHeight: number;
+}
+
+export interface SettingsActionsValue {
   setSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
   setActiveWallpaper: (wallpaper: WallpaperSetting | null) => void;
   addUserWallpaper: (file: File) => void;
-  activeProfileTab: SubTab;
   setActiveProfileTab: (tab: SubTab) => void;
-  autoplayVideos: boolean;
-  setAutoplayVideos: (value: boolean) => void;
   setBlur: (value: number) => void;
   removeWallpaper: (id: string) => void;
   fetchWallpapers: () => Promise<void>;
-  loading: boolean;
-  settingsFullWindow: boolean;
+  setAutoplayVideos: (value: boolean) => void;
   setSettingsFullWindow: (value: boolean) => void;
-  isResizingPermitted: boolean;
   setIsResizingPermitted: (value: boolean) => void;
   setColor: (color: string) => void;
-  color: string;
-  keyboardHeight: number;
-  gradient: GradientSuggested | null;
   setGradient: (gradient: GradientSuggested | null) => void;
 }
+
+export interface SettingsContextValue
+  extends SettingsStateValue,
+    SettingsActionsValue {}

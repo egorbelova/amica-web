@@ -8,16 +8,16 @@ import React, { useRef, useState, useLayoutEffect, useMemo } from 'react';
 interface MessageProps {
   message: MessageType;
   onContextMenu?: (e: React.MouseEvent) => void;
-  onPointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void;
-  onPointerUp?: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onTouchStart?: (e: React.TouchEvent<HTMLDivElement>) => void;
+  onTouchEnd?: (e: React.TouchEvent<HTMLDivElement>) => void;
   isLastMessage?: boolean;
 }
 
 const Message: React.FC<MessageProps> = ({
   message,
   onContextMenu,
-  onPointerDown,
-  onPointerUp,
+  onTouchStart,
+  onTouchEnd,
 }) => {
   const messageRef = useRef<HTMLDivElement>(null);
 
@@ -74,8 +74,8 @@ const Message: React.FC<MessageProps> = ({
       }`}
       onDoubleClick={handleDoubleClick}
       onContextMenu={onContextMenu}
-      onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       {/* {!isOwnMessage() && (
         <Avatar

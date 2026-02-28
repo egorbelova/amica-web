@@ -71,7 +71,7 @@
 }
 
 .search_field_placeholder {
-  color: #999;
+  color: var(--secondaryColor);
   margin-top: auto;
   margin-bottom: auto;
   opacity: 1;
@@ -104,7 +104,7 @@
   transition: color 0.3s;
   width: 17px;
   height: 48px;
-  fill: #999;
+  fill: var(--secondaryColor);
 }
 
 .search_icon_div {
@@ -182,7 +182,7 @@
     margin-right: -5px;
     pointer-events: none;
 
-    color: rgba(127, 127, 127);
+    color: var(--secondaryColor);
     cursor: pointer;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
@@ -443,5 +443,5 @@
 
 .chat-actions-icon {
   height: 100%;
-  color: #999;
+  color: var(--secondaryColor);
 }

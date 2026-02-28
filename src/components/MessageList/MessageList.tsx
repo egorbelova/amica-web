@@ -279,7 +279,7 @@ const MessageList: React.FC = () => {
   }
 
   const handleMessageContextMenu = (
-    e: React.MouseEvent,
+    e: React.MouseEvent | React.TouchEvent,
     message: MessageType,
   ) => {
     e.preventDefault();
@@ -288,20 +288,23 @@ const MessageList: React.FC = () => {
 
     setTimeout(() => {
       setMenuMessage(message);
-      setMenuPos({ x: e.clientX, y: e.clientY });
+      setMenuPos({
+        x: 'touches' in e ? e.touches[0].clientX : e.clientX,
+        y: 'touches' in e ? e.touches[0].clientY : e.clientY,
+      });
       setMenuVisible(true);
       setIsMenuHiding(false);
     }, 0);
   };
 
-  const handleDragStart = (e: React.MouseEvent, msg: MessageType) => {
+  const handleTouchStart = (e: React.TouchEvent, msg: MessageType) => {
     timerRef.current = setTimeout(() => {
       setIsLongPress(true);
       handleMessageContextMenu(e, msg);
     }, 200);
   };
 
-  const handleDragEnd = () => {
+  const handleTouchEnd = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
@@ -392,8 +395,8 @@ const MessageList: React.FC = () => {
             key={message.id}
             message={message}
             onContextMenu={(e) => handleMessageContextMenu(e, message)}
-            onPointerDown={(e) => handleDragStart(e, message)}
-            onPointerUp={() => handleDragEnd()}
+            onTouchStart={(e) => handleTouchStart(e, message)}
+            onTouchEnd={() => handleTouchEnd()}
             // isLastMessage={message.id === lastMessageWithImage?.id}
             isLastMessage={false}
           />

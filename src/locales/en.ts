@@ -49,5 +49,6 @@ export default {
   privacy: {},
   contacts: {
     loading: 'Loading contacts',
+    empty: 'No contacts',
   },
 } as const;

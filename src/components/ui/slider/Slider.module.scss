@@ -23,6 +23,7 @@
   background: #ddd;
   border-radius: 3px;
   cursor: pointer;
+  touch-action: none;
 
   .fill {
     position: absolute;
@@ -47,6 +48,13 @@
     cursor: grab;
     transition: all 0.3s ease;
     background-color: var(--mainColor);
+  }
+
+  &.initial {
+    .fill,
+    .thumb {
+      transition: none;
+    }
   }
 }
 

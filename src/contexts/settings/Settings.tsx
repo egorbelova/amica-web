@@ -1,17 +1,62 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import type {
   Settings,
   WallpaperSetting,
   SubTab,
   WallpaperType,
   GradientSuggested,
+  SettingsStateValue,
+  SettingsActionsValue,
 } from './types';
 import {
   websocketManager,
   type WebSocketMessage,
 } from '@/utils/websocket-manager';
 import { apiUpload, apiFetch } from '@/utils/apiFetch';
-import { SettingsContext } from './context';
+import { SettingsStateContext, SettingsActionsContext } from './context';
+
+const STORAGE_KEY = 'app-settings';
+const SAVE_DEBOUNCE_MS = 400;
+
+type StoredSettings = Partial<
+  Settings & {
+    autoplayVideos?: boolean;
+    settingsFullWindow?: boolean;
+    color?: string;
+    gradient?: GradientSuggested;
+  }
+>;
+
+function parseStoredSettings(): StoredSettings {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return {};
+    return JSON.parse(saved) as StoredSettings;
+  } catch (e) {
+    console.error('Failed to parse settings', e);
+    return {};
+  }
+}
+
+/** Объединяет дефолтные обои с кастомными (сохранёнными или с API). */
+function mergeWallpapers(
+  defaults: WallpaperSetting[],
+  custom: WallpaperSetting[] | undefined,
+): WallpaperSetting[] {
+  if (!custom?.length) return [...defaults];
+  return [
+    ...defaults.filter(
+      (df) => !custom.some((w: WallpaperSetting) => w.id === df.id),
+    ),
+    ...custom,
+  ];
+}
 
 const defaultWallpapers: WallpaperSetting[] = [
   {
@@ -34,6 +79,26 @@ const defaultWallpapers: WallpaperSetting[] = [
     url: '../DefaultWallpapers/video/blue-sky-seen-directly-with-some-clouds_480p_infinity.webm',
     type: 'video',
   },
+  {
+    id: 'default-4',
+    url: '../DefaultWallpapers/video/ocean.webm',
+    type: 'video',
+  },
+  {
+    id: 'default-5',
+    url: '../DefaultWallpapers/video/dusk_sunset.webm',
+    type: 'video',
+  },
+  {
+    id: 'default-6',
+    url: '../DefaultWallpapers/video/deep_blue_sky.webm',
+    type: 'video',
+  },
+  // {
+  //   id: 'default-7',
+  //   url: '../DefaultWallpapers/video/waterfall.webm',
+  //   type: 'video',
+  // },
 ];
 
 const defaultSettings: Settings = {
@@ -47,25 +112,9 @@ const defaultSettings: Settings = {
 };
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const saved = localStorage.getItem('app-settings');
-  let parsed: Partial<
-    Settings & {
-      autoplayVideos?: boolean;
-      settingsFullWindow?: boolean;
-      color?: string;
-      gradient?: GradientSuggested;
-    }
-  > = {};
-  if (saved) {
-    try {
-      parsed = JSON.parse(saved);
-    } catch (e) {
-      console.error('Failed to parse settings', e);
-    }
-  }
+  const initialParsed = useMemo(parseStoredSettings, []);
 
   const [isResizingPermitted, setIsResizingPermitted] = useState(false);
-
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
@@ -73,13 +122,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
     const handleKeyboardHeight = () => {
       const { height, offsetTop } = window.visualViewport;
-
       const keyboard = window.innerHeight - height - offsetTop;
-
       const safeHeight = keyboard > 0 ? keyboard : 0;
-
       setKeyboardHeight(safeHeight);
-
       document.documentElement.style.setProperty(
         '--keyboard-height',
         `${safeHeight}px`,
@@ -87,7 +132,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     };
 
     window.visualViewport.addEventListener('resize', handleKeyboardHeight);
-
     return () =>
       window.visualViewport.removeEventListener('resize', handleKeyboardHeight);
   }, []);
@@ -101,52 +145,45 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         setSettingsFullWindow(false);
       }
     };
-
     handleResize();
-
     window.addEventListener('resize', handleResize);
-
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const [settingsFullWindow, setSettingsFullWindow] = useState<boolean>(
-    parsed.settingsFullWindow ?? false,
+    initialParsed.settingsFullWindow ?? false,
   );
-
   const [autoplayVideos, setAutoplayVideos] = useState<boolean>(
-    parsed.autoplayVideos ?? false,
+    initialParsed.autoplayVideos ?? false,
   );
 
   const [settings, setSettings] = useState<Settings>(() => {
-    const combinedWallpapers = [
-      ...defaultWallpapers.filter(
-        (df) =>
-          !parsed.wallpapers?.some((w: WallpaperSetting) => w.id === df.id),
-      ),
-      ...(parsed.wallpapers || []),
-    ];
-
+    const combinedWallpapers = mergeWallpapers(
+      defaultWallpapers,
+      initialParsed.wallpapers,
+    );
     const activeWallpaper =
-      parsed.activeWallpaper === null
+      initialParsed.activeWallpaper === null
         ? null
-        : parsed.activeWallpaper && typeof parsed.activeWallpaper === 'object'
-          ? (parsed.activeWallpaper as WallpaperSetting)
+        : initialParsed.activeWallpaper &&
+            typeof initialParsed.activeWallpaper === 'object'
+          ? (initialParsed.activeWallpaper as WallpaperSetting)
           : defaultWallpapers[0];
 
     return {
       ...defaultSettings,
-      ...parsed,
+      ...initialParsed,
       wallpapers: combinedWallpapers,
       activeWallpaper,
       activeWallpaperEditMode:
-        parsed.activeWallpaperEditMode ??
+        initialParsed.activeWallpaperEditMode ??
         defaultSettings.activeWallpaperEditMode,
     };
   });
 
-  const [color, setColor] = useState<string>(parsed.color ?? '#2c77d1');
+  const [color, setColor] = useState<string>(initialParsed.color ?? '#2c77d1');
   const [gradient, setGradient] = useState<GradientSuggested | null>(
-    parsed.gradient,
+    initialParsed.gradient ?? null,
   );
 
   useEffect(() => {
@@ -189,40 +226,60 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const [loading, setLoading] = useState(true);
   const [activeProfileTab, setActiveProfileTab] = useState<SubTab>(null);
-  // const { push } = usePageStack();
+
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const { ...rest } = settings;
-    const toSave = {
-      ...rest,
-      autoplayVideos,
-      color,
-      gradient,
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      saveTimeoutRef.current = null;
+      const { ...rest } = settings;
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          ...rest,
+          autoplayVideos,
+          color,
+          gradient,
+        }),
+      );
+    }, SAVE_DEBOUNCE_MS);
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+      const { ...rest } = settings;
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          ...rest,
+          autoplayVideos,
+          color,
+          gradient,
+        }),
+      );
     };
-    localStorage.setItem('app-settings', JSON.stringify(toSave));
   }, [settings, autoplayVideos, color, gradient]);
 
   const setSetting = useCallback(
     <K extends keyof Settings>(key: K, value: Settings[K]) =>
       setSettings((prev) => ({ ...prev, [key]: value })),
-    [setSettings],
+    [],
   );
 
-  const setBlur = useCallback(
-    (value: number) => {
-      setSettings((prev: Settings) => {
-        if (prev.activeWallpaper == null) return prev;
-        return {
-          ...prev,
-          activeWallpaper: {
-            ...prev.activeWallpaper,
-            blur: value,
-          },
-        } as Settings;
-      });
-    },
-    [setSettings],
-  );
+  const setBlur = useCallback((value: number) => {
+    setSettings((prev: Settings) => {
+      if (prev.activeWallpaper == null) return prev;
+      return {
+        ...prev,
+        activeWallpaper: {
+          ...prev.activeWallpaper,
+          blur: value,
+        },
+      } as Settings;
+    });
+  }, []);
 
   const setActiveWallpaper = useCallback(
     (wallpaper: WallpaperSetting | null) => {
@@ -270,7 +327,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         };
       });
     },
-    [setSettings],
+    [],
   );
 
   const removeWallpaper = useCallback((id: string) => {
@@ -285,13 +342,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       const res = await apiFetch('/api/wallpapers/');
       const data = await res.json();
       const apiWallpapers = Array.isArray(data) ? data : data.wallpapers || [];
-      const combinedWallpapers = [
-        ...defaultWallpapers.filter(
-          (df) => !apiWallpapers.some((w: WallpaperSetting) => w.id === df.id),
-        ),
-        ...apiWallpapers,
-      ];
-
+      const combinedWallpapers = mergeWallpapers(
+        defaultWallpapers,
+        apiWallpapers,
+      );
       setSettings((prev) => ({
         ...prev,
         wallpapers: combinedWallpapers,
@@ -302,7 +356,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [setSettings]);
+  }, []);
 
   const addUserWallpaper = useCallback(async (wallpaper: File) => {
     try {
@@ -361,7 +415,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         }));
       }
     },
-    [setActiveWallpaper, setSettings],
+    [setActiveWallpaper],
   );
 
   useEffect(() => {
@@ -372,29 +426,17 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     return () => websocketManager.off('message', handleWSMessage);
   }, [handleWSMessage]);
 
-  const value = useMemo(
+  const stateValue = useMemo<SettingsStateValue>(
     () => ({
       settings,
-      setSetting,
-      setActiveWallpaper,
-      addUserWallpaper,
-      setBlur,
-      removeWallpaper,
-      fetchWallpapers,
       loading,
       activeProfileTab,
-      setActiveProfileTab,
       autoplayVideos,
-      setAutoplayVideos,
       settingsFullWindow,
-      setSettingsFullWindow,
       isResizingPermitted,
-      setIsResizingPermitted,
-      setColor,
       color,
-      keyboardHeight,
       gradient,
-      setGradient,
+      keyboardHeight,
     }),
     [
       settings,
@@ -404,22 +446,41 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       settingsFullWindow,
       isResizingPermitted,
       color,
+      gradient,
+      keyboardHeight,
+    ],
+  );
+
+  const actionsValue = useMemo<SettingsActionsValue>(
+    () => ({
+      setSetting,
+      setActiveWallpaper,
+      addUserWallpaper,
+      setBlur,
+      removeWallpaper,
+      fetchWallpapers,
+      setActiveProfileTab,
+      setAutoplayVideos,
+      setSettingsFullWindow,
+      setIsResizingPermitted,
+      setColor,
+      setGradient,
+    }),
+    [
       addUserWallpaper,
       fetchWallpapers,
       removeWallpaper,
       setActiveWallpaper,
       setBlur,
       setSetting,
-      setColor,
-      keyboardHeight,
-      gradient,
-      setGradient,
     ],
   );
 
   return (
-    <SettingsContext.Provider value={value}>
-      {children}
-    </SettingsContext.Provider>
+    <SettingsActionsContext.Provider value={actionsValue}>
+      <SettingsStateContext.Provider value={stateValue}>
+        {children}
+      </SettingsStateContext.Provider>
+    </SettingsActionsContext.Provider>
   );
 }

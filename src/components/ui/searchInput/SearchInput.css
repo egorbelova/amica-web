@@ -62,7 +62,7 @@
 }
 
 .search_field_placeholder {
-  color: #999;
+  color: var(--secondaryColor);
   margin-top: auto;
   margin-bottom: auto;
   opacity: 1;
@@ -95,7 +95,7 @@
   transition: color 0.3s;
   width: 17px;
   height: 48px;
-  fill: #999;
+  fill: var(--secondaryColor);
 }
 
 .search_icon_div {

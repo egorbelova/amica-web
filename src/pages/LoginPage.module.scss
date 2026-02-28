@@ -29,7 +29,7 @@
 .passkey-login-button {
   height: 45px;
   border-radius: 32px;
-  border: 1px solid #999;
+  border: 1px solid var(--secondaryColor);
   padding: 10px;
   display: flex;
   align-items: center;
@@ -54,7 +54,16 @@
   a {
     text-decoration: none;
     color: #4d8ddb;
+    cursor: pointer;
   }
+}
+
+.form-back {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  cursor: pointer;
+  width: fit-content;
 }
 
 .next-button {
@@ -120,6 +129,7 @@
   font-size: 1rem;
   translate: 0 0;
   transition: all 0.2s ease-in-out;
+  pointer-events: none;
 }
 
 .form:focus-within .form-label-placeholder {
@@ -141,7 +151,7 @@
   position: relative;
   height: 50px;
   input {
-    padding-left: 3px;
+    height: 100%;
   }
 }
 
@@ -153,8 +163,8 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  overflow: scroll;
   width: min(100% - 30px, 400px);
+  height: 100%;
 }
 
 .login-form {

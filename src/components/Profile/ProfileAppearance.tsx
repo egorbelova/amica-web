@@ -55,7 +55,8 @@ export default function ProfileAppearance() {
   };
 
   const handleBlurChange = (value: number) => {
-    if (!settings.activeWallpaper) return;
+    if (!settings.activeWallpaper || value === settings.activeWallpaper.blur)
+      return;
     setBlur(value);
   };
 

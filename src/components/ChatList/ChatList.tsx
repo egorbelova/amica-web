@@ -140,6 +140,15 @@ const ChatList: React.FC = () => {
         </button>
       </div>
     );
+
+  if (animatedChats.length === 0) {
+    return (
+      <div className='no-chats'>
+        <div className='no-chats-text'>No chats</div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={chatListRef}

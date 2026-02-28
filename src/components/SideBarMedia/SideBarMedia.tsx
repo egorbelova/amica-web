@@ -84,7 +84,8 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   const setValue = useCallback(
     (nextValue: string) => {
       if (!chatId) return;
-      setNameDraftByChatId((prev) => ({ ...prev, [chatId]: nextValue }));
+      const normalized = nextValue.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+      setNameDraftByChatId((prev) => ({ ...prev, [chatId]: normalized }));
     },
     [chatId],
   );
@@ -214,13 +215,23 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   }, [userSelectedTab, availableTabs]);
 
   const [interlocutorEditVisible, setInterlocutorEditVisible] = useState(false);
+  const prevInterlocutorEditVisibleRef = useRef(false);
   const visibleName = interlocutorEditVisible
     ? editValue
     : selectedChat?.name || '';
+  const effectiveNameLength = editValue
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .trim().length;
 
   useLayoutEffect(() => {
-    if (interlocutorEditVisible && nameEditRef.current) {
-      nameEditRef.current.innerText = editValue;
+    const justOpened =
+      interlocutorEditVisible && !prevInterlocutorEditVisibleRef.current;
+    prevInterlocutorEditVisibleRef.current = interlocutorEditVisible;
+    if (!interlocutorEditVisible || !nameEditRef.current) return;
+    const isFocusedOnName = document.activeElement === nameEditRef.current;
+    if (justOpened || !isFocusedOnName) {
+      const normalized = editValue.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+      nameEditRef.current.innerText = normalized || '\u200B';
     }
   }, [interlocutorEditVisible, editValue]);
 
@@ -234,6 +245,33 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     }
     setInterlocutorEditVisible(true);
   };
+
+  const handleNameEditInput = useCallback(
+    (e: React.FormEvent<HTMLDivElement>) => {
+      const el = e.target as HTMLDivElement;
+      const raw = el.innerText.replace(/\r?\n/g, ' ');
+      const text = raw.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+      setValue(text);
+      const displayContent = text || '\u200B';
+      if (el.innerText !== displayContent) {
+        el.innerText = displayContent;
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(el);
+        range.collapse(displayContent === '\u200B');
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+      }
+    },
+    [setValue],
+  );
+
+  const handleNameEditKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Enter') e.preventDefault();
+    },
+    [],
+  );
 
   const sidebarRef = React.useRef<HTMLDivElement>(null);
 
@@ -711,13 +749,25 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                 interlocutorEditVisible ? styles['sidebar__name--editing'] : ''
               }`}
               onInput={
-                interlocutorEditVisible
-                  ? (e) => setValue((e.target as HTMLDivElement).innerText)
-                  : undefined
+                interlocutorEditVisible ? handleNameEditInput : undefined
+              }
+              onKeyDown={
+                interlocutorEditVisible ? handleNameEditKeyDown : undefined
               }
             >
               {!interlocutorEditVisible ? visibleName : undefined}
             </div>
+            {interlocutorEditVisible && effectiveNameLength > 47 && (
+              <span
+                className={
+                  effectiveNameLength > 64
+                    ? styles['sidebar__name-counter--over']
+                    : styles['sidebar__name-counter']
+                }
+              >
+                {64 - effectiveNameLength}
+              </span>
+            )}
             <span className={styles['sidebar__subtitle']}>{subtitle}</span>
           </div>
           {!interlocutorEditVisible && selectedChat.type === 'D' && (
@@ -900,8 +950,13 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                 <Button
                   key={'sidebar-media-save-button'}
                   className={`${styles.button} ${styles.save}`}
+                  disabled={
+                    effectiveNameLength === 0 || effectiveNameLength > 64
+                  }
                   type='button'
                   onClick={() =>
+                    effectiveNameLength > 0 &&
+                    effectiveNameLength <= 64 &&
                     saveContact(interlocutor?.contact_id, editValue)
                   }
                 >

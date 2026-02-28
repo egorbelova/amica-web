@@ -211,11 +211,6 @@
 //   background-color: #374151;
 // }
 
-.content {
-  flex: 1;
-  overflow: hidden;
-}
-
 .emptyText {
   text-align: center;
   color: #9ca3af;
@@ -260,6 +255,8 @@
     top: calc(20px + var(--sat));
     z-index: 99;
     // pointer-events: none;
+    padding: 0 20px;
+    flex-shrink: 0;
   }
 
   &__name {
@@ -269,20 +266,43 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
-    overflow: hidden;
+    overflow-x: hidden;
     text-overflow: ellipsis;
-    max-width: 300px;
     text-align: center;
+    max-width: 100%;
+    width: 100%;
+    flex-shrink: 0;
+    line-height: 1.35;
+    padding: 0.001em 0;
+    min-height: 1.35em;
+    word-break: break-word;
 
     &:focus {
-      outline: 1px solid #999;
-      border-radius: 5px;
+      outline: 1px solid var(--secondaryColor);
+      border-radius: 10px;
+      width: fit-content;
+    }
+    // &--editing {
+    //   border: 1px solid var(--secondaryColor);
+    // }
+  }
+
+  &__name-counter {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--sidebar-subtitle, var(--secondaryColor));
+    opacity: 0.8;
+    text-align: center;
+    margin-top: 2px;
+
+    &--over {
+      color: #e57373;
     }
   }
 
   &__subtitle {
     font-size: 0.875rem;
-    color: #d5eaff;
+    color: var(--secondaryColor);
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
@@ -291,6 +311,9 @@
     text-overflow: ellipsis;
     max-width: 300px;
     text-align: center;
+    /* iOS Safari: avoid clipping descenders/tops with line-clamp */
+    line-height: 1.35;
+    padding: 0.1em 0;
   }
 
   --avatar-scaling-duration: 0.3s;
@@ -413,6 +436,11 @@
   &:hover {
     background-color: color-mix(in srgb, var(--mainColor) 80%, transparent);
   }
+
+  &:disabled {
+    background-color: rgba(127, 127, 127, 0.3);
+    cursor: not-allowed;
+  }
 }
 
 .delete {
@@ -459,7 +487,7 @@
 
     .memberLastSeen {
       font-size: 0.75rem;
-      color: #999;
+      color: var(--secondaryColor);
     }
   }
 }

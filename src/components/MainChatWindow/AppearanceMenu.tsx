@@ -27,9 +27,12 @@ const AppearanceMenu: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.menuSwitch} onClick={() => setVisible(!visible)}>
-        {visible ? 'X' : '?'}
-      </div>
+      <Button
+        className={styles.menuSwitch}
+        onClick={() => setVisible(!visible)}
+      >
+        {visible ? <Icon name='Cross' /> : '?'}
+      </Button>
       {!visible && (
         <div className={styles.noChatText}>
           Select a chat to start messaging

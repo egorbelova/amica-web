@@ -11,7 +11,7 @@ import {
   type WebSocketMessage,
 } from '@/utils/websocket-manager';
 import type { DisplayMedia, User } from '@/types';
-import { useSettings } from './settings/context';
+import { useSettingsActions } from './settings/context';
 import type { WallpaperSetting } from './settings/types';
 import { UserContext, postJson } from './UserContextCore';
 import type { UserState, ApiResponse } from './UserContextCore';
@@ -25,7 +25,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     loading: true,
     error: null,
   });
-  const { setActiveWallpaper } = useSettings();
+  const { setActiveWallpaper } = useSettingsActions();
 
   const fetchUser = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));

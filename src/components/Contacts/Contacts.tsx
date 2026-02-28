@@ -15,9 +15,9 @@ const Contacts = () => {
 
   return (
     <div>
-      <ul>
-        {contacts.length > 0 ? (
-          contacts.map((contact) => (
+      {contacts.length > 0 && (
+        <ul>
+          {contacts.map((contact) => (
             <li
               key={contact.id}
               className={styles.contactItem}
@@ -35,11 +35,12 @@ const Contacts = () => {
                 </span>
               </div>
             </li>
-          ))
-        ) : (
-          <li>{t('contacts.empty')}</li>
-        )}
-      </ul>
+          ))}
+        </ul>
+      )}
+      {contacts.length === 0 && (
+        <div className={styles.emptyContact}>{t('contacts.empty')}</div>
+      )}
     </div>
   );
 };

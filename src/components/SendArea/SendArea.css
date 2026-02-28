@@ -72,7 +72,7 @@
 }
 
 .textarea_placeholder {
-  color: #999;
+  color: var(--secondaryColor);
   opacity: 1;
   transition:
     opacity 0.3s,

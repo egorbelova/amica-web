@@ -26,6 +26,10 @@ $mainColor: #2c77d1;
 
   --mainColor: #{$mainColor};
   --keyboard-height: 0px;
+
+  --secondaryColor: #d5eaff;
+
+  --messageMainColor: #fff;
 }
 
 ::-webkit-scrollbar {
@@ -181,7 +185,7 @@ svg {
 }
 
 .no-chats {
-  color: #999;
+  color: var(--secondaryColor);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -340,7 +344,7 @@ svg {
 
 .loading_chats {
   height: 50px;
-  stroke: #999;
+  stroke: var(--secondaryColor);
 }
 
 .temp_full {
@@ -369,7 +373,7 @@ svg {
 
 .time-left {
   font-size: 0.625rem;
-  color: #d5eaff;
+  color: var(--secondaryColor);
   user-select: none;
   white-space: nowrap;
 }

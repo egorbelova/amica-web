@@ -2,8 +2,10 @@ import React, {
   useRef,
   useState,
   useEffect,
+  useLayoutEffect,
   useCallback,
   useMemo,
+  startTransition,
 } from 'react';
 import styles from './Slider.module.scss';
 
@@ -26,41 +28,41 @@ const Slider: React.FC<SliderProps> = ({
 }) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
-  const [internalValue, setInternalValue] = useState(value);
-
-  const thumbWidth = 30;
-  const thumbInset = thumbWidth / 3;
-
-  useEffect(() => {
-    if (dragging) return;
-    if (value === internalValue) return;
-    let raf = 0;
-    raf = window.requestAnimationFrame(() => {
-      setInternalValue(value);
-    });
-    return () => {
-      if (raf) window.cancelAnimationFrame(raf);
-    };
-  }, [value, dragging, internalValue]);
-  const [trackWidth, setTrackWidth] = useState(0);
-
-  useEffect(() => {
-    let raf = 0;
-    if (trackRef.current) {
-      const width = trackRef.current.getBoundingClientRect().width;
-      raf = window.requestAnimationFrame(() => {
-        setTrackWidth(width);
-      });
-    }
-    return () => {
-      if (raf) window.cancelAnimationFrame(raf);
-    };
-  }, []);
-
   const clampValue = useCallback(
     (val: number) => Math.min(Math.max(val, min), max),
     [min, max],
   );
+  const [internalValue, setInternalValue] = useState(() => clampValue(value));
+  const [trackWidth, setTrackWidth] = useState(0);
+  const [isInitial, setIsInitial] = useState(true);
+
+  const thumbWidth = 30;
+  const thumbInset = thumbWidth / 3;
+
+  useLayoutEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const updateWidth = () => {
+      const width = el.getBoundingClientRect().width;
+      setTrackWidth(width);
+    };
+    updateWidth();
+    const ro = new ResizeObserver(updateWidth);
+    ro.observe(el);
+    const raf = requestAnimationFrame(() => setIsInitial(false));
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (dragging) return;
+    if (value === internalValue) return;
+    startTransition(() => {
+      setInternalValue(clampValue(value));
+    });
+  }, [value, dragging, internalValue, clampValue]);
 
   const calcValueFromPos = useCallback(
     (clientX: number) => {
@@ -74,6 +76,25 @@ const Slider: React.FC<SliderProps> = ({
     [min, max, internalValue, thumbInset],
   );
 
+  const pendingClientXRef = useRef<number | null>(null);
+  const rafIdRef = useRef<number>(0);
+  const internalValueRef = useRef(internalValue);
+  const addedMoveRef = useRef<(e: PointerEvent) => void>(() => {});
+  const addedUpRef = useRef<(e: PointerEvent) => void>(() => {});
+
+  useLayoutEffect(() => {
+    internalValueRef.current = internalValue;
+  }, [internalValue]);
+
+  const applyPendingPosition = useCallback(() => {
+    const x = pendingClientXRef.current;
+    if (x === null) return;
+    const val = calcValueFromPos(x);
+    setInternalValue(val);
+    internalValueRef.current = val;
+    onChange(val);
+  }, [calcValueFromPos, onChange]);
+
   const calcThumbLeft = (val: number) => {
     if (!trackWidth) return 0;
     const percent = (val - min) / (max - min);
@@ -81,103 +102,69 @@ const Slider: React.FC<SliderProps> = ({
     return thumbInset + percent * fullRange;
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setDragging(true);
-    const val = calcValueFromPos(e.clientX);
-    setInternalValue(val);
-    onChange(val);
-  };
+  const handlePointerMove = useCallback(
+    (e: PointerEvent) => {
+      pendingClientXRef.current = e.clientX;
+      if (rafIdRef.current !== 0) return;
+      rafIdRef.current = requestAnimationFrame(() => {
+        rafIdRef.current = 0;
+        applyPendingPosition();
+      });
+    },
+    [applyPendingPosition],
+  );
 
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (!dragging) return;
+  const handlePointerUp = useCallback(
+    (e: PointerEvent) => {
+      const el = trackRef.current;
+      if (el) {
+        el.removeEventListener('pointermove', addedMoveRef.current);
+        el.removeEventListener('pointerup', addedUpRef.current);
+        el.removeEventListener('pointercancel', addedUpRef.current);
+        try {
+          el.releasePointerCapture(e.pointerId);
+        } catch {
+          console.error('releasePointerCapture failed:');
+        }
+      }
+      if (rafIdRef.current !== 0) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = 0;
+      }
+      setDragging(false);
+      const valToRound =
+        pendingClientXRef.current !== null
+          ? calcValueFromPos(pendingClientXRef.current)
+          : internalValueRef.current;
+      pendingClientXRef.current = null;
+      const rounded = Math.round(valToRound / step) * step;
+      const clamped = clampValue(rounded);
+      setInternalValue(clamped);
+      internalValueRef.current = clamped;
+      onChange(clamped);
+    },
+    [step, clampValue, onChange, calcValueFromPos],
+  );
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      const el = trackRef.current;
+      if (!el) return;
+      setDragging(true);
+      el.setPointerCapture(e.pointerId);
       const val = calcValueFromPos(e.clientX);
       setInternalValue(val);
+      internalValueRef.current = val;
       onChange(val);
+      addedMoveRef.current = handlePointerMove;
+      addedUpRef.current = handlePointerUp;
+      el.addEventListener('pointermove', handlePointerMove);
+      el.addEventListener('pointerup', handlePointerUp);
+      el.addEventListener('pointercancel', handlePointerUp);
     },
-    [dragging, calcValueFromPos, onChange],
+    [calcValueFromPos, onChange, handlePointerMove, handlePointerUp],
   );
-
-  const handleMouseUp = useCallback(() => {
-    setDragging(false);
-    const rounded = Math.round(internalValue / step) * step;
-    const clamped = clampValue(rounded);
-    setInternalValue(clamped);
-    onChange(clamped);
-  }, [internalValue, step, clampValue, onChange]);
-
-  useEffect(() => {
-    if (dragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    } else {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    }
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [dragging, handleMouseMove, handleMouseUp]);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault();
-    setDragging(true);
-    const touch = e.touches[0];
-    const val = calcValueFromPos(touch.clientX);
-    setInternalValue(val);
-    onChange(val);
-  };
-
-  const handleTouchMove = useCallback(
-    (e: TouchEvent) => {
-      if (!dragging) return;
-      e.preventDefault();
-      const touch = e.touches[0];
-      const val = calcValueFromPos(touch.clientX);
-      setInternalValue(val);
-      onChange(val);
-    },
-    [dragging, calcValueFromPos, onChange],
-  );
-
-  const handleTouchEnd = useCallback(() => {
-    setDragging(false);
-    const rounded = Math.round(internalValue / step) * step;
-    const clamped = clampValue(rounded);
-    setInternalValue(clamped);
-    onChange(clamped);
-  }, [internalValue, step, clampValue, onChange]);
-
-  useEffect(() => {
-    if (dragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-
-      window.addEventListener('touchmove', handleTouchMove, { passive: false });
-      window.addEventListener('touchend', handleTouchEnd);
-    } else {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-    }
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [
-    dragging,
-    handleMouseMove,
-    handleMouseUp,
-    handleTouchMove,
-    handleTouchEnd,
-  ]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = Number(e.target.value);
@@ -238,10 +225,9 @@ const Slider: React.FC<SliderProps> = ({
         </div>
       )}
       <div
-        className={`${styles.track} ${dragging ? styles.dragging : ''}`}
+        className={`${styles.track} ${dragging ? styles.dragging : ''} ${isInitial ? styles.initial : ''}`}
         ref={trackRef}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
+        onPointerDown={handlePointerDown}
       >
         <div
           className={styles.fill}

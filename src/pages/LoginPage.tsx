@@ -74,8 +74,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
       <form className={styles['login-form']} onSubmit={handleSubmit} noValidate>
         <h4 className={styles['login-title']}>Sign in</h4>
         <fieldset className={styles['form']}>
-          <legend className={styles['form-label']}>Username</legend>
-          <legend className={styles['form-label-placeholder']}>Username</legend>
+          {/* <legend className={styles['form-label']}>Username</legend> */}
+          {/* <legend className={styles['form-label-placeholder']}>Username</legend> */}
           <input
             ref={usernameRef}
             name='username'
@@ -85,10 +85,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
             disabled={loading}
             autoComplete='username'
             required
+            placeholder='Username'
           />
         </fieldset>
         <fieldset className={styles['form']}>
-          <legend className={styles['form-label']}>Password</legend>
+          {/* <legend className={styles['form-label']}>Password</legend> */}
           <input
             ref={passwordRef}
             type='password'
@@ -99,6 +100,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
             disabled={loading}
             autoComplete='current-password'
             required
+            placeholder='Password'
           />
         </fieldset>
         {error && <div style={{ color: 'red', margin: '8px 0' }}>{error}</div>}

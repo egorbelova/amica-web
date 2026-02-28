@@ -55,7 +55,7 @@
   &__title-sub {
     font-weight: 400;
     font-size: 0.75rem;
-    color: #d5eaff;
+    color: var(--secondaryColor);
     max-width: 100%;
   }
 
@@ -83,6 +83,9 @@
     &__title {
       position: absolute;
       align-items: center;
+      max-width: 50%;
+      left: 50%;
+      transform: translateX(-50%);
     }
 
     &__back-button {

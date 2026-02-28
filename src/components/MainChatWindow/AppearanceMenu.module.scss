@@ -21,8 +21,8 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  height: 22px;
-  width: 22px;
+  height: 25px !important;
+  width: 25px !important;
   background: rgba(0, 0, 0, 0.6);
   background: color-mix(in srgb, rgb(0, 0, 0) 20%, transparent);
   box-shadow:
@@ -30,6 +30,7 @@
     0 2px 4px rgba(106, 111, 117, 0.08);
   color: #fff;
   font-size: 0.875rem;
+  padding: 5px;
 }
 
 .tipsMenu {
