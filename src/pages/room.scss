@@ -224,7 +224,7 @@ svg {
   background: color-mix(in srgb, rgb(0, 0, 0) 50%, transparent);
   margin: 10px 0px 10px 10px;
   transform: translateZ(0);
-  z-index: 9999;
+  // z-index: 999;
 }
 
 .room_div {
