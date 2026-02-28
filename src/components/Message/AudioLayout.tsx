@@ -58,23 +58,36 @@ export default function AudioLayout({
     setCurrentTime,
   } = useAudio();
   const { selectedChat, messages } = useChat();
-  const { objectUrl: cover } = usePrivateMedia(cover_url);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const { objectUrl: cover } = usePrivateMedia(isVisible ? cover_url : null);
+
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) setIsVisible(true);
+      },
+      { rootMargin: '50px', threshold: 0.01 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const progressRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const volumeRef = useRef<HTMLDivElement | null>(null);
   const currentTimeRef = useRef(0);
-  const [visualTime, setVisualTime] = useState(0);
-
-  const [, setIsPlaying] = useState(false);
+  const [visualTime] = useState(0);
 
   const [volume, setVolume] = useState(1);
   const [speed, setSpeed] = useState(1);
 
   const [isControlsOpen, setIsControlsOpen] = useState(false);
 
-  const [durationState, setDurationState] = useState(duration ?? 0);
+  const [durationState] = useState(duration ?? 0);
 
   const safeDuration = durationState || 1;
 
@@ -83,44 +96,32 @@ export default function AudioLayout({
   ) => ('touches' in e ? e.touches?.[0]?.clientX || 0 : e.clientX || 0);
 
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    const animationFrameId: number | null = null;
 
-    let animationFrameId: number | null = null;
+    // const onPlay = () => {
+    //   setIsPlaying(true);
+    // };
 
-    const onPlay = () => {
-      setIsPlaying(true);
-    };
+    // const onPause = () => {
+    //   setIsPlaying(false);
+    // };
 
-    const onPause = () => {
-      setIsPlaying(false);
-    };
+    // const onEnded = () => setIsPlaying(false);
 
-    const onEnded = () => setIsPlaying(false);
+    // const onLoaded = () => setDurationState(audio.duration);
 
-    const onLoaded = () => setDurationState(audio.duration);
+    // const animate = () => {
+    //   setVisualTime((prev) => prev + (audio.currentTime - prev) * 0.2);
 
-    const animate = () => {
-      setVisualTime((prev) => prev + (audio.currentTime - prev) * 0.2);
+    //   animationFrameId = requestAnimationFrame(animate);
+    // };
 
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    audio.addEventListener('play', onPlay);
-    audio.addEventListener('pause', onPause);
-    audio.addEventListener('ended', onEnded);
-    audio.addEventListener('loadedmetadata', onLoaded);
+    // animate();
 
     return () => {
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
-      audio.removeEventListener('play', onPlay);
-      audio.removeEventListener('pause', onPause);
-      audio.removeEventListener('ended', onEnded);
-      audio.removeEventListener('loadedmetadata', onLoaded);
     };
   }, []);
 
@@ -148,15 +149,11 @@ export default function AudioLayout({
   ]);
 
   const cycleSpeed = useCallback(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
     const currentIndex = SPEEDS.indexOf(speed);
     const nextIndex = (currentIndex + 1) % SPEEDS.length;
     const nextSpeed = SPEEDS[nextIndex];
 
     setSpeed(nextSpeed);
-    audio.playbackRate = nextSpeed;
   }, [speed]);
 
   const startSeek = (e: React.MouseEvent | React.TouchEvent) => {
@@ -168,7 +165,6 @@ export default function AudioLayout({
       const clampedPercent = Math.max(0, Math.min(1, percent));
       const time = clampedPercent * durationState;
 
-      audioRef.current!.currentTime = time;
       currentTimeRef.current = time;
       setCurrentTime(time);
     };
@@ -209,35 +205,32 @@ export default function AudioLayout({
   //   }
   // }
 
-  const [canChangeVolume, setCanChangeVolume] = useState(false);
+  const [canChangeVolume] = useState(false);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+  // useEffect(() => {
+  //   const checkVolumeSupport = () => {
+  //     if (
+  //       !('volume' in audio) ||
+  //       audio.volume === undefined ||
+  //       audio.volume === null
+  //     ) {
+  //       return false;
+  //     }
 
-    const checkVolumeSupport = () => {
-      if (
-        !('volume' in audio) ||
-        audio.volume === undefined ||
-        audio.volume === null
-      ) {
-        return false;
-      }
+  //     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  //     if (isIOS) return false;
 
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      if (isIOS) return false;
+  //     const original = audio.volume;
+  //     audio.volume = 0;
+  //     const canMute = audio.volume === 0;
+  //     audio.volume = original;
 
-      const original = audio.volume;
-      audio.volume = 0;
-      const canMute = audio.volume === 0;
-      audio.volume = original;
+  //     return canMute;
+  //   };
 
-      return canMute;
-    };
-
-    const supported = checkVolumeSupport();
-    setCanChangeVolume(supported);
-  }, []);
+  //   const supported = checkVolumeSupport();
+  //   setCanChangeVolume(supported);
+  // }, []);
 
   const formatTime = (time = 0) => {
     const minutes = Math.floor(time / 60);
@@ -260,7 +253,6 @@ export default function AudioLayout({
     const percent = (clientX - rect!.left) / rect!.width;
     const value = Math.max(0, Math.min(1, percent));
 
-    audioRef.current!.volume = value;
     setVolume(value);
   };
 
@@ -380,12 +372,12 @@ export default function AudioLayout({
 
   return (
     <div
+      ref={wrapperRef}
       className={styles.player}
       onMouseOver={() => setIsControlsOpen(true)}
       onMouseOut={() => setIsControlsOpen(false)}
     >
       {cover && <img src={cover} alt='' className={styles.cover} />}
-      <audio ref={audioRef} preload='none' />
 
       <button onClick={togglePlay} className={styles.play}>
         {isAudioPlaying && currentAudioId === id ? (

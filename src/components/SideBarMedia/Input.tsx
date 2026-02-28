@@ -6,6 +6,7 @@ interface InputProps {
   isRequired?: boolean;
   value: string;
   onChange: (val: string) => void;
+  notes?: string;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -13,13 +14,13 @@ const Input: React.FC<InputProps> = ({
   isRequired = false,
   value,
   onChange,
+  notes,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleContainerClick = () => {
     inputRef.current?.focus();
   };
-
   const [autofocusActive, setAutofocusActive] = React.useState(false);
 
   useEffect(() => {
@@ -43,30 +44,36 @@ const Input: React.FC<InputProps> = ({
   }, []);
 
   return (
-    <div className={styles.input} onClick={handleContainerClick}>
-      <label className={styles.placeholder} htmlFor={placeholder}>
-        {placeholder}
-      </label>
-      <div className={styles.inputContainer}>
-        <input
-          ref={inputRef}
-          type='text'
-          id={placeholder}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          autoComplete='off'
-          autoCapitalize='off'
-          spellCheck={false}
-        />
-        <label
-          className={`${styles.placeholderStatus} ${
-            value.length > 0 || autofocusActive ? styles.hidden : ''
-          }`}
-          htmlFor={placeholder}
-        >
-          {isRequired ? 'required' : 'optional'}
+    <div className={styles.inputWrapper}>
+      <div className={styles.input} onClick={handleContainerClick}>
+        <label className={styles.placeholder} htmlFor={placeholder}>
+          {placeholder}
         </label>
+        <div className={styles.inputContainer}>
+          <input
+            ref={inputRef}
+            type='text'
+            // id={placeholder}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            autoComplete='off'
+            autoCapitalize='none'
+            spellCheck={false}
+            inputMode='text'
+            aria-autocomplete='none'
+            role='textbox'
+          />
+          <label
+            className={`${styles.placeholderStatus} ${
+              value.length > 0 || autofocusActive ? styles.hidden : ''
+            }`}
+            htmlFor={placeholder}
+          >
+            {isRequired ? 'required' : 'optional'}
+          </label>
+        </div>
       </div>
+      {notes && <span className={styles.notes}>{notes}</span>}
     </div>
   );
 };

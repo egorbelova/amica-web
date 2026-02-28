@@ -316,7 +316,6 @@ const MessageInput: React.FC = () => {
           e.preventDefault();
           handleSubmit(e);
         }
-        // на мобильных — не перехватываем Enter, остаётся перенос строки
       }
     },
     [handleSubmit, editingMessage, cancelEdit],
@@ -555,7 +554,8 @@ const MessageInput: React.FC = () => {
           </div>
 
           <button
-            type='submit'
+            type='button'
+            onPointerDown={handleSubmit}
             className='input_submit'
             disabled={(!message.trim() && files.length === 0) || isUploading}
             aria-label='Send Message'

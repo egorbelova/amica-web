@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 import { apiFetch } from '@/utils/apiFetch';
+
+const blobCache = new Map<string, { objectUrl: string; refCount: number }>();
 
 export function usePrivateMedia(url: string | null) {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
@@ -8,33 +10,59 @@ export function usePrivateMedia(url: string | null) {
 
   useEffect(() => {
     if (!url) return;
+
+    const cached = blobCache.get(url);
+    if (cached) {
+      cached.refCount++;
+      startTransition(() => {
+        setObjectUrl(cached.objectUrl);
+        setLoading(false);
+        setError(null);
+      });
+      return () => {
+        cached.refCount--;
+      };
+    }
+
     const controller = new AbortController();
+    let cancelled = false;
 
     Promise.resolve().then(() => {
-      setLoading(true);
-      setError(null);
+      if (!cancelled) {
+        setLoading(true);
+        setError(null);
+      }
     });
 
     let localUrl: string | null = null;
 
     apiFetch(url, { signal: controller.signal })
-      .then((res) => {
-        return res.blob();
-      })
+      .then((res) => res.blob())
       .then((blob) => {
         localUrl = URL.createObjectURL(blob);
+        if (cancelled) {
+          URL.revokeObjectURL(localUrl);
+          return;
+        }
+        blobCache.set(url, { objectUrl: localUrl, refCount: 1 });
         setObjectUrl(localUrl);
       })
       .catch((err) => {
-        if (err.name !== 'AbortError') {
+        if (err.name !== 'AbortError' && !cancelled) {
           setError(err);
         }
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
     return () => {
+      cancelled = true;
       controller.abort();
-      if (localUrl) {
+      const entry = blobCache.get(url);
+      if (entry) {
+        entry.refCount--;
+      } else if (localUrl) {
         URL.revokeObjectURL(localUrl);
       }
     };

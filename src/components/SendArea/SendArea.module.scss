@@ -142,4 +142,13 @@
   height: fit-content;
   flex-shrink: 0;
   overscroll-behavior: contain;
+  max-height: 200px;
+  padding: 5px 0;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 5px,
+    black calc(100% - 5px),
+    transparent
+  );
 }

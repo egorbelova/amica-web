@@ -5,8 +5,10 @@ import Avatar from '@/components/Avatar/Avatar';
 import styles from './Tabs.module.scss';
 import { useTranslation } from '@/contexts/languageCore';
 import { useSettings } from '@/contexts/settings/context';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Button from '../ui/button/Button';
+
+const NEW_WALLPAPER_HEIGHT = '50px';
 
 type TabValue = 'contacts' | 'chats' | 'profile';
 
@@ -24,6 +26,22 @@ export function Tabs() {
   const { activeProfileTab, addUserWallpaper } = useSettings();
   const wallpaperInputRef = useRef<HTMLInputElement>(null);
 
+  const showNewWallpaper =
+    activeProfileTab === 'appearance' && activeTab === 'profile';
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      '--new-wallpaper-height',
+      showNewWallpaper ? NEW_WALLPAPER_HEIGHT : '0px',
+    );
+    return () => {
+      document.documentElement.style.setProperty(
+        '--new-wallpaper-height',
+        '0px',
+      );
+    };
+  }, [showNewWallpaper]);
+
   const tabs: TabConfig[] = [
     {
       id: 'contacts',
@@ -36,7 +54,7 @@ export function Tabs() {
 
   return (
     <nav className={styles.tabs}>
-      {activeProfileTab === 'appearance' && activeTab === 'profile' && (
+      {showNewWallpaper && (
         <div className={styles['new-wallpaper']}>
           <Button
             key={'new-wallpaper-button'}

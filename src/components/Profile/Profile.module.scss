@@ -264,7 +264,11 @@
 }
 
 .content {
-  padding: calc(60px + 10px) 20px;
+  padding: 70px 20px
+    calc(
+      var(--sab) + var(--main-navigation-height) + var(--new-wallpaper-height)
+    )
+    20px;
   height: 100%;
   width: 100%;
 

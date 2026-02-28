@@ -218,6 +218,12 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     ? editValue
     : selectedChat?.name || '';
 
+  useLayoutEffect(() => {
+    if (interlocutorEditVisible && nameEditRef.current) {
+      nameEditRef.current.innerText = editValue;
+    }
+  }, [interlocutorEditVisible, editValue]);
+
   const onInterlocutorEditBack = () => setInterlocutorEditVisible(false);
   const onInterlocutorEdit = () => {
     if (chatId) {
@@ -399,6 +405,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   }, [activeTab, availableTabs]);
 
   const gridRef = useRef<HTMLDivElement>(null);
+  const nameEditRef = useRef<HTMLDivElement>(null);
 
   const [rowScale, setRowScale] = useState(3);
 
@@ -697,16 +704,19 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
           </div>
           <div className={styles['sidebar__info']} ref={tabsRef}>
             <div
+              ref={nameEditRef}
               contentEditable={interlocutorEditVisible}
               suppressContentEditableWarning
-              className={styles['sidebar__name']}
+              className={`${styles['sidebar__name']} ${
+                interlocutorEditVisible ? styles['sidebar__name--editing'] : ''
+              }`}
               onInput={
                 interlocutorEditVisible
                   ? (e) => setValue((e.target as HTMLDivElement).innerText)
                   : undefined
               }
             >
-              {visibleName}
+              {!interlocutorEditVisible ? visibleName : undefined}
             </div>
             <span className={styles['sidebar__subtitle']}>{subtitle}</span>
           </div>
@@ -852,10 +862,16 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
                 {selectedChat.type === 'D' && (
                   <>
                     <Input
-                      placeholder='Username'
+                      placeholder='Contact Name'
                       isRequired
                       value={editValue}
                       onChange={setValue}
+                      notes={
+                        selectedChat.type === 'D' &&
+                        interlocutor?.username != selectedChat?.name
+                          ? `Original username: ${interlocutor?.username}`
+                          : null
+                      }
                     />
                     {/* <Input
                     placeholder='Last Name'

@@ -43,7 +43,6 @@
   width: 100%;
   margin-top: auto;
   margin-bottom: auto;
-  padding: 5px 0;
   display: inline-block;
   overflow: hidden;
 }
@@ -51,7 +50,6 @@
 .textarea {
   width: 100%;
   max-width: 100%;
-  max-height: 200px;
   background: transparent;
   font-family: inherit;
   font-size: 1rem;
