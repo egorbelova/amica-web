@@ -19,6 +19,7 @@ export interface ChatContextType {
     messageId: number,
     updates: Partial<Message>,
   ) => void;
+  removeMessageFromChat: (chatId: number, messageId: number) => void;
   setChats: (chats: Chat[]) => void;
   setLoading: (loading: boolean) => void;
   getCachedMessages: (roomId: number) => Message[] | null;

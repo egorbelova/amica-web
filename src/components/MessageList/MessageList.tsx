@@ -12,9 +12,11 @@ import type { IconName } from '../Icons/AutoIcons';
 import { apiFetch } from '@/utils/apiFetch';
 import { useSnackbar } from '@/contexts/snackbar/SnackbarContextCore';
 import type { Message as MessageType, File, User } from '@/types';
+import { websocketManager } from '@/utils/websocket-manager';
 
 const MessageList: React.FC = () => {
-  const { messages, selectedChat, setEditingMessage } = useChat();
+  const { messages, selectedChat, setEditingMessage, removeMessageFromChat } =
+    useChat();
   const selectedChatRef = useRef(selectedChat);
   const messagesRef = useRef(messages);
   const { containerRef: jumpContainerRef, setIsVisible } = useJump();
@@ -216,6 +218,17 @@ const MessageList: React.FC = () => {
       icon: 'Select' as IconName,
       onClick: () => alert('Select clicked'),
     },
+    ...(menuMessage?.is_own
+      ? [
+          { separator: true, label: '', onClick: () => {} },
+          {
+            label: 'Delete',
+            icon: 'Delete' as IconName,
+            onClick: () => menuMessage && handleDeleteMessage(menuMessage),
+            danger: true,
+          },
+        ]
+      : []),
     ...(menuMessage?.viewers?.length && menuMessage?.is_own
       ? [
           { separator: true, label: '', onClick: () => {} },
@@ -226,19 +239,25 @@ const MessageList: React.FC = () => {
           },
         ]
       : []),
-    { separator: true, label: '', onClick: () => {} },
-    {
-      label: 'Delete',
-      icon: 'Delete' as IconName,
-      onClick: () => alert('Delete clicked'),
-      danger: true,
-    },
   ];
 
   const handleEditMessage = (msg: MessageType) => {
     setMenuVisible(false);
     setMenuPos(null);
     setEditingMessage(msg);
+  };
+
+  const handleDeleteMessage = (msg: MessageType) => {
+    if (!selectedChat?.id) return;
+    setMenuVisible(false);
+    setMenuPos(null);
+    setMenuMessage(null);
+    removeMessageFromChat(selectedChat.id, msg.id);
+    websocketManager.sendMessage({
+      type: 'delete_message',
+      chat_id: selectedChat.id,
+      message_id: msg.id,
+    });
   };
 
   const handleCopyMessage = (msg: MessageType) => {

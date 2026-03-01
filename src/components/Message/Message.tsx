@@ -118,6 +118,10 @@ const Message: React.FC<MessageProps> = ({
 
             <div className={styles.message_div_subdata}>
               <div className='message_div_temp_time_view'>
+                {message.edit_date && (
+                  <span className={styles.edited}>edited</span>
+                )}
+
                 <MessageTime date={message.date} />
 
                 <span id='viewed_span' className='viewed-status'>

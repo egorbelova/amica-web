@@ -19,6 +19,7 @@ export interface UseMessagesReturn {
     messageId: number,
     updates: Partial<Message>,
   ) => void;
+  removeMessageFromChat: (chatId: number, messageId: number) => void;
   getCachedMessages: (roomId: number) => Message[] | null;
   handleNewMessage: (data: WebSocketMessage) => void;
 }
@@ -114,6 +115,71 @@ export function useMessages({
     [],
   );
 
+  const handleMessageUpdated = useCallback(
+    (data: WebSocketMessage) => {
+      if (data.type === 'message_updated' && data.chat_id != null && data.data) {
+        const roomId = data.chat_id;
+        const updatedMessage = data.data as unknown as Message;
+        updateMessageInChat(roomId, updatedMessage.id, updatedMessage);
+      }
+    },
+    [updateMessageInChat],
+  );
+
+  useEffect(() => {
+    websocketManager.on('message_updated', handleMessageUpdated);
+    return () => {
+      websocketManager.off('message_updated', handleMessageUpdated);
+    };
+  }, [handleMessageUpdated]);
+
+  const removeMessageFromChat = useCallback(
+    (chatId: number, messageId: number) => {
+      const mid = Number(messageId);
+      setMessagesCache((prev) => {
+        const list = prev[chatId] ?? [];
+        const newList = list.filter((m) => Number(m.id) !== mid);
+        const result = { ...prev, [chatId]: newList };
+        return result;
+      });
+      setChats((prevChats) => {
+        const targetChat = prevChats.find((c) => c.id === chatId);
+        if (!targetChat?.last_message || targetChat.last_message.id !== mid)
+          return prevChats;
+        const list = messagesCacheRef.current[chatId] ?? [];
+        const withoutDeleted = list.filter((m) => Number(m.id) !== mid);
+        const newLast =
+          withoutDeleted.length > 0
+            ? withoutDeleted[withoutDeleted.length - 1]
+            : null;
+        return prevChats.map((chat) =>
+          chat.id === chatId ? { ...chat, last_message: newLast } : chat,
+        );
+      });
+    },
+    [setChats],
+  );
+
+  const handleMessageDeleted = useCallback(
+    (data: WebSocketMessage) => {
+      if (
+        data.type === 'message_deleted' &&
+        data.chat_id != null &&
+        data.message_id != null
+      ) {
+        removeMessageFromChat(data.chat_id, data.message_id);
+      }
+    },
+    [removeMessageFromChat],
+  );
+
+  useEffect(() => {
+    websocketManager.on('message_deleted', handleMessageDeleted);
+    return () => {
+      websocketManager.off('message_deleted', handleMessageDeleted);
+    };
+  }, [handleMessageDeleted]);
+
   const getCachedMessages = useCallback((roomId: number) => {
     return messagesCacheRef.current[roomId] || null;
   }, []);
@@ -125,6 +191,7 @@ export function useMessages({
     setEditingMessage,
     updateMessages,
     updateMessageInChat,
+    removeMessageFromChat,
     getCachedMessages,
     handleNewMessage,
   };

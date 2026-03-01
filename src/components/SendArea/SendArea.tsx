@@ -148,26 +148,14 @@ const MessageInput: React.FC = () => {
         setTerm('');
         setResults([]);
         const newValue = message.trim();
-        // const previousValue = editingMessage.value ?? '';
         updateMessageInChat(roomId, editingMessage.id, { value: newValue });
         cancelEdit();
-        // try {
-        //   const res = await apiFetch(`/api/messages/${editingMessage.id}/`, {
-        //     method: 'PATCH',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ value: newValue }),
-        //   });
-        //   if (!res.ok) {
-        //     const err = await res.json().catch(() => ({}));
-        //     throw new Error(err?.value?.[0] || err?.error || 'Failed to edit');
-        //   }
-        // } catch (err) {
-        //   console.error('Edit message error:', err);
-        //   updateMessageInChat(roomId, editingMessage.id, {
-        //     value: previousValue,
-        //   });
-        //   alert(err instanceof Error ? err.message : String(err));
-        // }
+        websocketManager.sendMessage({
+          type: 'edit_message',
+          message_id: editingMessage.id,
+          chat_id: roomId,
+          data: { value: newValue },
+        });
         return;
       }
 

@@ -44,6 +44,8 @@ interface WebSocketEventMap {
   error: (error: Error) => void;
   message: (data: WebSocketMessage) => void;
   chat_message: (data: WebSocketMessage) => void;
+  message_updated: (data: WebSocketMessage) => void;
+  message_deleted: (data: WebSocketMessage) => void;
   message_reaction: (data: WebSocketMessage) => void;
   message_viewed: (data: WebSocketMessage) => void;
   connection_established: (data: WebSocketMessage) => void;
@@ -310,6 +312,14 @@ class WebSocketManager {
           case 'chat_message':
             if (data.data && data.chat_id !== undefined)
               this.emit('chat_message', data);
+            break;
+          case 'message_updated':
+            if (data.data && data.chat_id !== undefined)
+              this.emit('message_updated', data);
+            break;
+          case 'message_deleted':
+            if (data.chat_id !== undefined && data.message_id !== undefined)
+              this.emit('message_deleted', data);
             break;
           case 'message_reaction':
             if (data.message_id) this.emit('message_reaction', data);

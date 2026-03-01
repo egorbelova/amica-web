@@ -22,6 +22,7 @@ export interface File {
 export interface Message {
   id: number;
   value: string;
+  edit_date: string | null;
   date: string;
   user: number;
   viewers?: User[];

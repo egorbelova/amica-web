@@ -30,6 +30,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     setEditingMessage,
     updateMessages,
     updateMessageInChat,
+    removeMessageFromChat,
     getCachedMessages,
     handleNewMessage,
   } = useMessages({ selectedChatId, setChats });
@@ -353,6 +354,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       selectChat,
       updateMessages,
       updateMessageInChat,
+      removeMessageFromChat,
       setChats,
       setLoading,
       getCachedMessages,
@@ -380,6 +382,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       selectChat,
       updateMessages,
       updateMessageInChat,
+      removeMessageFromChat,
       setChats,
       setLoading,
       getCachedMessages,
