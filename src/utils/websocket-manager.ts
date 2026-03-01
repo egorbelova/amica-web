@@ -1,6 +1,5 @@
 import {
   onAccessTokenChange,
-  refreshTokenIfNeeded,
   getAccessTokenOrThrow,
 } from './authStore';
 import type { Session } from '@/types';
@@ -47,6 +46,21 @@ interface WebSocketEventMap {
   message_reaction: (data: WebSocketMessage) => void;
   message_viewed: (data: WebSocketMessage) => void;
   connection_established: (data: WebSocketMessage) => void;
+  chats: (data: WebSocketMessage & { chats?: unknown[] }) => void;
+  general_info: (data: WebSocketMessage & {
+    success?: boolean;
+    user?: unknown;
+    active_wallpaper?: unknown;
+    error?: string;
+  }) => void;
+  refresh_token_response: (data: WebSocketMessage & { access?: string }) => void;
+  contacts: (data: WebSocketMessage & { contacts?: unknown[] }) => void;
+  chat: (data: WebSocketMessage & {
+    chat_id?: number;
+    media?: unknown;
+    members?: unknown;
+    messages?: unknown[];
+  }) => void;
 }
 
 class WebSocketManager {
@@ -146,8 +160,9 @@ class WebSocketManager {
       this.socket = null;
     }
 
+    let token: string;
     try {
-      await refreshTokenIfNeeded();
+      token = await getAccessTokenOrThrow();
     } catch (err) {
       console.error('Cannot get valid token for WS:', err);
       return;
@@ -167,7 +182,6 @@ class WebSocketManager {
     }
 
     let url: string;
-    const token = await getAccessTokenOrThrow();
     if (ws_port) {
       url = `${ws_protocol}${ws_host}:${ws_port}/ws/socket-server/?token=${token}`;
     } else {
@@ -258,6 +272,21 @@ class WebSocketManager {
           case 'message_viewed':
             if (data.message_id) this.emit('message_viewed', data);
             break;
+          case 'chats':
+            this.emit('chats', data);
+            break;
+          case 'general_info':
+            this.emit('general_info', data);
+            break;
+          case 'refresh_token_response':
+            this.emit('refresh_token_response', data);
+            break;
+          case 'contacts':
+            this.emit('contacts', data);
+            break;
+          case 'chat':
+            this.emit('chat', data);
+            break;
         }
       });
     });
@@ -331,6 +360,40 @@ class WebSocketManager {
     return this.sendMessage({ type: 'message_viewed', message_id: messageId });
   }
 
+  public requestRefreshToken(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+        reject(new Error('WebSocket not connected'));
+        return;
+      }
+      const timeoutId = window.setTimeout(() => {
+        this.off('refresh_token_response', handleResponse);
+        this.off('message', handleError);
+        reject(new Error('Refresh token timeout'));
+      }, 10000);
+
+      const handleResponse = (data: WebSocketMessage & { access?: string }) => {
+        if (data.type !== 'refresh_token_response' || !data.access) return;
+        window.clearTimeout(timeoutId);
+        this.off('refresh_token_response', handleResponse);
+        this.off('message', handleError);
+        resolve(data.access);
+      };
+
+      const handleError = (data: WebSocketMessage) => {
+        if (data.type !== 'error') return;
+        window.clearTimeout(timeoutId);
+        this.off('refresh_token_response', handleResponse);
+        this.off('message', handleError);
+        reject(new Error((data as { message?: string }).message ?? 'Refresh failed'));
+      };
+
+      this.on('refresh_token_response', handleResponse);
+      this.on('message', handleError);
+      this.sendMessage({ type: 'refresh_token' });
+    });
+  }
+
   public disconnect() {
     this.isManualDisconnect = true;
     this.reconnectAttempts = 0;
@@ -341,6 +404,31 @@ class WebSocketManager {
 
   public isConnected(): boolean {
     return this.socket?.readyState === WebSocket.OPEN;
+  }
+
+  /**
+   * Returns a promise that resolves when the connection is established.
+   * If already connected, resolves immediately. Otherwise calls connect() and waits for connection_established.
+   */
+  public waitForConnection(timeoutMs = 15000): Promise<void> {
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve, reject) => {
+      const timeoutId = window.setTimeout(() => {
+        this.off('connection_established', onEstablished);
+        reject(new Error('Connection timeout'));
+      }, timeoutMs);
+
+      const onEstablished = () => {
+        window.clearTimeout(timeoutId);
+        this.off('connection_established', onEstablished);
+        resolve();
+      };
+
+      this.on('connection_established', onEstablished);
+      this.connect();
+    });
   }
 }
 

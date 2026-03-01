@@ -5,6 +5,10 @@ import {
   setAccessToken,
   logout as authLogout,
   initAuth,
+  getAccessToken,
+  refreshTokenIfNeeded,
+  setCustomRefreshTokenFn,
+  refreshTokenViaHttp,
 } from '../utils/authStore';
 import {
   websocketManager,
@@ -29,24 +33,77 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
 
   const fetchUser = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
-    try {
-      const data = await apiJson<{
-        user: User;
-        active_wallpaper?: WallpaperSetting;
-      }>('/api/get_general_info/');
-      setState({ user: data.user, loading: false, error: null });
 
-      if (!data.active_wallpaper) return;
-      setActiveWallpaper({
-        id: data.active_wallpaper.id,
-        url: data.active_wallpaper.url,
-        type: data.active_wallpaper.type,
-        blur: 0,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      setState({ user: null, loading: false, error: message });
+    const applyGeneralInfo = (data: {
+      user?: User;
+      active_wallpaper?: WallpaperSetting;
+      success?: boolean;
+      error?: string;
+    }) => {
+      if (data.success && data.user) {
+        setState({ user: data.user, loading: false, error: null });
+        if (data.active_wallpaper) {
+          setActiveWallpaper({
+            id: data.active_wallpaper.id,
+            url: data.active_wallpaper.url,
+            type: data.active_wallpaper.type,
+            blur: 0,
+          });
+        }
+      } else {
+        setState({
+          user: null,
+          loading: false,
+          error: data.error ?? 'Failed to load user',
+        });
+      }
+    };
+
+    if (websocketManager.isConnected()) {
+      const timeoutId = window.setTimeout(() => {
+        setState((prev) => (prev.loading ? { ...prev, loading: false } : prev));
+      }, 15000);
+
+      const handleGeneralInfo = (
+        msg: WebSocketMessage & {
+          success?: boolean;
+          user?: unknown;
+          active_wallpaper?: WallpaperSetting;
+          error?: string;
+        },
+      ) => {
+        if (msg.type !== 'general_info') return;
+        window.clearTimeout(timeoutId);
+        applyGeneralInfo({
+          success: msg.success,
+          user: msg.user as User | undefined,
+          active_wallpaper: msg.active_wallpaper,
+          error: msg.error,
+        });
+        websocketManager.off('general_info', handleGeneralInfo);
+        websocketManager.off('message', handleError);
+      };
+
+      const handleError = (msg: WebSocketMessage) => {
+        if (msg.type === 'error') {
+          window.clearTimeout(timeoutId);
+          setState({
+            user: null,
+            loading: false,
+            error: msg.message ?? 'Unknown error',
+          });
+          websocketManager.off('general_info', handleGeneralInfo);
+          websocketManager.off('message', handleError);
+        }
+      };
+
+      websocketManager.on('general_info', handleGeneralInfo);
+      websocketManager.on('message', handleError);
+      websocketManager.sendMessage({ type: 'get_general_info' });
+      return;
     }
+
+    websocketManager.connect();
   }, [setActiveWallpaper]);
 
   useEffect(() => {
@@ -54,10 +111,49 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       setState({ user: null, loading: false, error: null }),
     );
 
+    setCustomRefreshTokenFn(async () => {
+      if (getAccessToken() === null) {
+        await refreshTokenViaHttp();
+        return;
+      }
+      if (websocketManager.isConnected()) {
+        try {
+          const access = await websocketManager.requestRefreshToken();
+          setAccessToken(access);
+        } catch {
+          await refreshTokenViaHttp();
+        }
+        return;
+      }
+      await refreshTokenViaHttp();
+    });
+
+    initAuth();
+
+    const handleConnectionEstablished = () => {
+      fetchUser().catch(() => {});
+    };
+
+    websocketManager.on('connection_established', handleConnectionEstablished);
+
     (async () => {
-      initAuth();
-      await fetchUser().catch(() => {});
+      try {
+        await refreshTokenIfNeeded();
+      } catch {
+        setState({ user: null, loading: false, error: null });
+        return;
+      }
+      if (!getAccessToken()) {
+        setState({ user: null, loading: false, error: null });
+        return;
+      }
+      if (websocketManager.isConnected()) {
+        fetchUser().catch(() => {});
+        return;
+      }
+      websocketManager.connect();
     })();
+
     const handler = (msg: WebSocketMessage) => {
       if (msg.type === 'file_uploaded' && msg.data) {
         const userId = Number(msg.data.object_id);
@@ -89,14 +185,22 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     };
 
     websocketManager.on('message', handler);
-    return () => websocketManager.off('message', handler);
+    return () => {
+      websocketManager.off('message', handler);
+      websocketManager.off('connection_established', handleConnectionEstablished);
+      setCustomRefreshTokenFn(null);
+    };
   }, [fetchUser]);
 
   const handleLoginSuccess = useCallback(
     (data: ApiResponse) => {
       if (!data.access || !data.user) throw new Error('Invalid response');
       setAccessToken(data.access);
-      return fetchUser();
+      if (websocketManager.isConnected()) {
+        return fetchUser();
+      }
+      websocketManager.connect();
+      // fetchUser will be called on connection_established
     },
     [fetchUser],
   );

@@ -8,6 +8,8 @@ import React, {
 import type { ReactNode } from 'react';
 import type { Message, Chat, User } from '@/types';
 import { apiFetch, apiUpload } from '@/utils/apiFetch';
+import { websocketManager } from '@/utils/websocket-manager';
+import type { WebSocketMessage } from '@/utils/websocket-manager';
 import { useSettingsActions } from './settings/context';
 import { ChatContext, type ChatContextType } from './ChatContextCore';
 import { useMessages } from './useMessages';
@@ -47,26 +49,74 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 
   const fetchChat = useCallback(
     async (chatId: number) => {
+      const applyChatData = (data: {
+        media?: Chat['media'];
+        members?: Chat['members'];
+        messages?: Message[];
+      }) => {
+        if (data.media) {
+          setChats((prevChats) =>
+            prevChats.map((chat) =>
+              chat.id === chatId
+                ? {
+                    ...chat,
+                    media: data.media!,
+                    members: data.members ?? chat.members,
+                  }
+                : chat,
+            ),
+          );
+        }
+        updateMessages(data.messages || [], chatId);
+      };
+
+      if (websocketManager.isConnected()) {
+        const timeoutId = window.setTimeout(() => {
+          websocketManager.off('chat', handleChat);
+          websocketManager.off('message', handleError);
+          apiFetch(`/api/get_chat/${chatId}/`)
+            .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+            .then(applyChatData)
+            .catch(() => updateMessages([], chatId));
+        }, 10000);
+
+        const handleChat = (
+          data: WebSocketMessage & {
+            chat_id?: number;
+            media?: Chat['media'];
+            members?: Chat['members'];
+            messages?: Message[];
+          },
+        ) => {
+          if (data.chat_id !== chatId) return;
+          window.clearTimeout(timeoutId);
+          websocketManager.off('chat', handleChat);
+          websocketManager.off('message', handleError);
+          applyChatData(data);
+        };
+
+        const handleError = (msg: { type?: string }) => {
+          if (msg.type !== 'error') return;
+          window.clearTimeout(timeoutId);
+          websocketManager.off('chat', handleChat);
+          websocketManager.off('message', handleError);
+          apiFetch(`/api/get_chat/${chatId}/`)
+            .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+            .then(applyChatData)
+            .catch(() => updateMessages([], chatId));
+        };
+
+        websocketManager.on('chat', handleChat);
+        websocketManager.on('message', handleError);
+        websocketManager.sendMessage({ type: 'get_chat', chat_id: chatId });
+        return;
+      }
+
       try {
         const res = await apiFetch(`/api/get_chat/${chatId}/`);
         if (!res.ok) throw new Error(`Failed: ${res.status}`);
         const data = await res.json();
-
-        if (data.media) {
-          setChats((prevChats) => {
-            const updatedChats = prevChats.map((chat) =>
-              chat.id === chatId
-                ? {
-                    ...chat,
-                    media: data.media,
-                    members: data.members,
-                  }
-                : chat,
-            );
-            return updatedChats;
-          });
-        }
-        updateMessages(data.messages || [], chatId);
+        applyChatData(data);
       } catch (err) {
         console.error(err);
         updateMessages([], chatId);
@@ -195,23 +245,47 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     try {
       setLoading(true);
       setError(null);
-      const res = await apiFetch('/api/get_chats/', {
-        method: 'GET',
-      });
-      if (!res.ok) throw new Error(`Failed: ${res.status}`);
-      const data = await res.json();
 
-      setChats(Array.isArray(data.chats) ? data.chats : []);
-      const hashRoomId = location.hash
-        ? Number(location.hash.substring(1))
-        : null;
-      if (hashRoomId) {
-        setSelectedChatId(hashRoomId);
-        fetchChat(hashRoomId);
+      if (!websocketManager.isConnected()) {
+        setError('Not connected');
+        setLoading(false);
+        return;
       }
+
+      const timeoutId = window.setTimeout(() => {
+        setLoading(false);
+      }, 15000);
+
+      const handleChats = (data: { chats?: unknown[] }) => {
+        window.clearTimeout(timeoutId);
+        setChats(Array.isArray(data.chats) ? (data.chats as Chat[]) : []);
+        setLoading(false);
+        const hashRoomId = location.hash
+          ? Number(location.hash.substring(1))
+          : null;
+        if (hashRoomId) {
+          setSelectedChatId(hashRoomId);
+          fetchChat(hashRoomId);
+        }
+        websocketManager.off('chats', handleChats);
+        websocketManager.off('message', handleError);
+      };
+
+      const handleError = (msg: { type?: string; message?: string }) => {
+        if (msg.type === 'error') {
+          window.clearTimeout(timeoutId);
+          setError(msg.message ?? 'Unknown error');
+          setLoading(false);
+          websocketManager.off('chats', handleChats);
+          websocketManager.off('message', handleError);
+        }
+      };
+
+      websocketManager.on('chats', handleChats);
+      websocketManager.on('message', handleError);
+      websocketManager.sendMessage({ type: 'get_chats' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
       setLoading(false);
     }
   }, [fetchChat]);

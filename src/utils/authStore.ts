@@ -86,7 +86,15 @@ export function onUnauthorized(listener: UnauthorizedListener) {
   return () => unauthorizedListeners.delete(listener);
 }
 
-async function refreshToken(): Promise<void> {
+export type RefreshTokenFn = () => Promise<void>;
+let customRefreshTokenFn: RefreshTokenFn | null = null;
+
+export function setCustomRefreshTokenFn(fn: RefreshTokenFn | null) {
+  customRefreshTokenFn = fn;
+}
+
+/** Only used when we have no token in memory (to get one from cookie) or when WS is not connected. */
+async function refreshTokenViaHttp(): Promise<void> {
   const res = await fetch('/api/refresh_token/', {
     method: 'POST',
     credentials: 'include',
@@ -102,6 +110,16 @@ async function refreshToken(): Promise<void> {
 
   const data = await res.json();
   setAccessToken(data.access);
+}
+
+export { refreshTokenViaHttp };
+
+async function refreshToken(): Promise<void> {
+  if (customRefreshTokenFn) {
+    await customRefreshTokenFn();
+    return;
+  }
+  await refreshTokenViaHttp();
 }
 
 export async function refreshTokenIfNeeded(): Promise<void> {
