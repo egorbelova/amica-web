@@ -1,6 +1,6 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useCallback, useEffect, memo } from 'react';
 import { websocketManager } from '../../utils/websocket-manager';
-import { useChat } from '../../contexts/ChatContextCore';
+import { useChatMeta, useChatMessages } from '../../contexts/ChatContextCore';
 import { useUser } from '../../contexts/UserContextCore';
 import DropZone from '../DropZone/DropZone';
 import { Icon } from '../Icons/AutoIcons';
@@ -21,12 +21,9 @@ const MessageInput: React.FC = () => {
   const editableRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const {
-    selectedChat,
-    editingMessage,
-    setEditingMessage,
-    updateMessageInChat,
-  } = useChat();
+  const { selectedChat } = useChatMeta();
+  const { editingMessage, setEditingMessage, updateMessageInChat } =
+    useChatMessages();
   const { user } = useUser();
   const { setTerm, setResults } = useSearchContext();
 
@@ -556,4 +553,4 @@ const MessageInput: React.FC = () => {
   );
 };
 
-export default MessageInput;
+export default memo(MessageInput);

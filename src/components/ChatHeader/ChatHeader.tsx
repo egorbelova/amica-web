@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useChat } from '@/contexts/ChatContextCore';
+import React, { useState, memo } from 'react';
+import { useChatMeta } from '@/contexts/ChatContextCore';
 import Avatar from '../Avatar/Avatar';
 import { formatLastSeen } from '../../utils/activityFormatter';
 import styles from './ChatHeader.module.scss';
@@ -16,7 +16,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   onGoHome,
   onChatInfoClick,
 }) => {
-  const { selectedChat } = useChat();
+  const { selectedChat } = useChatMeta();
   const [, setAvatarModalVisible] = useState(false);
 
   const subtitle =
@@ -69,4 +69,4 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   );
 };
 
-export default ChatHeader;
+export default memo(ChatHeader);

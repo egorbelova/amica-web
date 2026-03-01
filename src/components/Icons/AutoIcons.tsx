@@ -4,7 +4,7 @@ export type IconName = "AddPlus" | "Appearance" | "Arrow" | "Attachment" | "Chat
 export type IconProps = React.SVGProps<SVGSVGElement> & { name: IconName };
 
 
-export const IconsSprite = () => (
+export const IconsSprite = React.memo(() => (
   <svg style={{ display: "none" }} xmlns="http://www.w3.org/2000/svg">
     <symbol id="icon-AddPlus" viewBox="0 0 24 24"><title>Add-plus SVG Icon</title><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 12h6m0 0h6m-6 0v6m0-6V6"/></symbol>
     <symbol id="icon-Appearance" viewBox="0 0 16 16"><title>Appearance SVG Icon</title><path fill="currentColor" fillRule="evenodd" d="m14.489 8.388l-.001.006a.1.1 0 0 1-.027.028a.43.43 0 0 1-.264.082h-3.186c-3.118 0-4.68 3.77-2.476 5.974a6.5 6.5 0 1 1 5.953-6.09Zm-.292 1.616c.913 0 1.736-.618 1.79-1.529a8 8 0 1 0-7.032 7.468c1.243-.147 1.527-1.639.641-2.525c-1.26-1.26-.367-3.414 1.415-3.414zM10 5a1 1 0 1 1-2 0a1 1 0 0 1 2 0M6 7a1 1 0 1 0 0-2a1 1 0 0 0 0 2m0 2a1 1 0 1 1-2 0a1 1 0 0 1 2 0" clipRule="evenodd"/></symbol>
@@ -70,7 +70,7 @@ export const IconsSprite = () => (
     <symbol id="icon-Video" viewBox="0 0 24 24"><title>Video SVG Icon</title><g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><rect width="20" height="16" x="2" y="4" rx="4"/><path d="m15 12l-5-3v6z"/></g></symbol>
     <symbol id="icon-Wallpaper" viewBox="0 0 20 20"><title>Wallpaper-20-regular SVG Icon</title><path fill="#ffffff" d="M3 6a3 3 0 0 1 3-3h2.5a.5.5 0 0 1 0 1H6a2 2 0 0 0-2 2v2.5a.5.5 0 0 1-1 0zm8-2.5a.5.5 0 0 1 .5-.5H14a3 3 0 0 1 3 3v2.5a.5.5 0 0 1-1 0V6a2 2 0 0 0-2-2h-2.5a.5.5 0 0 1-.5-.5M3.5 11a.5.5 0 0 1 .5.5V14c0 .37.101.718.277 1.016l4.486-4.486a1.75 1.75 0 0 1 2.474 0l4.486 4.486C15.9 14.718 16 14.371 16 14v-2.5a.5.5 0 0 1 1 0V14a3 3 0 0 1-3 3h-2.5a.5.5 0 0 1 0-1H14c.37 0 .718-.101 1.016-.277l-4.486-4.486a.75.75 0 0 0-1.06 0l-4.486 4.486C5.282 15.9 5.629 16 6 16h2.5a.5.5 0 0 1 0 1H6a3 3 0 0 1-3-3v-2.5a.5.5 0 0 1 .5-.5m9-4a.5.5 0 1 0 0 1a.5.5 0 0 0 0-1m-1.5.5a1.5 1.5 0 1 1 3 0a1.5 1.5 0 0 1-3 0"/></symbol>
   </svg>
-);
+));
 
 const staticViewBoxes: Record<string, string> = {
   "AddPlus": "0 0 24 24",

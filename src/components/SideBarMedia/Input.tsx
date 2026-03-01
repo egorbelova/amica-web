@@ -23,6 +23,23 @@ const Input: React.FC<InputProps> = ({
   };
   const [autofocusActive, setAutofocusActive] = React.useState(false);
 
+  const handleBeforeInput = (e: React.FormEvent<HTMLInputElement>) => {
+    const ie = e.nativeEvent as InputEvent;
+    if (ie.inputType === 'insertText' && ie.data === '. ') {
+      e.preventDefault();
+      const input = inputRef.current;
+      if (!input) return;
+      const start = input.selectionStart ?? 0;
+      const end = input.selectionEnd ?? 0;
+      const newVal = value.slice(0, start) + '  ' + value.slice(end);
+      onChange(newVal);
+      requestAnimationFrame(() => {
+        const pos = start + 2;
+        input.setSelectionRange(pos, pos);
+      });
+    }
+  };
+
   useEffect(() => {
     const input = inputRef.current;
     if (!input) return;
@@ -56,7 +73,9 @@ const Input: React.FC<InputProps> = ({
             // id={placeholder}
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            onBeforeInput={handleBeforeInput}
             autoComplete='off'
+            autoCorrect='off'
             autoCapitalize='none'
             spellCheck={false}
             inputMode='text'

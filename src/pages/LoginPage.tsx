@@ -122,4 +122,4 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
   );
 };
 
-export default LoginPage;
+export default React.memo(LoginPage);

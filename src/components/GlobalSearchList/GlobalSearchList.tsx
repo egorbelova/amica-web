@@ -2,11 +2,11 @@ import { useSearchContext } from '@/contexts/search/SearchContextCore';
 import type { User } from '@/types';
 import styles from './GlobalSearchList.module.scss';
 import Avatar from '../Avatar/Avatar';
-import { useChat } from '@/contexts/ChatContextCore';
+import { useChatMeta } from '@/contexts/ChatContextCore';
 
 const GlobalSearchList: React.FC = () => {
   const { results, loading, error } = useSearchContext<User>();
-  const { handleCreateTemporaryChat } = useChat();
+  const { handleCreateTemporaryChat } = useChatMeta();
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div className='text-red-500'>{error}</div>;

@@ -1,13 +1,13 @@
 import { useTranslation } from '@/contexts/languageCore';
 import Avatar from '@/components/Avatar/Avatar';
 import styles from './Contacts.module.scss';
-import { useChat } from '@/contexts/ChatContextCore';
+import { useChatMeta } from '@/contexts/ChatContextCore';
 import { useContacts } from '@/contexts/contacts/useContacts';
 import { formatLastSeen } from '@/utils/activityFormatter';
 
 const Contacts = () => {
   const { t } = useTranslation();
-  const { handleChatClick } = useChat();
+  const { handleChatClick } = useChatMeta();
   const { contacts, loading, error } = useContacts();
 
   if (loading) return <div>{t('contacts.loading') ?? 'Loading...'}</div>;

@@ -11,7 +11,12 @@ import { apiFetch, apiUpload } from '@/utils/apiFetch';
 import { websocketManager } from '@/utils/websocket-manager';
 import type { WebSocketMessage } from '@/utils/websocket-manager';
 import { useSettingsActions } from './settings/context';
-import { ChatContext, type ChatContextType } from './ChatContextCore';
+import {
+  ChatMetaContext,
+  ChatMessagesContext,
+  type ChatMetaContextType,
+  type ChatMessagesContextType,
+} from './ChatContextCore';
 import { useMessages } from './useMessages';
 
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({
@@ -341,25 +346,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     [selectedChatId, fetchChat],
   );
 
-  const value: ChatContextType = useMemo(
+  const valueMeta: ChatMetaContextType = useMemo(
     () => ({
       selectedChat,
-      messages,
       chats,
       loading,
       error,
-      messagesCache,
-      editingMessage,
-      setEditingMessage,
-      selectChat,
-      updateMessages,
-      updateMessageInChat,
-      removeMessageFromChat,
-      setChats,
-      setLoading,
-      getCachedMessages,
-      updateChatLastMessage,
-      updateChatUnreadCount,
       fetchChats,
       fetchChat,
       handleChatClick,
@@ -368,26 +360,14 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       addContact,
       deleteContact,
       saveContact,
-      handleNewMessage,
+      setChats,
+      setLoading,
     }),
     [
       selectedChat,
-      messages,
       chats,
       loading,
       error,
-      messagesCache,
-      editingMessage,
-      setEditingMessage,
-      selectChat,
-      updateMessages,
-      updateMessageInChat,
-      removeMessageFromChat,
-      setChats,
-      setLoading,
-      getCachedMessages,
-      updateChatLastMessage,
-      updateChatUnreadCount,
       fetchChats,
       fetchChat,
       handleChatClick,
@@ -396,9 +376,45 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       addContact,
       deleteContact,
       saveContact,
+      setChats,
+      setLoading,
+    ],
+  );
+
+  const valueMessages: ChatMessagesContextType = useMemo(
+    () => ({
+      messages,
+      messagesCache,
+      editingMessage,
+      setEditingMessage,
+      updateMessages,
+      updateMessageInChat,
+      removeMessageFromChat,
+      getCachedMessages,
+      updateChatLastMessage,
+      updateChatUnreadCount,
+      handleNewMessage,
+    }),
+    [
+      messages,
+      messagesCache,
+      editingMessage,
+      setEditingMessage,
+      updateMessages,
+      updateMessageInChat,
+      removeMessageFromChat,
+      getCachedMessages,
+      updateChatLastMessage,
+      updateChatUnreadCount,
       handleNewMessage,
     ],
   );
 
-  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
+  return (
+    <ChatMetaContext.Provider value={valueMeta}>
+      <ChatMessagesContext.Provider value={valueMessages}>
+        {children}
+      </ChatMessagesContext.Provider>
+    </ChatMetaContext.Provider>
+  );
 };

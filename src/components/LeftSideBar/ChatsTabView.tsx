@@ -1,5 +1,5 @@
 // components/Search/UserSearch.tsx
-import React from 'react';
+import React, { memo } from 'react';
 // import { SearchProvider } from '@/contexts/search/SearchContext';
 import SearchInput from '@/components/ui/searchInput/SearchInput';
 import GlobalSearchList from '@/components/GlobalSearchList/GlobalSearchList';
@@ -20,4 +20,4 @@ const ChatsTabView: React.FC = () => {
   );
 };
 
-export default ChatsTabView;
+export default memo(ChatsTabView);

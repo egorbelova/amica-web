@@ -4,7 +4,7 @@ import { generateLayout } from './SmartMediaLayout';
 import ProgressiveImage from './ProgressiveImage';
 import VideoLayout from './VideoLayout';
 import AudioLayout from './AudioLayout';
-import { useChat } from '@/contexts/ChatContextCore';
+import { useChatMessages } from '@/contexts/ChatContextCore';
 import Reel from './Reel';
 import type { File } from '@/types';
 import DocumentLayout from './DocumentLayout';
@@ -46,7 +46,7 @@ const SmartMediaLayout: React.FC<Props> = ({ files }) => {
   }, []);
 
   const [reelVisible, setReelVisible] = useState(false);
-  const { messages } = useChat();
+  const { messages } = useChatMessages();
 
   const lastTap = useRef<number>(0);
   const handleClick = () => {

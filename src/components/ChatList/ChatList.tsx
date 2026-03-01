@@ -8,14 +8,14 @@ import React, {
   useState,
 } from 'react';
 import ChatListItem from './ChatListItem';
-import { useChat } from '../../contexts/ChatContextCore';
+import { useChatMeta } from '../../contexts/ChatContextCore';
 import type { Chat, DisplayMedia } from '../../types';
 import styles from './ChatList.module.scss';
 import { useSearchContext } from '@/contexts/search/SearchContextCore';
 
 const ChatList: React.FC = () => {
   const { chats, selectedChat, loading, error, fetchChats, handleChatClick } =
-    useChat();
+    useChatMeta();
 
   const { term } = useSearchContext();
 

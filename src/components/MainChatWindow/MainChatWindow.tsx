@@ -1,9 +1,9 @@
-import { useState, useEffect, useLayoutEffect } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, memo } from 'react';
 import SendArea from '../SendArea/SendArea';
 import MessageList from '../MessageList/MessageList';
 import ChatHeader from '../ChatHeader/ChatHeader';
 // import BackgroundComponent from '../BackgroundComponent/BackgroundComponent';
-import { useChat } from '@/contexts/ChatContextCore';
+import { useChatMeta } from '@/contexts/ChatContextCore';
 import SideBarMedia from '../SideBarMedia/SideBarMedia';
 import styles from './MainChatWindow.module.scss';
 import { useSettings } from '@/contexts/settings/context';
@@ -23,13 +23,27 @@ const MainChatWindow: React.FC = () => {
   } = useSettings();
   const { activeWallpaper } = settings;
 
-  const { selectedChat, setSelectedChatId } = useChat();
+  const { selectedChat, setSelectedChatId } = useChatMeta();
 
   const [sideBarVisible, setSideBarVisible] = useState(false);
-
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  const { current } = usePageStack();
+  const handleHeaderClick = useCallback(() => {
+    setSideBarVisible(true);
+  }, []);
+
+  const handleGoHome = useCallback(() => {
+    setSelectedChatId(null);
+    location.hash = '';
+  }, [setSelectedChatId]);
+
+  const handleSideBarClose = useCallback(() => {
+    setSideBarVisible(false);
+  }, []);
+
+  const handleMinimizeSettings = useCallback(() => {
+    setSettingsFullWindow(false);
+  }, [setSettingsFullWindow]);
 
   const isSwiped = Boolean(selectedChat);
 
@@ -48,14 +62,13 @@ const MainChatWindow: React.FC = () => {
     };
   }, [isSwiped]);
 
+  const { current } = usePageStack();
+
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  const handleHeaderClick = () => {
-    setSideBarVisible(true);
-  };
 
   return (
     <div className={`main_chat_window ${isSwiped ? 'swiped' : ''}`}>
@@ -111,8 +124,8 @@ const MainChatWindow: React.FC = () => {
       {current === 'profile' && settingsFullWindow && activeProfileTab && (
         <div className={styles.settingsContainer}>
           <Button
-            key={'main-chat-window-minimize-button'}
-            onClick={() => setSettingsFullWindow(false)}
+            key='main-chat-window-minimize-button'
+            onClick={handleMinimizeSettings}
             className={styles.minimize}
           >
             <Icon name='FullscreenExit' />
@@ -124,19 +137,13 @@ const MainChatWindow: React.FC = () => {
         <>
           <ChatHeader
             onChatInfoClick={handleHeaderClick}
-            onGoHome={() => {
-              setSelectedChatId(null);
-              location.hash = '';
-            }}
+            onGoHome={handleGoHome}
           />
           <div className={`room_wrapper ${sideBarVisible ? 'shifted' : ''}`}>
             <MessageList />
             <SendArea />
           </div>
-          <SideBarMedia
-            visible={sideBarVisible}
-            onClose={() => setSideBarVisible(false)}
-          />
+          <SideBarMedia visible={sideBarVisible} onClose={handleSideBarClose} />
         </>
       )}
       {!selectedChat &&
@@ -147,4 +154,4 @@ const MainChatWindow: React.FC = () => {
   );
 };
 
-export default MainChatWindow;
+export default memo(MainChatWindow);
