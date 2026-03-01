@@ -1,6 +1,7 @@
 import {
   onAccessTokenChange,
-  getAccessTokenOrThrow,
+  getAccessToken,
+  setAccessToken,
 } from './authStore';
 import type { Session } from '@/types';
 import { startTransition } from 'react';
@@ -47,20 +48,26 @@ interface WebSocketEventMap {
   message_viewed: (data: WebSocketMessage) => void;
   connection_established: (data: WebSocketMessage) => void;
   chats: (data: WebSocketMessage & { chats?: unknown[] }) => void;
-  general_info: (data: WebSocketMessage & {
-    success?: boolean;
-    user?: unknown;
-    active_wallpaper?: unknown;
-    error?: string;
-  }) => void;
-  refresh_token_response: (data: WebSocketMessage & { access?: string }) => void;
+  general_info: (
+    data: WebSocketMessage & {
+      success?: boolean;
+      user?: unknown;
+      active_wallpaper?: unknown;
+      error?: string;
+    },
+  ) => void;
+  refresh_token_response: (
+    data: WebSocketMessage & { access?: string },
+  ) => void;
   contacts: (data: WebSocketMessage & { contacts?: unknown[] }) => void;
-  chat: (data: WebSocketMessage & {
-    chat_id?: number;
-    media?: unknown;
-    members?: unknown;
-    messages?: unknown[];
-  }) => void;
+  chat: (
+    data: WebSocketMessage & {
+      chat_id?: number;
+      media?: unknown;
+      members?: unknown;
+      messages?: unknown[];
+    },
+  ) => void;
 }
 
 class WebSocketManager {
@@ -167,13 +174,7 @@ class WebSocketManager {
           this.socket = null;
         }
 
-        let token: string;
-        try {
-          token = await getAccessTokenOrThrow();
-        } catch (err) {
-          console.error('Cannot get valid token for WS:', err);
-          return;
-        }
+        const token: string | null = getAccessToken();
 
         const ws_protocol =
           window.location.protocol === 'https:' ? 'wss://' : 'ws://';
@@ -190,31 +191,34 @@ class WebSocketManager {
 
         let url: string;
         if (ws_port) {
-          url = `${ws_protocol}${ws_host}:${ws_port}/ws/socket-server/?token=${token}`;
+          url = token
+            ? `${ws_protocol}${ws_host}:${ws_port}/ws/socket-server/?token=${token}`
+            : `${ws_protocol}${ws_host}:${ws_port}/ws/socket-server/`;
         } else {
-          url = `${ws_protocol}${ws_host}/ws/socket-server/?token=${token}`;
-          // url = `${ws_protocol}${window.location.host}/ws/socket-server/`;
+          url = token
+            ? `${ws_protocol}${ws_host}/ws/socket-server/?token=${token}`
+            : `${ws_protocol}${ws_host}/ws/socket-server/`;
         }
 
         try {
           this.socket = new WebSocket(url);
 
-          this.socket.onopen = async () => {
+          this.socket.onopen = () => {
             this.reconnectAttempts = 0;
             this.emit('connected', null);
 
-            try {
-              const token = await getAccessTokenOrThrow();
-              this.sendMessage({ type: 'auth', token });
-            } catch {
-              this.disconnect();
+            const t = getAccessToken();
+            if (t) {
+              this.sendMessage({ type: 'auth', token: t });
             }
           };
 
           this.socket.onmessage = (e: MessageEvent) => this.handleMessage(e);
 
           this.socket.onclose = (e: CloseEvent) => {
-            console.log(`WebSocket closed. Code: ${e.code}, Reason: ${e.reason}`);
+            console.log(
+              `WebSocket closed. Code: ${e.code}, Reason: ${e.reason}`,
+            );
             this.emit('disconnected', { code: e.code, reason: e.reason });
 
             if (this.isManualDisconnect) return;
@@ -264,6 +268,12 @@ class WebSocketManager {
     }
     queueMicrotask(() => {
       this.emit('message', data);
+      if (
+        data.type === 'connection_established' &&
+        (data as { access?: string }).access
+      ) {
+        setAccessToken((data as unknown as { access: string }).access);
+      }
       startTransition(() => {
         switch (data.type) {
           case 'connection_established':
@@ -400,7 +410,9 @@ class WebSocketManager {
         window.clearTimeout(timeoutId);
         this.off('refresh_token_response', handleResponse);
         this.off('message', handleError);
-        reject(new Error((data as { message?: string }).message ?? 'Refresh failed'));
+        reject(
+          new Error((data as { message?: string }).message ?? 'Refresh failed'),
+        );
       };
 
       this.on('refresh_token_response', handleResponse);

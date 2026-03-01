@@ -93,7 +93,7 @@ export function setCustomRefreshTokenFn(fn: RefreshTokenFn | null) {
   customRefreshTokenFn = fn;
 }
 
-/** Only used when we have no token in memory (to get one from cookie) or when WS is not connected. */
+/** Only used for bootstrap when there is no access token in memory (e.g. after reload with refresh cookie). All other refresh is done via WebSocket. */
 async function refreshTokenViaHttp(): Promise<void> {
   const res = await fetch('/api/refresh_token/', {
     method: 'POST',

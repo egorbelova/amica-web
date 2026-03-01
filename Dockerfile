@@ -10,7 +10,7 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-RUN pnpm run build
+RUN pnpm run build:ignore
 
 FROM fholzer/nginx-brotli:latest
 

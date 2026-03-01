@@ -8,7 +8,6 @@ import {
   getAccessToken,
   refreshTokenIfNeeded,
   setCustomRefreshTokenFn,
-  refreshTokenViaHttp,
 } from '../utils/authStore';
 import {
   websocketManager,
@@ -113,19 +112,17 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
 
     setCustomRefreshTokenFn(async () => {
       if (getAccessToken() === null) {
-        await refreshTokenViaHttp();
+        await websocketManager.waitForConnection();
         return;
       }
       if (websocketManager.isConnected()) {
-        try {
-          const access = await websocketManager.requestRefreshToken();
-          setAccessToken(access);
-        } catch {
-          await refreshTokenViaHttp();
-        }
+        const access = await websocketManager.requestRefreshToken();
+        setAccessToken(access);
         return;
       }
-      await refreshTokenViaHttp();
+      await websocketManager.waitForConnection();
+      const access = await websocketManager.requestRefreshToken();
+      setAccessToken(access);
     });
 
     initAuth();
