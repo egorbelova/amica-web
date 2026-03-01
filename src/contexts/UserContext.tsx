@@ -134,24 +134,26 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
 
     websocketManager.on('connection_established', handleConnectionEstablished);
 
+    // Start WebSocket immediately so it isn't stalled behind refresh_token request
+    websocketManager.connect();
+
     (async () => {
       try {
         await refreshTokenIfNeeded();
       } catch {
         setState({ user: null, loading: false, error: null });
-        websocketManager.connect();
         return;
       }
       if (!getAccessToken()) {
         setState({ user: null, loading: false, error: null });
-        websocketManager.connect();
         return;
       }
       if (websocketManager.isConnected()) {
         fetchUser().catch(() => {});
         return;
       }
-      websocketManager.connect();
+      await websocketManager.waitForConnection();
+      fetchUser().catch(() => {});
     })();
 
     const handler = (msg: WebSocketMessage) => {
@@ -187,7 +189,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     websocketManager.on('message', handler);
     return () => {
       websocketManager.off('message', handler);
-      websocketManager.off('connection_established', handleConnectionEstablished);
+      websocketManager.off(
+        'connection_established',
+        handleConnectionEstablished,
+      );
       setCustomRefreshTokenFn(null);
     };
   }, [fetchUser]);
@@ -233,8 +238,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
           websocketManager.connect();
         }
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Login failed';
+        const message = err instanceof Error ? err.message : 'Login failed';
         setState((prev) => ({
           ...prev,
           loading: false,
@@ -251,7 +255,11 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const signupWithCredentials = useCallback(
     async (username: string, email: string, password: string) => {
       await websocketManager.waitForConnection();
-      const data = await websocketManager.requestSignup(username, email, password);
+      const data = await websocketManager.requestSignup(
+        username,
+        email,
+        password,
+      );
       setAccessToken(data.access);
       if (data.refresh) setRefreshCookie(data.refresh);
       setState({
