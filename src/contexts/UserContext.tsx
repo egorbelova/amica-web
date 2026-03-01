@@ -8,6 +8,7 @@ import {
   getAccessToken,
   refreshTokenIfNeeded,
   setCustomRefreshTokenFn,
+  setRefreshCookie,
 } from '../utils/authStore';
 import {
   websocketManager,
@@ -138,10 +139,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         await refreshTokenIfNeeded();
       } catch {
         setState({ user: null, loading: false, error: null });
+        websocketManager.connect();
         return;
       }
       if (!getAccessToken()) {
         setState({ user: null, loading: false, error: null });
+        websocketManager.connect();
         return;
       }
       if (websocketManager.isConnected()) {
@@ -193,11 +196,18 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     (data: ApiResponse) => {
       if (!data.access || !data.user) throw new Error('Invalid response');
       setAccessToken(data.access);
+      if (data.refresh) setRefreshCookie(data.refresh);
+      setState((prev) => ({
+        ...prev,
+        user: data.user,
+        loading: false,
+        error: null,
+      }));
       if (websocketManager.isConnected()) {
-        return fetchUser();
+        fetchUser().catch(() => {});
+      } else {
+        websocketManager.connect();
       }
-      websocketManager.connect();
-      // fetchUser will be called on connection_established
     },
     [fetchUser],
   );
@@ -207,11 +217,55 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const loginWithPassword = useCallback(
-    (username: string, password: string) =>
-      postJson<ApiResponse>('/api/login/', { username, password }).then(
-        handleLoginSuccess,
-      ),
+    async (username: string, password: string) => {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+      try {
+        const data = await postJson<ApiResponse>('/api/login/', {
+          username,
+          password,
+        });
+        handleLoginSuccess({
+          access: data.access,
+          refresh: data.refresh,
+          user: data.user as User,
+        });
+        if (!websocketManager.isConnected()) {
+          websocketManager.connect();
+        }
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Login failed';
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: message,
+        }));
+        throw err;
+      } finally {
+        setState((prev) => ({ ...prev, loading: false }));
+      }
+    },
     [handleLoginSuccess],
+  );
+
+  const signupWithCredentials = useCallback(
+    async (username: string, email: string, password: string) => {
+      await websocketManager.waitForConnection();
+      const data = await websocketManager.requestSignup(username, email, password);
+      setAccessToken(data.access);
+      if (data.refresh) setRefreshCookie(data.refresh);
+      setState({
+        user: data.user as User,
+        loading: false,
+        error: null,
+      });
+      if (websocketManager.isConnected()) {
+        fetchUser().catch(() => {});
+      } else {
+        websocketManager.connect();
+      }
+    },
+    [fetchUser],
   );
 
   const loginWithGoogle = useCallback(
@@ -246,6 +300,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       refreshUser: fetchUser,
       setUser,
       loginWithPassword,
+      signupWithCredentials,
       loginWithGoogle,
       loginWithPasskey,
       logout,
@@ -255,6 +310,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       fetchUser,
       setUser,
       loginWithPassword,
+      signupWithCredentials,
       loginWithGoogle,
       loginWithPasskey,
       logout,

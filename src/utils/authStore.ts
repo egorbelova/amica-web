@@ -66,6 +66,12 @@ export function setAccessToken(token: string | null) {
   notifyTokenChange(token);
 }
 
+/** Set refresh_token cookie (e.g. after WS login/signup). Cannot set httponly from JS. */
+export function setRefreshCookie(refreshToken: string, maxAgeDays = 7): void {
+  const maxAge = maxAgeDays * 24 * 60 * 60;
+  document.cookie = `refresh_token=${encodeURIComponent(refreshToken)}; path=/; max-age=${maxAge}; samesite=Lax${location.protocol === 'https:' ? '; secure' : ''}`;
+}
+
 export function getAccessToken(): string | null {
   return accessToken;
 }

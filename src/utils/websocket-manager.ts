@@ -47,6 +47,19 @@ interface WebSocketEventMap {
   message_reaction: (data: WebSocketMessage) => void;
   message_viewed: (data: WebSocketMessage) => void;
   connection_established: (data: WebSocketMessage) => void;
+  connection_open: (data: WebSocketMessage & { authenticated?: boolean }) => void;
+  login_response: (data: WebSocketMessage & {
+    access?: string;
+    refresh?: string;
+    user?: unknown;
+    error?: string;
+  }) => void;
+  signup_response: (data: WebSocketMessage & {
+    access?: string;
+    refresh?: string;
+    user?: unknown;
+    error?: string;
+  }) => void;
   chats: (data: WebSocketMessage & { chats?: unknown[] }) => void;
   general_info: (
     data: WebSocketMessage & {
@@ -279,6 +292,15 @@ class WebSocketManager {
           case 'connection_established':
             this.emit('connection_established', data);
             break;
+          case 'connection_open':
+            this.emit('connection_open', data);
+            break;
+          case 'login_response':
+            this.emit('login_response', data);
+            break;
+          case 'signup_response':
+            this.emit('signup_response', data);
+            break;
           case 'pong':
             break;
           case 'error':
@@ -435,27 +457,167 @@ class WebSocketManager {
   }
 
   /**
-   * Returns a promise that resolves when the connection is established.
-   * If already connected, resolves immediately. Otherwise calls connect() and waits for connection_established.
+   * Returns a promise that resolves when the connection is established (authenticated or anonymous).
+   * If already connected, resolves immediately. Otherwise calls connect() and waits for connection_established or connection_open.
+   * Rejects immediately if the connection is closed (e.g. 4001 Unauthorized when logged out).
    */
   public waitForConnection(timeoutMs = 15000): Promise<void> {
     if (this.socket?.readyState === WebSocket.OPEN) {
       return Promise.resolve();
     }
     return new Promise((resolve, reject) => {
-      const timeoutId = window.setTimeout(() => {
+      const cleanup = () => {
+        window.clearTimeout(timeoutId);
         this.off('connection_established', onEstablished);
+        this.off('connection_open', onOpen);
+        this.off('disconnected', onDisconnected);
+      };
+
+      const timeoutId = window.setTimeout(() => {
+        cleanup();
         reject(new Error('Connection timeout'));
       }, timeoutMs);
 
       const onEstablished = () => {
-        window.clearTimeout(timeoutId);
-        this.off('connection_established', onEstablished);
+        cleanup();
         resolve();
       };
 
+      const onOpen = () => {
+        cleanup();
+        resolve();
+      };
+
+      const onDisconnected = (data: { code: number; reason: string }) => {
+        cleanup();
+        reject(new Error(`Connection closed: ${data.code} ${data.reason}`));
+      };
+
       this.on('connection_established', onEstablished);
+      this.on('connection_open', onOpen);
+      this.on('disconnected', onDisconnected);
       this.connect();
+    });
+  }
+
+  public async requestLogin(
+    username: string,
+    password: string,
+  ): Promise<{ access: string; refresh: string; user: unknown }> {
+    await this.waitForConnection();
+    return new Promise((resolve, reject) => {
+      const timeoutId = window.setTimeout(() => {
+        this.off('login_response', handleResponse);
+        this.off('message', handleError);
+        reject(new Error('Login timeout'));
+      }, 15000);
+
+      const handleResponse = (
+        data: WebSocketMessage & {
+          access?: string;
+          refresh?: string;
+          user?: unknown;
+          error?: string;
+        },
+      ) => {
+        if (data.type !== 'login_response') return;
+        window.clearTimeout(timeoutId);
+        this.off('login_response', handleResponse);
+        this.off('message', handleError);
+        if (data.error) {
+          reject(new Error(data.error));
+          return;
+        }
+        if (data.access && data.user) {
+          resolve({
+            access: data.access,
+            refresh: data.refresh ?? '',
+            user: data.user,
+          });
+        } else {
+          reject(new Error('Invalid login response'));
+        }
+      };
+
+      const handleError = (msg: WebSocketMessage) => {
+        if (msg.type !== 'error') return;
+        window.clearTimeout(timeoutId);
+        this.off('login_response', handleResponse);
+        this.off('message', handleError);
+        reject(new Error((msg as { message?: string }).message ?? 'Login failed'));
+      };
+
+      this.on('login_response', handleResponse);
+      this.on('message', handleError);
+      const sent = this.sendMessage({
+        type: 'login',
+        username,
+        password,
+      } as WebSocketMessage);
+      if (!sent) {
+        window.clearTimeout(timeoutId);
+        this.off('login_response', handleResponse);
+        this.off('message', handleError);
+        reject(new Error('WebSocket not connected'));
+      }
+    });
+  }
+
+  public requestSignup(
+    username: string,
+    email: string,
+    password: string,
+  ): Promise<{ access: string; refresh: string; user: unknown }> {
+    return new Promise((resolve, reject) => {
+      const timeoutId = window.setTimeout(() => {
+        this.off('signup_response', handleResponse);
+        this.off('message', handleError);
+        reject(new Error('Signup timeout'));
+      }, 15000);
+
+      const handleResponse = (
+        data: WebSocketMessage & {
+          access?: string;
+          refresh?: string;
+          user?: unknown;
+          error?: string;
+        },
+      ) => {
+        if (data.type !== 'signup_response') return;
+        window.clearTimeout(timeoutId);
+        this.off('signup_response', handleResponse);
+        this.off('message', handleError);
+        if (data.error) {
+          reject(new Error(data.error));
+          return;
+        }
+        if (data.access && data.refresh && data.user) {
+          resolve({
+            access: data.access,
+            refresh: data.refresh,
+            user: data.user,
+          });
+        } else {
+          reject(new Error('Invalid signup response'));
+        }
+      };
+
+      const handleError = (msg: WebSocketMessage) => {
+        if (msg.type !== 'error') return;
+        window.clearTimeout(timeoutId);
+        this.off('signup_response', handleResponse);
+        this.off('message', handleError);
+        reject(new Error((msg as { message?: string }).message ?? 'Signup failed'));
+      };
+
+      this.on('signup_response', handleResponse);
+      this.on('message', handleError);
+      this.sendMessage({
+        type: 'signup',
+        username,
+        email,
+        password,
+      } as WebSocketMessage);
     });
   }
 }

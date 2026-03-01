@@ -18,6 +18,11 @@ export interface UserContextType extends UserState {
   refreshUser: () => Promise<void>;
   setUser: (user: User | null) => void;
   loginWithPassword: (username: string, password: string) => Promise<void>;
+  signupWithCredentials: (
+    username: string,
+    email: string,
+    password: string,
+  ) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
   loginWithPasskey: (passkeyData: unknown) => Promise<void>;
   logout: () => Promise<void>;

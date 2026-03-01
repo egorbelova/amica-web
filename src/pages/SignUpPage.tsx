@@ -9,7 +9,7 @@ interface SignUpPageProps {
 }
 
 const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
-  const { refreshUser } = useUser();
+  const { signupWithCredentials } = useUser();
   const usernameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -49,27 +49,14 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
       setError(null);
 
       try {
-        const res = await fetch('/api/signup/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(form),
-        });
-
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || 'Signup failed');
-        }
-
-        await refreshUser();
+        await signupWithCredentials(form.username, form.email, form.password);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
       }
     },
-    [form, refreshUser],
+    [form, signupWithCredentials],
   );
 
   const handleKeyPress = useCallback(

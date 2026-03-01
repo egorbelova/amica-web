@@ -74,8 +74,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
       <form className={styles['login-form']} onSubmit={handleSubmit} noValidate>
         <h4 className={styles['login-title']}>Sign in</h4>
         <fieldset className={styles['form']}>
-          {/* <legend className={styles['form-label']}>Username</legend> */}
-          {/* <legend className={styles['form-label-placeholder']}>Username</legend> */}
+          {/* <legend className={styles['form-label']}>Email</legend> */}
           <input
             ref={usernameRef}
             name='username'
@@ -83,9 +82,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             disabled={loading}
-            autoComplete='username'
+            autoComplete='email'
             required
-            placeholder='Username'
+            placeholder='Email'
           />
         </fieldset>
         <fieldset className={styles['form']}>
