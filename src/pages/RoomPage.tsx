@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import LeftSideBar from '../components/LeftSideBar/LeftSideBar';
 import MainChatWindow from '../components/MainChatWindow/MainChatWindow';
-import { websocketManager } from '../utils/websocket-manager';
 import './room.scss';
 import styles from './RoomPage.module.scss';
 import { useSettings } from '@/contexts/settings/context';
@@ -9,12 +8,6 @@ import { useSettings } from '@/contexts/settings/context';
 // import LiquidBackground from '../components/LiquidBackground/LiquidBackground';
 
 const RoomPage: React.FC = () => {
-  useEffect(() => {
-    websocketManager.connect();
-    return () => {
-      websocketManager.disconnect();
-    };
-  }, []);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const { settings } = useSettings();

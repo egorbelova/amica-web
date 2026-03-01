@@ -66,6 +66,7 @@ interface WebSocketEventMap {
 class WebSocketManager {
   private static instance: WebSocketManager;
   private socket: WebSocket | null = null;
+  private connectPromise: Promise<void> | null = null;
   private reconnectAttempts = 0;
   private readonly maxReconnectAttempts = 5;
   private readonly reconnectDelay = 1000;
@@ -151,79 +152,91 @@ class WebSocketManager {
     ) {
       return;
     }
-    this.cleanupPing();
-    this.cleanupReconnect();
-    this.isManualDisconnect = false;
-
-    if (this.socket) {
-      this.socket.close();
-      this.socket = null;
+    if (this.connectPromise) {
+      return this.connectPromise;
     }
 
-    let token: string;
-    try {
-      token = await getAccessTokenOrThrow();
-    } catch (err) {
-      console.error('Cannot get valid token for WS:', err);
-      return;
-    }
+    this.connectPromise = (async () => {
+      try {
+        this.cleanupPing();
+        this.cleanupReconnect();
+        this.isManualDisconnect = false;
 
-    const ws_protocol =
-      window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const ws_host = window.location.hostname;
-    let ws_port: number | null = null;
+        if (this.socket) {
+          this.socket.close();
+          this.socket = null;
+        }
 
-    if (
-      ws_host === 'localhost' ||
-      ws_host === '127.0.0.1' ||
-      ws_host === '192.168.1.68'
-    ) {
-      ws_port = 8000;
-    }
+        let token: string;
+        try {
+          token = await getAccessTokenOrThrow();
+        } catch (err) {
+          console.error('Cannot get valid token for WS:', err);
+          return;
+        }
 
-    let url: string;
-    if (ws_port) {
-      url = `${ws_protocol}${ws_host}:${ws_port}/ws/socket-server/?token=${token}`;
-    } else {
-      url = `${ws_protocol}${ws_host}/ws/socket-server/?token=${token}`;
-      // url = `${ws_protocol}${window.location.host}/ws/socket-server/`;
-    }
+        const ws_protocol =
+          window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const ws_host = window.location.hostname;
+        let ws_port: number | null = null;
 
-    try {
-      this.socket = new WebSocket(url);
+        if (
+          ws_host === 'localhost' ||
+          ws_host === '127.0.0.1' ||
+          ws_host === '192.168.1.68'
+        ) {
+          ws_port = 8000;
+        }
 
-      this.socket.onopen = async () => {
-        this.reconnectAttempts = 0;
-        this.emit('connected', null);
+        let url: string;
+        if (ws_port) {
+          url = `${ws_protocol}${ws_host}:${ws_port}/ws/socket-server/?token=${token}`;
+        } else {
+          url = `${ws_protocol}${ws_host}/ws/socket-server/?token=${token}`;
+          // url = `${ws_protocol}${window.location.host}/ws/socket-server/`;
+        }
 
         try {
-          const token = await getAccessTokenOrThrow();
-          this.sendMessage({ type: 'auth', token });
-        } catch {
-          this.disconnect();
+          this.socket = new WebSocket(url);
+
+          this.socket.onopen = async () => {
+            this.reconnectAttempts = 0;
+            this.emit('connected', null);
+
+            try {
+              const token = await getAccessTokenOrThrow();
+              this.sendMessage({ type: 'auth', token });
+            } catch {
+              this.disconnect();
+            }
+          };
+
+          this.socket.onmessage = (e: MessageEvent) => this.handleMessage(e);
+
+          this.socket.onclose = (e: CloseEvent) => {
+            console.log(`WebSocket closed. Code: ${e.code}, Reason: ${e.reason}`);
+            this.emit('disconnected', { code: e.code, reason: e.reason });
+
+            if (this.isManualDisconnect) return;
+            if (e.code === 1000 || e.code === 1001) return;
+
+            this.attemptReconnection();
+          };
+
+          this.socket.onerror = (err: Event) => {
+            console.error('WebSocket error:', err);
+            this.emit('error', err);
+          };
+        } catch (err) {
+          console.error('Failed to create WebSocket connection:', err);
+          this.emit('error', err);
         }
-      };
+      } finally {
+        this.connectPromise = null;
+      }
+    })();
 
-      this.socket.onmessage = (e: MessageEvent) => this.handleMessage(e);
-
-      this.socket.onclose = (e: CloseEvent) => {
-        console.log(`WebSocket closed. Code: ${e.code}, Reason: ${e.reason}`);
-        this.emit('disconnected', { code: e.code, reason: e.reason });
-
-        if (this.isManualDisconnect) return;
-        if (e.code === 1000 || e.code === 1001) return;
-
-        this.attemptReconnection();
-      };
-
-      this.socket.onerror = (err: Event) => {
-        console.error('WebSocket error:', err);
-        this.emit('error', err);
-      };
-    } catch (err) {
-      console.error('Failed to create WebSocket connection:', err);
-      this.emit('error', err);
-    }
+    return this.connectPromise;
   }
 
   private cleanupPing() {
@@ -329,7 +342,9 @@ class WebSocketManager {
       this.socket.send(JSON.stringify(message));
       return true;
     }
-    console.error('WebSocket not open', this.socket?.readyState);
+    if (this.socket?.readyState !== WebSocket.CONNECTING) {
+      console.error('WebSocket not open', this.socket?.readyState);
+    }
     return false;
   }
 
@@ -396,6 +411,7 @@ class WebSocketManager {
 
   public disconnect() {
     this.isManualDisconnect = true;
+    this.connectPromise = null;
     this.reconnectAttempts = 0;
     this.cleanupPing();
     this.cleanupReconnect();
