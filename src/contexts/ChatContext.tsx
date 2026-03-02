@@ -3,7 +3,7 @@ import React, {
   useState,
   useEffect,
   useMemo,
-  useTransition,
+  useRef,
 } from 'react';
 import type { ReactNode } from 'react';
 import type { Message, Chat, User } from '@/types';
@@ -14,8 +14,16 @@ import { useSettingsActions } from './settings/context';
 import {
   ChatMetaContext,
   ChatMessagesContext,
+  SelectedChatContext,
+  MessagesDataContext,
+  MessagesActionsContext,
+  EditingContext,
   type ChatMetaContextType,
   type ChatMessagesContextType,
+  type SelectedChatContextType,
+  type MessagesDataContextType,
+  type MessagesActionsContextType,
+  type EditingContextType,
 } from './ChatContextCore';
 import { useMessages } from './useMessages';
 
@@ -26,6 +34,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const initialFetchRef = useRef(true);
+  const selectedChatIdRef = useRef(selectedChatId);
+  selectedChatIdRef.current = selectedChatId;
   const { setActiveProfileTab } = useSettingsActions();
 
   const {
@@ -74,6 +85,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           );
         }
         updateMessages(data.messages || [], chatId);
+        setSelectedChatId(chatId);
       };
 
       if (websocketManager.isConnected()) {
@@ -83,7 +95,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           apiFetch(`/api/get_chat/${chatId}/`)
             .then((res) => (res.ok ? res.json() : Promise.reject(res)))
             .then(applyChatData)
-            .catch(() => updateMessages([], chatId));
+            .catch(() => {
+              updateMessages([], chatId);
+              setSelectedChatId(chatId);
+            });
         }, 10000);
 
         const handleChat = (
@@ -109,7 +124,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           apiFetch(`/api/get_chat/${chatId}/`)
             .then((res) => (res.ok ? res.json() : Promise.reject(res)))
             .then(applyChatData)
-            .catch(() => updateMessages([], chatId));
+            .catch(() => {
+              updateMessages([], chatId);
+              setSelectedChatId(chatId);
+            });
         };
 
         websocketManager.on('chat', handleChat);
@@ -126,6 +144,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       } catch (err) {
         console.error(err);
         updateMessages([], chatId);
+        setSelectedChatId(chatId);
       }
     },
     [updateMessages],
@@ -249,7 +268,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 
   const fetchChats = useCallback(async () => {
     try {
-      setLoading(true);
+      const isInitialFetch = initialFetchRef.current;
+      if (isInitialFetch) initialFetchRef.current = false;
+      if (!isInitialFetch) {
+        setLoading(true);
+      }
       setError(null);
 
       if (!websocketManager.isConnected()) {
@@ -333,22 +356,16 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     [chats, selectChat],
   );
 
-  const [, startTransition] = useTransition();
-
   const handleChatClick = useCallback(
     (chatId: number) => {
-      if (chatId === selectedChatId) return;
-      startTransition(() => {
-        setSelectedChatId(chatId);
-        fetchChat(chatId);
-      });
+      if (selectedChatIdRef.current === chatId) return;
+      fetchChat(chatId);
     },
-    [selectedChatId, fetchChat],
+    [fetchChat],
   );
 
   const valueMeta: ChatMetaContextType = useMemo(
     () => ({
-      selectedChat,
       chats,
       loading,
       error,
@@ -356,7 +373,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       fetchChat,
       handleChatClick,
       handleCreateTemporaryChat,
-      setSelectedChatId,
       addContact,
       deleteContact,
       saveContact,
@@ -364,7 +380,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       setLoading,
     }),
     [
-      selectedChat,
       chats,
       loading,
       error,
@@ -372,13 +387,21 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       fetchChat,
       handleChatClick,
       handleCreateTemporaryChat,
-      setSelectedChatId,
       addContact,
       deleteContact,
       saveContact,
       setChats,
       setLoading,
     ],
+  );
+
+  const valueSelected: SelectedChatContextType = useMemo(
+    () => ({
+      selectedChat,
+      selectedChatId,
+      setSelectedChatId,
+    }),
+    [selectedChat, selectedChatId],
   );
 
   const valueMessages: ChatMessagesContextType = useMemo(
@@ -410,11 +433,55 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     ],
   );
 
+  const valueMessagesData: MessagesDataContextType = useMemo(
+    () => ({
+      messages,
+      messagesCache,
+      getCachedMessages,
+    }),
+    [messages, messagesCache, getCachedMessages],
+  );
+
+  const valueMessagesActions: MessagesActionsContextType = useMemo(
+    () => ({
+      updateMessages,
+      updateMessageInChat,
+      removeMessageFromChat,
+      updateChatLastMessage,
+      updateChatUnreadCount,
+      handleNewMessage,
+    }),
+    [
+      updateMessages,
+      updateMessageInChat,
+      removeMessageFromChat,
+      updateChatLastMessage,
+      updateChatUnreadCount,
+      handleNewMessage,
+    ],
+  );
+
+  const valueEditing: EditingContextType = useMemo(
+    () => ({
+      editingMessage,
+      setEditingMessage,
+    }),
+    [editingMessage, setEditingMessage],
+  );
+
   return (
     <ChatMetaContext.Provider value={valueMeta}>
-      <ChatMessagesContext.Provider value={valueMessages}>
-        {children}
-      </ChatMessagesContext.Provider>
+      <SelectedChatContext.Provider value={valueSelected}>
+        <MessagesDataContext.Provider value={valueMessagesData}>
+          <MessagesActionsContext.Provider value={valueMessagesActions}>
+            <EditingContext.Provider value={valueEditing}>
+              <ChatMessagesContext.Provider value={valueMessages}>
+                {children}
+              </ChatMessagesContext.Provider>
+            </EditingContext.Provider>
+          </MessagesActionsContext.Provider>
+        </MessagesDataContext.Provider>
+      </SelectedChatContext.Provider>
     </ChatMetaContext.Provider>
   );
 };

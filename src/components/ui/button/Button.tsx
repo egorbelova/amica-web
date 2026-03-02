@@ -34,10 +34,10 @@ const Button = memo(
       const releaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
         null,
       );
-      const prevChildrenRef = useRef<React.ReactNode>(undefined);
       const [width, setWidth] = useState(0);
       const [isPulsing, setIsPulsing] = useState(false);
       const [isBlurring, setIsBlurring] = useState(false);
+      const prevChildrenRef = useRef<React.ReactNode>(undefined);
 
       useLayoutEffect(() => {
         if (
@@ -68,7 +68,7 @@ const Button = memo(
           }
         };
 
-        updateWidth();
+        startTransition(updateWidth);
 
         const resizeObserver = new ResizeObserver(updateWidth);
         const contentSpan = button.querySelector<HTMLSpanElement>(

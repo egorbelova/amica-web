@@ -49,19 +49,25 @@ interface WebSocketEventMap {
   message_reaction: (data: WebSocketMessage) => void;
   message_viewed: (data: WebSocketMessage) => void;
   connection_established: (data: WebSocketMessage) => void;
-  connection_open: (data: WebSocketMessage & { authenticated?: boolean }) => void;
-  login_response: (data: WebSocketMessage & {
-    access?: string;
-    refresh?: string;
-    user?: unknown;
-    error?: string;
-  }) => void;
-  signup_response: (data: WebSocketMessage & {
-    access?: string;
-    refresh?: string;
-    user?: unknown;
-    error?: string;
-  }) => void;
+  connection_open: (
+    data: WebSocketMessage & { authenticated?: boolean },
+  ) => void;
+  login_response: (
+    data: WebSocketMessage & {
+      access?: string;
+      refresh?: string;
+      user?: unknown;
+      error?: string;
+    },
+  ) => void;
+  signup_response: (
+    data: WebSocketMessage & {
+      access?: string;
+      refresh?: string;
+      user?: unknown;
+      error?: string;
+    },
+  ) => void;
   chats: (data: WebSocketMessage & { chats?: unknown[] }) => void;
   general_info: (
     data: WebSocketMessage & {
@@ -317,10 +323,28 @@ class WebSocketManager {
             if (data.data && data.chat_id !== undefined)
               this.emit('message_updated', data);
             break;
-          case 'message_deleted':
-            if (data.chat_id !== undefined && data.message_id !== undefined)
-              this.emit('message_deleted', data);
+          case 'message_deleted': {
+            const raw = data as {
+              chat_id?: number;
+              message_id?: number;
+              data?: { chat_id?: number; message_id?: number };
+            };
+            const chatId = raw.chat_id ?? raw.data?.chat_id;
+            const messageId = raw.message_id ?? raw.data?.message_id;
+            if (
+              chatId !== undefined &&
+              chatId !== null &&
+              messageId !== undefined &&
+              messageId !== null
+            ) {
+              this.emit('message_deleted', {
+                ...data,
+                chat_id: Number(chatId),
+                message_id: Number(messageId),
+              });
+            }
             break;
+          }
           case 'message_reaction':
             if (data.message_id) this.emit('message_reaction', data);
             break;
@@ -554,7 +578,9 @@ class WebSocketManager {
         window.clearTimeout(timeoutId);
         this.off('login_response', handleResponse);
         this.off('message', handleError);
-        reject(new Error((msg as { message?: string }).message ?? 'Login failed'));
+        reject(
+          new Error((msg as { message?: string }).message ?? 'Login failed'),
+        );
       };
 
       this.on('login_response', handleResponse);
@@ -617,7 +643,9 @@ class WebSocketManager {
         window.clearTimeout(timeoutId);
         this.off('signup_response', handleResponse);
         this.off('message', handleError);
-        reject(new Error((msg as { message?: string }).message ?? 'Signup failed'));
+        reject(
+          new Error((msg as { message?: string }).message ?? 'Signup failed'),
+        );
       };
 
       this.on('signup_response', handleResponse);

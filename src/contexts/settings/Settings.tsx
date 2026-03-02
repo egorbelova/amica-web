@@ -19,10 +19,15 @@ import {
   type WebSocketMessage,
 } from '@/utils/websocket-manager';
 import { apiUpload, apiFetch } from '@/utils/apiFetch';
-import { SettingsStateContext, SettingsActionsContext } from './context';
+import {
+  SettingsStateContext,
+  SettingsActionsContext,
+  BlurContext,
+} from './context';
 
 const STORAGE_KEY = 'app-settings';
 const SAVE_DEBOUNCE_MS = 400;
+const BLUR_SAVE_DEBOUNCE_MS = 300;
 
 type StoredSettings = Partial<
   Settings & {
@@ -120,20 +125,44 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!window.visualViewport) return;
 
+    let rafId: number | null = null;
+    let lastHeight = -1;
+
     const handleKeyboardHeight = () => {
-      const { height, offsetTop } = window.visualViewport;
-      const keyboard = window.innerHeight - height - offsetTop;
-      const safeHeight = keyboard > 0 ? keyboard : 0;
-      setKeyboardHeight(safeHeight);
-      document.documentElement.style.setProperty(
-        '--keyboard-height',
-        `${safeHeight}px`,
-      );
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const { height, offsetTop } = window.visualViewport;
+        const keyboard = window.innerHeight - height - offsetTop;
+        const safeHeight = keyboard > 0 ? keyboard : 0;
+        document.documentElement.style.setProperty(
+          '--keyboard-height',
+          `${safeHeight}px`,
+        );
+        if (safeHeight !== lastHeight) {
+          lastHeight = safeHeight;
+          setKeyboardHeight(safeHeight);
+        }
+      });
     };
 
+    const initialHeight =
+      window.innerHeight -
+      window.visualViewport.height -
+      window.visualViewport.offsetTop;
+    const initialSafe = initialHeight > 0 ? initialHeight : 0;
+    lastHeight = initialSafe;
+    setKeyboardHeight(initialSafe);
+    document.documentElement.style.setProperty(
+      '--keyboard-height',
+      `${initialSafe}px`,
+    );
+
     window.visualViewport.addEventListener('resize', handleKeyboardHeight);
-    return () =>
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
       window.visualViewport.removeEventListener('resize', handleKeyboardHeight);
+    };
   }, []);
 
   useEffect(() => {
@@ -228,6 +257,24 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [activeProfileTab, setActiveProfileTab] = useState<SubTab>(null);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const blurPersistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const [blur, setBlurState] = useState(0);
+
+  useEffect(() => {
+    setBlurState(settings.activeWallpaper?.blur ?? 0);
+  }, [settings.activeWallpaper?.id, settings.activeWallpaper?.blur]);
+
+  useEffect(() => {
+    return () => {
+      if (blurPersistTimeoutRef.current) {
+        clearTimeout(blurPersistTimeoutRef.current);
+        blurPersistTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
@@ -269,16 +316,22 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   );
 
   const setBlur = useCallback((value: number) => {
-    setSettings((prev: Settings) => {
-      if (prev.activeWallpaper == null) return prev;
-      return {
-        ...prev,
-        activeWallpaper: {
-          ...prev.activeWallpaper,
-          blur: value,
-        },
-      } as Settings;
-    });
+    setBlurState(value);
+    if (blurPersistTimeoutRef.current)
+      clearTimeout(blurPersistTimeoutRef.current);
+    blurPersistTimeoutRef.current = setTimeout(() => {
+      blurPersistTimeoutRef.current = null;
+      setSettings((prev: Settings) => {
+        if (prev.activeWallpaper == null) return prev;
+        return {
+          ...prev,
+          activeWallpaper: {
+            ...prev.activeWallpaper,
+            blur: value,
+          },
+        } as Settings;
+      });
+    }, BLUR_SAVE_DEBOUNCE_MS);
   }, []);
 
   const setActiveWallpaper = useCallback(
@@ -476,10 +529,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     ],
   );
 
+  const blurValue = useMemo(() => ({ blur, setBlur }), [blur, setBlur]);
+
   return (
     <SettingsActionsContext.Provider value={actionsValue}>
       <SettingsStateContext.Provider value={stateValue}>
-        {children}
+        <BlurContext.Provider value={blurValue}>
+          {children}
+        </BlurContext.Provider>
       </SettingsStateContext.Provider>
     </SettingsActionsContext.Provider>
   );

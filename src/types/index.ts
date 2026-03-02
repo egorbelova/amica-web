@@ -30,6 +30,7 @@ export interface Message {
   files: File[];
   is_own: boolean;
   is_viewed: boolean;
+  is_deleted?: boolean;
 }
 
 export interface Chat {

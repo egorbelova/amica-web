@@ -115,15 +115,47 @@ export function useMessages({
     [],
   );
 
+  const removeMessageFromChat = useCallback(
+    (chatId: number, messageId: number) => {
+      const mid = Number(messageId);
+      if (!Number.isFinite(mid)) return;
+      setMessagesCache((prev) => {
+        const list = prev[chatId] ?? [];
+        const newList = list.filter((m) => {
+          const id = Number(m.id);
+          return Number.isFinite(id) ? id !== mid : true;
+        });
+        if (newList.length === list.length) return prev;
+        const result = { ...prev, [chatId]: newList };
+        setChats((prevChats) => {
+          const targetChat = prevChats.find((c) => c.id === chatId);
+          if (!targetChat?.last_message || Number(targetChat.last_message.id) !== mid)
+            return prevChats;
+          const newLast =
+            newList.length > 0 ? newList[newList.length - 1] : null;
+          return prevChats.map((chat) =>
+            chat.id === chatId ? { ...chat, last_message: newLast } : chat,
+          );
+        });
+        return result;
+      });
+    },
+    [setChats],
+  );
+
   const handleMessageUpdated = useCallback(
     (data: WebSocketMessage) => {
       if (data.type === 'message_updated' && data.chat_id != null && data.data) {
         const roomId = data.chat_id;
         const updatedMessage = data.data as unknown as Message;
+        if (updatedMessage.is_deleted) {
+          removeMessageFromChat(roomId, updatedMessage.id);
+          return;
+        }
         updateMessageInChat(roomId, updatedMessage.id, updatedMessage);
       }
     },
-    [updateMessageInChat],
+    [updateMessageInChat, removeMessageFromChat],
   );
 
   useEffect(() => {
@@ -132,33 +164,6 @@ export function useMessages({
       websocketManager.off('message_updated', handleMessageUpdated);
     };
   }, [handleMessageUpdated]);
-
-  const removeMessageFromChat = useCallback(
-    (chatId: number, messageId: number) => {
-      const mid = Number(messageId);
-      setMessagesCache((prev) => {
-        const list = prev[chatId] ?? [];
-        const newList = list.filter((m) => Number(m.id) !== mid);
-        const result = { ...prev, [chatId]: newList };
-        return result;
-      });
-      setChats((prevChats) => {
-        const targetChat = prevChats.find((c) => c.id === chatId);
-        if (!targetChat?.last_message || targetChat.last_message.id !== mid)
-          return prevChats;
-        const list = messagesCacheRef.current[chatId] ?? [];
-        const withoutDeleted = list.filter((m) => Number(m.id) !== mid);
-        const newLast =
-          withoutDeleted.length > 0
-            ? withoutDeleted[withoutDeleted.length - 1]
-            : null;
-        return prevChats.map((chat) =>
-          chat.id === chatId ? { ...chat, last_message: newLast } : chat,
-        );
-      });
-    },
-    [setChats],
-  );
 
   const handleMessageDeleted = useCallback(
     (data: WebSocketMessage) => {

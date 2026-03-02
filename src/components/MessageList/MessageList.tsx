@@ -1,23 +1,24 @@
 import Message from '../Message/Message';
-import { useChatMeta, useChatMessages } from '@/contexts/ChatContextCore';
+import { useSelectedChat, useChatMessages } from '@/contexts/ChatContextCore';
 import { useEffect, useRef, useState, memo, useCallback, useMemo } from 'react';
 import ContextMenu from '../ContextMenu/ContextMenu';
 import styles from './MessageList.module.scss';
-import { useJump } from '@/hooks/useJump';
+import { useJumpActions } from '@/hooks/useJump';
 import { useMergedRefs } from '@/hooks/useMergedRefs';
-import { useCanCopyToClipboard } from '@/hooks/useCanCopyToClipboard';
+import { useLazyCanCopyToClipboard } from '@/hooks/useCanCopyToClipboard';
 import { useSnackbar } from '@/contexts/snackbar/SnackbarContextCore';
 import type { Message as MessageType, User } from '@/types';
 import ViewersList from './ViewersList';
 import { useMessageContextMenu } from './useMessageContextMenu';
 
 const MessageList: React.FC = () => {
-  const { selectedChat } = useChatMeta();
+  const { selectedChat } = useSelectedChat();
   const { messages, setEditingMessage, removeMessageFromChat } =
     useChatMessages();
-  const { containerRef: jumpContainerRef, setIsVisible } = useJump();
+  const { containerRef: jumpContainerRef, setIsVisible } = useJumpActions();
   const { showSnackbar } = useSnackbar();
-  const canCopyToClipboard = useCanCopyToClipboard();
+  const { canCopy: canCopyToClipboard, triggerCheck: triggerClipboardCheck } =
+    useLazyCanCopyToClipboard();
 
   const [viewersVisible, setViewersVisible] = useState(false);
   const [currentViewers, setCurrentViewers] = useState<User[]>([]);
@@ -46,6 +47,7 @@ const MessageList: React.FC = () => {
     showSnackbar,
     canCopyToClipboard,
     onShowViewers: handleShowViewers,
+    triggerClipboardCheck,
   });
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -80,14 +82,13 @@ const MessageList: React.FC = () => {
         <div className={styles['no-messages']}>No messages yet</div>
       )}
       {reversedMessages.map((message) =>
-        message.value || message.files?.length ? (
+        !message.is_deleted && (message.value || message.files?.length) ? (
           <Message
             key={message.id}
             message={message}
             onContextMenu={(e) => handleMessageContextMenu(e, message)}
             onTouchStart={(e) => handleTouchStart(e, message)}
             onTouchEnd={handleTouchEnd}
-            isLastMessage={false}
           />
         ) : null,
       )}

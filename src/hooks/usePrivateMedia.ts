@@ -1,12 +1,35 @@
-import { startTransition, useEffect, useState } from 'react';
+import { startTransition, useEffect, useRef, useState } from 'react';
 import { apiFetch } from '@/utils/apiFetch';
 
 const blobCache = new Map<string, { objectUrl: string; refCount: number }>();
+const pendingFetches = new Map<string, Promise<{ objectUrl: string }>>();
+
+function fetchPrivateMedia(url: string): Promise<{ objectUrl: string }> {
+  const existing = pendingFetches.get(url);
+  if (existing) return existing;
+
+  const promise = apiFetch(url)
+    .then((res) => res.blob())
+    .then((blob) => {
+      const objectUrl = URL.createObjectURL(blob);
+      blobCache.set(url, { objectUrl, refCount: 0 });
+      pendingFetches.delete(url);
+      return { objectUrl };
+    })
+    .catch((err) => {
+      pendingFetches.delete(url);
+      throw err;
+    });
+
+  pendingFetches.set(url, promise);
+  return promise;
+}
 
 export function usePrivateMedia(url: string | null) {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  const didIncrementRef = useRef(false);
 
   useEffect(() => {
     if (!url) return;
@@ -14,6 +37,7 @@ export function usePrivateMedia(url: string | null) {
     const cached = blobCache.get(url);
     if (cached) {
       cached.refCount++;
+      didIncrementRef.current = true;
       startTransition(() => {
         setObjectUrl(cached.objectUrl);
         setLoading(false);
@@ -21,49 +45,47 @@ export function usePrivateMedia(url: string | null) {
       });
       return () => {
         cached.refCount--;
+        didIncrementRef.current = false;
       };
     }
 
-    const controller = new AbortController();
     let cancelled = false;
+    didIncrementRef.current = false;
 
-    Promise.resolve().then(() => {
-      if (!cancelled) {
-        setLoading(true);
-        setError(null);
-      }
+    startTransition(() => {
+      setLoading(true);
+      setError(null);
     });
 
-    let localUrl: string | null = null;
-
-    apiFetch(url, { signal: controller.signal })
-      .then((res) => res.blob())
-      .then((blob) => {
-        localUrl = URL.createObjectURL(blob);
-        if (cancelled) {
-          URL.revokeObjectURL(localUrl);
-          return;
-        }
-        blobCache.set(url, { objectUrl: localUrl, refCount: 1 });
-        setObjectUrl(localUrl);
+    fetchPrivateMedia(url)
+      .then(({ objectUrl: resultUrl }) => {
+        if (cancelled) return;
+        didIncrementRef.current = true;
+        const entry = blobCache.get(url);
+        if (entry) entry.refCount++;
+        startTransition(() => {
+          setObjectUrl(resultUrl);
+          setLoading(false);
+        });
       })
       .catch((err) => {
         if (err.name !== 'AbortError' && !cancelled) {
           setError(err);
         }
-      })
-      .finally(() => {
         if (!cancelled) setLoading(false);
       });
 
     return () => {
       cancelled = true;
-      controller.abort();
-      const entry = blobCache.get(url);
-      if (entry) {
-        entry.refCount--;
-      } else if (localUrl) {
-        URL.revokeObjectURL(localUrl);
+      if (didIncrementRef.current) {
+        const entry = blobCache.get(url);
+        if (entry) {
+          entry.refCount--;
+          if (entry.refCount <= 0) {
+            URL.revokeObjectURL(entry.objectUrl);
+            blobCache.delete(url);
+          }
+        }
       }
     };
   }, [url]);

@@ -19,6 +19,7 @@ interface ChooseListProps {
 
 const LeftSideBar: React.FC<ChooseListProps> = () => {
   const { activeProfileTab } = useSettings();
+
   return (
     <div className='choose_list'>
       <TabsProvider>

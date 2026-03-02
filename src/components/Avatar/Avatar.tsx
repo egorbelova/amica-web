@@ -1,8 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { stringToColor, pSBC } from '../../utils/index';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+  memo,
+} from 'react';
+import { stringToColor, pSBC } from '@/utils/index';
 import styles from './Avatar.module.scss';
 import type { DisplayMedia, MediaLayer, File } from '@/types';
-// import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import { apiFetch } from '@/utils/apiFetch';
 
 export interface AvatarProps {
@@ -18,70 +24,86 @@ interface MediaLayerWithUrl extends MediaLayer {
   ready?: boolean;
 }
 
-const Avatar: React.FC<AvatarProps> = ({
+const FADE_DURATION = 1000;
+
+function getInitials(name: string): string {
+  if (!name) return '';
+  const words = name.trim().split(/\s+/);
+  if (words.length === 0) return '';
+  if (words.length === 1) return words[0].charAt(0).toUpperCase();
+  return (
+    words[0].charAt(0).toUpperCase() +
+    words[words.length - 1].charAt(0).toUpperCase()
+  );
+}
+
+async function fetchPrivateMedia(url: string): Promise<string> {
+  const res = await apiFetch(url);
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
+}
+
+function getProtectedUrl(
+  displayMedia: DisplayMedia | File,
+  size?: 'small' | 'medium',
+): string {
+  if (displayMedia && 'type' in displayMedia) {
+    const dm = displayMedia as DisplayMedia;
+    return dm.type === 'photo'
+      ? size === 'medium' && dm.medium
+        ? dm.medium!
+        : dm.small || ''
+      : (dm.url ?? '');
+  }
+  const f = displayMedia as File;
+  return f?.file_url || f?.thumbnail_small_url || '';
+}
+
+const Avatar = memo(function Avatar({
   displayName,
   displayMedia,
   className = '',
   size,
   onClick,
-}) => {
-  const avatarColor = stringToColor(displayName);
-  const middleColor = pSBC(-0.6, avatarColor);
-  const darkerColor = pSBC(-0.8, avatarColor);
-  const [layers, setLayers] = useState<MediaLayerWithUrl[]>([]);
-  const fadeDuration = 1000;
-
+}: AvatarProps) {
   const avatarRef = useRef<HTMLDivElement>(null);
+  const [layers, setLayers] = useState<MediaLayerWithUrl[]>([]);
   const [fontSize, setFontSize] = useState(12);
   const [currentMedia, setCurrentMedia] = useState<DisplayMedia | File | null>(
-    displayMedia || null,
+    displayMedia ?? null,
   );
+  const [url, setUrl] = useState<string | null>(null);
 
-  const getInitials = (name: string): string => {
-    if (!name) return '';
-    const words = name.trim().split(/\s+/);
+  const initials = useMemo(() => getInitials(displayName), [displayName]);
 
-    if (words.length === 0) return '';
-
-    if (words.length === 1) {
-      return words[0].charAt(0).toUpperCase();
-    } else {
-      const firstLetter = words[0].charAt(0).toUpperCase();
-      const lastLetter = words[words.length - 1].charAt(0).toUpperCase();
-      return firstLetter + lastLetter;
-    }
-  };
-
-  const initials = getInitials(displayName);
-
-  const avatarStyle = {
-    background: !displayMedia
-      ? `linear-gradient(0deg, ${darkerColor} 0%, ${middleColor} 35%, ${avatarColor} 100%)`
-      : undefined,
-  };
+  const { avatarStyle } = useMemo(() => {
+    const color = stringToColor(displayName);
+    const middle = pSBC(-0.6, color);
+    const darker = pSBC(-0.8, color);
+    return {
+      avatarStyle: !displayMedia
+        ? {
+            background: `linear-gradient(0deg, ${darker} 0%, ${middle} 35%, ${color} 100%)`,
+          }
+        : undefined,
+    };
+  }, [displayName, displayMedia]);
 
   useEffect(() => {
     const el = avatarRef.current;
     if (!el) return;
-    const updateFont = () => setFontSize(el.clientWidth * 0.45);
+    const updateFont = () => {
+      const next = Math.round(el.clientWidth * 0.45);
+      setFontSize((prev) => (prev === next ? prev : next));
+    };
     updateFont();
-    const obs = new ResizeObserver(() => updateFont());
+    const obs = new ResizeObserver(updateFont);
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
 
-  const [url, setUrl] = useState<string | null>(null);
-
-  async function fetchPrivateMedia(url: string) {
-    const res = await apiFetch(url);
-    const blob = await res.blob();
-    const objectUrl = URL.createObjectURL(blob);
-    return objectUrl;
-  }
-
   useEffect(() => {
     if (!displayMedia) return;
-
     const id = crypto.randomUUID();
     const newLayer: MediaLayerWithUrl = {
       id,
@@ -91,64 +113,28 @@ const Avatar: React.FC<AvatarProps> = ({
     const frameId = requestAnimationFrame(() => {
       setLayers((prev) => [...prev, newLayer]);
     });
-
-    async function loadUrl() {
-      let protectedUrl: string;
-      if (displayMedia && 'type' in displayMedia) {
-        const dm = displayMedia;
-        protectedUrl =
-          dm.type === 'photo'
-            ? size === 'medium' && dm.medium
-              ? dm.medium!
-              : dm.small || ''
-            : dm.url;
-      } else {
-        const f = displayMedia as File | undefined;
-        protectedUrl = f?.file_url || f?.thumbnail_small_url || '';
-      }
-
-      if (!protectedUrl) return;
-
-      const objectUrl = await fetchPrivateMedia(protectedUrl);
+    const protectedUrl = getProtectedUrl(displayMedia, size);
+    if (!protectedUrl) {
+      return () => cancelAnimationFrame(frameId);
+    }
+    fetchPrivateMedia(protectedUrl).then((objectUrl) => {
       setUrl(objectUrl);
       setLayers((prev) =>
-        prev.map((layer) =>
-          layer.id === id ? { ...layer, url: objectUrl, ready: true } : layer,
+        prev.map((l) =>
+          l.id === id ? { ...l, url: objectUrl, ready: true } : l,
         ),
       );
-    }
-
-    loadUrl();
+    });
     return () => cancelAnimationFrame(frameId);
   }, [displayMedia, size]);
 
-  const renderMedia = (media: DisplayMedia | File | null, url?: string) => {
-    if (!media || !url) return null;
-    if (
-      'type' in (media as DisplayMedia) &&
-      (media as DisplayMedia).type === 'video'
-    ) {
-      return (
-        <video
-          className={styles.avatarImage}
-          src={url}
-          muted
-          autoPlay
-          loop
-          playsInline
-          preload='metadata'
-        />
-      );
-    }
-    return (
-      <img
-        className={styles.avatarImage}
-        src={url}
-        alt={`${displayName} avatar`}
-        draggable={false}
-      />
-    );
-  };
+  const handleLayerAnimationEnd = useCallback((layer: MediaLayerWithUrl) => {
+    setCurrentMedia(layer.media);
+    setLayers((prev) => prev.slice(-1));
+  }, []);
+
+  const mediaUrl = url ?? undefined;
+  const showMedia = currentMedia && mediaUrl;
 
   return (
     <div
@@ -159,38 +145,103 @@ const Avatar: React.FC<AvatarProps> = ({
       onClick={onClick}
     >
       <div className={styles.avatarLayer}>
-        {renderMedia(currentMedia || null, url || undefined) || (
+        {showMedia ? (
+          'type' in currentMedia && currentMedia.type === 'video' ? (
+            <video
+              className={styles.avatarImage}
+              src={mediaUrl}
+              muted
+              autoPlay
+              loop
+              playsInline
+              preload='metadata'
+            />
+          ) : (
+            <img
+              className={styles.avatarImage}
+              src={mediaUrl}
+              alt={`${displayName} avatar`}
+              draggable={false}
+            />
+          )
+        ) : (
           <span className={styles.avatarInitials} style={{ fontSize }}>
             {initials}
           </span>
         )}
       </div>
 
-      {layers.map(
-        (layer) =>
-          layer.ready && (
-            <div
-              key={layer.id}
-              className={styles.avatarLayer}
-              style={{
-                opacity: 0,
-                animation: `fadeIn ${fadeDuration}ms ease forwards`,
-              }}
-              onAnimationEnd={() => {
-                setCurrentMedia(layer.media);
-                setLayers((prev) => prev.slice(prev.length - 1));
-              }}
-            >
-              {renderMedia(layer.media, layer.url) || (
-                <span className={styles.avatarInitials} style={{ fontSize }}>
-                  {initials}
-                </span>
-              )}
-            </div>
-          ),
+      {layers.map((layer) =>
+        layer.ready ? (
+          <AvatarLayer
+            key={layer.id}
+            layer={layer}
+            displayName={displayName}
+            fontSize={fontSize}
+            initials={initials}
+            onAnimationEnd={() => handleLayerAnimationEnd(layer)}
+          />
+        ) : null,
       )}
     </div>
   );
-};
+});
+
+const AvatarLayer = memo(function AvatarLayer({
+  layer,
+  displayName,
+  fontSize,
+  initials,
+  onAnimationEnd,
+}: {
+  layer: MediaLayerWithUrl;
+  displayName: string;
+  fontSize: number;
+  initials: string;
+  onAnimationEnd: () => void;
+}) {
+  const media = layer.media;
+  const mediaUrl = layer.url;
+  const isVideo =
+    media &&
+    'type' in (media as DisplayMedia) &&
+    (media as DisplayMedia).type === 'video';
+
+  return (
+    <div
+      className={styles.avatarLayer}
+      style={{
+        opacity: 0,
+        animation: `fadeIn ${FADE_DURATION}ms ease forwards`,
+      }}
+      onAnimationEnd={onAnimationEnd}
+    >
+      {mediaUrl ? (
+        isVideo ? (
+          <video
+            className={styles.avatarImage}
+            src={mediaUrl}
+            muted
+            autoPlay
+            loop
+            playsInline
+            preload='metadata'
+          />
+        ) : (
+          <img
+            className={styles.avatarImage}
+            src={mediaUrl}
+            alt={`${displayName} avatar`}
+            draggable={false}
+          />
+        )
+      ) : (
+        <span className={styles.avatarInitials} style={{ fontSize }}>
+          {initials}
+        </span>
+      )}
+    </div>
+  );
+});
 
 export default Avatar;

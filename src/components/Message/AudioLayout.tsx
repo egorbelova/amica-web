@@ -9,7 +9,7 @@ import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import styles from './SmartMediaLayout.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 import { useAudio } from '@/contexts/audioContext';
-import { useChatMeta, useChatMessages } from '@/contexts/ChatContextCore';
+import { useSelectedChat, useChatMessages } from '@/contexts/ChatContextCore';
 
 const SPEEDS = [0.5, 1, 1.5, 2];
 
@@ -57,7 +57,7 @@ export default function AudioLayout({
     currentAudioId,
     setCurrentTime,
   } = useAudio();
-  const { selectedChat } = useChatMeta();
+  const { selectedChat } = useSelectedChat();
   const { messages } = useChatMessages();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);

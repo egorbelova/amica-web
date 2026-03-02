@@ -26,7 +26,6 @@ const StrokeGradientSvg = React.memo(() => (
   </svg>
 ));
 StrokeGradientSvg.displayName = 'StrokeGradientSvg';
-
 const App: React.FC = () => {
   const { isAuthenticated, loading } = useUser();
   const [currentView, setCurrentView] = useState<AppView>('login');

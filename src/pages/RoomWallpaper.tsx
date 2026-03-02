@@ -1,14 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './RoomPage.module.scss';
-import { useSettings } from '@/contexts/settings/context';
+import { useSettings, useBlur } from '@/contexts/settings/context';
 
 const DESKTOP_BREAKPOINT = 768;
 
 const RoomWallpaper: React.FC = () => {
   const { settings } = useSettings();
+  const { blur } = useBlur();
   const activeWallpaper = settings.activeWallpaper;
   const [isDesktopWidth, setIsDesktopWidth] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth > DESKTOP_BREAKPOINT,
+    () =>
+      typeof window !== 'undefined' && window.innerWidth > DESKTOP_BREAKPOINT,
   );
   const lastIsDesktopRef = useRef(isDesktopWidth);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -87,7 +89,7 @@ const RoomWallpaper: React.FC = () => {
             >
               <img
                 src={activeWallpaper.url}
-                alt="Wallpaper"
+                alt='Wallpaper'
                 className={styles.wallpaper}
                 style={{
                   mixBlendMode:
@@ -109,10 +111,10 @@ const RoomWallpaper: React.FC = () => {
           >
             <img
               src={activeWallpaper.url}
-              alt="Wallpaper"
+              alt='Wallpaper'
               className={styles.wallpaper}
               style={{
-                filter: `blur(${activeWallpaper.blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
+                filter: `blur(${blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
                 mixBlendMode:
                   settings.activeWallpaperEditMode === 'colour-wash'
                     ? 'overlay'
@@ -139,7 +141,7 @@ const RoomWallpaper: React.FC = () => {
                 src={activeWallpaper.url + '#t=0.001'}
                 playsInline
                 muted
-                preload="metadata"
+                preload='metadata'
                 className={styles.wallpaper}
                 style={{
                   mixBlendMode:
@@ -165,10 +167,10 @@ const RoomWallpaper: React.FC = () => {
               playsInline
               muted
               loop
-              preload="metadata"
+              preload='metadata'
               className={styles.wallpaper}
               style={{
-                filter: `blur(${activeWallpaper.blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
+                filter: `blur(${blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
                 mixBlendMode:
                   settings.activeWallpaperEditMode === 'colour-wash'
                     ? 'overlay'

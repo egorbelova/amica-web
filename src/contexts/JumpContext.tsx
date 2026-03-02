@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
-import { JumpContext } from './jumpShared';
-import type { JumpContextValue } from './jumpShared';
+import { JumpContext, JumpActionsContext } from './jumpShared';
+import type { JumpContextValue, JumpActionsContextValue } from './jumpShared';
 
 export function JumpProvider({ children }: { children: ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -13,17 +13,28 @@ export function JumpProvider({ children }: { children: ReactNode }) {
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, []);
 
-  const value: JumpContextValue = useMemo(
+  const actionsValue: JumpActionsContextValue = useMemo(
     () => ({
       containerRef,
-      isVisible,
-      jumpToBottom,
       setIsVisible,
+      jumpToBottom,
     }),
-    [isVisible, jumpToBottom],
+    [jumpToBottom],
   );
 
-  return <JumpContext.Provider value={value}>{children}</JumpContext.Provider>;
+  const fullValue: JumpContextValue = useMemo(
+    () => ({
+      ...actionsValue,
+      isVisible,
+    }),
+    [actionsValue, isVisible],
+  );
+
+  return (
+    <JumpActionsContext.Provider value={actionsValue}>
+      <JumpContext.Provider value={fullValue}>{children}</JumpContext.Provider>
+    </JumpActionsContext.Provider>
+  );
 }
 
 JumpProvider.displayName = 'JumpProvider';

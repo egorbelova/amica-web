@@ -18,6 +18,8 @@ export interface UseMessageContextMenuParams {
   showSnackbar: (msg: string) => void;
   canCopyToClipboard: boolean;
   onShowViewers: (msg: MessageType) => void;
+  /** Call when menu opens so clipboard check can run lazily (avoids init re-render). */
+  triggerClipboardCheck?: () => void;
 }
 
 export interface UseMessageContextMenuResult {
@@ -42,6 +44,7 @@ export function useMessageContextMenu({
   showSnackbar,
   canCopyToClipboard,
   onShowViewers,
+  triggerClipboardCheck,
 }: UseMessageContextMenuParams): UseMessageContextMenuResult {
   const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -258,6 +261,7 @@ export function useMessageContextMenu({
   const handleMessageContextMenu = useCallback(
     (e: React.MouseEvent | React.TouchEvent, message: MessageType) => {
       e.preventDefault();
+      triggerClipboardCheck?.();
       setMenuVisible(false);
       setTimeout(() => {
         setMenuMessage(message);
@@ -269,7 +273,7 @@ export function useMessageContextMenu({
         setIsMenuHiding(false);
       }, 0);
     },
-    [],
+    [triggerClipboardCheck],
   );
 
   const handleTouchStart = useCallback(

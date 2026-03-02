@@ -3,10 +3,10 @@ import SendArea from '../SendArea/SendArea';
 import MessageList from '../MessageList/MessageList';
 import ChatHeader from '../ChatHeader/ChatHeader';
 // import BackgroundComponent from '../BackgroundComponent/BackgroundComponent';
-import { useChatMeta } from '@/contexts/ChatContextCore';
+import { useSelectedChat } from '@/contexts/ChatContextCore';
 import SideBarMedia from '../SideBarMedia/SideBarMedia';
 import styles from './MainChatWindow.module.scss';
-import { useSettings } from '@/contexts/settings/context';
+import { useSettings, useBlur } from '@/contexts/settings/context';
 import wallpaperStyles from '@/pages/RoomPage.module.scss';
 import { usePageStack } from '@/contexts/useStackHistory';
 import { ActiveProfileTab } from '@/components/Profile/ActiveProfileTab';
@@ -22,8 +22,9 @@ const MainChatWindow: React.FC = () => {
     activeProfileTab,
   } = useSettings();
   const { activeWallpaper } = settings;
+  const { blur } = useBlur();
 
-  const { selectedChat, setSelectedChatId } = useChatMeta();
+  const { selectedChat, setSelectedChatId } = useSelectedChat();
 
   const [sideBarVisible, setSideBarVisible] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -90,7 +91,7 @@ const MainChatWindow: React.FC = () => {
                   alt='Wallpaper'
                   className={wallpaperStyles.wallpaper}
                   style={{
-                    filter: `blur(${activeWallpaper.blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
+                    filter: `blur(${blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
                     mixBlendMode:
                       settings.activeWallpaperEditMode === 'colour-wash'
                         ? 'overlay'
@@ -108,7 +109,7 @@ const MainChatWindow: React.FC = () => {
                   preload='metadata'
                   className={wallpaperStyles.wallpaper}
                   style={{
-                    filter: `blur(${activeWallpaper.blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
+                    filter: `blur(${blur}px) ${settings.activeWallpaperEditMode === 'black-and-white' ? 'grayscale(100%)' : ''}`,
                     mixBlendMode:
                       settings.activeWallpaperEditMode === 'colour-wash'
                         ? 'overlay'

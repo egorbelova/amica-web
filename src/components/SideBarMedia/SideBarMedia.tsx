@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, memo } from 'react';
-import { useChatMeta, useChatMessages } from '@/contexts/ChatContextCore';
+import { useChatMeta, useSelectedChat, useChatMessages } from '@/contexts/ChatContextCore';
 import { useSnackbar } from '@/contexts/snackbar/SnackbarContextCore';
 import { formatLastSeen } from '@/utils/activityFormatter';
 import SideBarMediaHeader from './SideBarMediaHeader';
@@ -26,8 +26,8 @@ interface SideBarMediaProps {
 }
 
 const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
-  const { selectedChat, addContact, deleteContact, saveContact } =
-    useChatMeta();
+  const { addContact, deleteContact, saveContact } = useChatMeta();
+  const { selectedChat } = useSelectedChat();
   const { messages } = useChatMessages();
   const { showSnackbar } = useSnackbar();
 

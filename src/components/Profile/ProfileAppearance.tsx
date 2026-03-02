@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from '@/contexts/languageCore';
 import styles from './Profile.module.scss';
-import { useSettings } from '@/contexts/settings/context';
+import { useSettings, useBlur } from '@/contexts/settings/context';
 import Toggle from '@/components/ui/toggle/Toggle';
 import Slider from '../ui/slider/Slider';
 import type { WallpaperSetting } from '@/contexts/settings/types';
@@ -17,14 +17,13 @@ export default function ProfileAppearance() {
     settings,
     setSetting,
     setActiveWallpaper,
-    setBlur,
-    // addUserWallpaper,
     removeWallpaper,
     fetchWallpapers,
     loading,
     autoplayVideos,
     setAutoplayVideos,
   } = useSettings();
+  const { blur, setBlur } = useBlur();
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
@@ -50,13 +49,12 @@ export default function ProfileAppearance() {
       id: wall.id,
       url: wall.url,
       type: wall.type,
-      blur: settings.activeWallpaper?.blur || 0,
+      blur,
     });
   };
 
   const handleBlurChange = (value: number) => {
-    if (!settings.activeWallpaper || value === settings.activeWallpaper.blur)
-      return;
+    if (!settings.activeWallpaper || value === blur) return;
     setBlur(value);
   };
 
@@ -103,7 +101,7 @@ export default function ProfileAppearance() {
               <div className={styles.blurSlider}>
                 <Slider
                   label='Blur'
-                  value={settings.activeWallpaper.blur || 0}
+                  value={blur}
                   min={0}
                   max={50}
                   step={1}

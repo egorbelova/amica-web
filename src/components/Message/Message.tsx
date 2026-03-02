@@ -9,7 +9,6 @@ export interface MessageProps {
   onContextMenu?: (e: React.MouseEvent) => void;
   onTouchStart?: (e: React.TouchEvent<HTMLDivElement>) => void;
   onTouchEnd?: (e: React.TouchEvent<HTMLDivElement>) => void;
-  isLastMessage?: boolean;
 }
 
 const Message: React.FC<MessageProps> = ({
@@ -18,8 +17,8 @@ const Message: React.FC<MessageProps> = ({
   onTouchStart,
   onTouchEnd,
 }) => {
-  const messageRef = useRef<HTMLDivElement>(null);
-  const dimensions = useMessageDimensions(messageRef);
+  const containerRef = useRef<HTMLDivElement>(null);
+  useMessageDimensions(containerRef);
 
   const isOwn = message.is_own;
   const hasOnlyMediaFiles = useMemo(
@@ -32,17 +31,6 @@ const Message: React.FC<MessageProps> = ({
     [message.files],
   );
 
-  const containerStyle = useMemo(
-    () =>
-      dimensions.width != null
-        ? {
-            width: `${dimensions.width}px`,
-            height: `${dimensions.height}px`,
-          }
-        : undefined,
-    [dimensions.width, dimensions.height],
-  );
-
   return (
     <div
       className={`temp_full ${isOwn ? 'own-message' : 'other-message'}`}
@@ -51,11 +39,10 @@ const Message: React.FC<MessageProps> = ({
       onTouchEnd={onTouchEnd}
     >
       <div
+        ref={containerRef}
         className={`${styles.message_div} ${isOwn ? `${styles.darker} ${styles.right}` : ''}`}
-        style={containerStyle}
       >
         <MessageContent
-          ref={messageRef}
           message={message}
           isOwn={isOwn}
           hasOnlyMediaFiles={hasOnlyMediaFiles}
@@ -65,10 +52,4 @@ const Message: React.FC<MessageProps> = ({
   );
 };
 
-function areEqual(prev: MessageProps, next: MessageProps): boolean {
-  return (
-    prev.message === next.message && prev.isLastMessage === next.isLastMessage
-  );
-}
-
-export default React.memo(Message, areEqual);
+export default React.memo(Message);
