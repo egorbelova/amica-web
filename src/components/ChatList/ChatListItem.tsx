@@ -17,7 +17,7 @@ export interface ChatListItemProps {
   onChatClick: (chatId: number) => void;
 }
 
-const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
+const ChatListItem = forwardRef<HTMLDivElement, ChatListItemProps>(
   (
     {
       index,
@@ -33,9 +33,9 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
   ) => {
     const lastMessageDate =
       lastMessage && lastMessageDateFormat(lastMessage.date);
-    const container = useRef<HTMLAnchorElement>(null);
+    const container = useRef<HTMLDivElement>(null);
 
-    useImperativeHandle(ref, () => container.current as HTMLAnchorElement);
+    useImperativeHandle(ref, () => container.current as HTMLDivElement);
 
     const lastMessageText = lastMessage && lastMessage.value;
 
@@ -50,10 +50,12 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
 
     const unread_counter = unreadCountFormat(unread_count);
     const goToChat = (
-      e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      e: React.MouseEvent<HTMLDivElement, MouseEvent>,
     ): void => {
       e.preventDefault();
       e.stopPropagation();
+
+      window.history.pushState({}, '', `#${chatId}`);
 
       const ripple = document.createElement('span');
       ripple.className = styles.ripple;
@@ -104,8 +106,7 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
       : '';
 
     return (
-      <a
-        href={`#${chatId}`}
+      <div
         className={`${styles['chat-list-item']} ${
           isActive ? styles['chat-list-item--active'] : ''
         }`}
@@ -132,9 +133,9 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
                   style={{ width: '12px', height: '12px' }}
                 />
               ))}
-            <div className={styles['chat-list-item__date']}>
+            <time className={styles['chat-list-item__date']}>
               {lastMessageDate}
-            </div>
+            </time>
           </div>
           <div className={styles['chat-list-item__message-row']}>
             <div className={styles['chat-list-item__message-text']}>
@@ -159,7 +160,7 @@ const ChatListItem = forwardRef<HTMLAnchorElement, ChatListItemProps>(
             )}
           </div>
         </div>
-      </a>
+      </div>
     );
   },
 );

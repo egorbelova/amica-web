@@ -93,32 +93,32 @@ export default function ProfileAppearance() {
       )}
 
       <div className={styles.optionRow}>
-        {loading ? (
-          <div>Loading wallpapers...</div>
-        ) : (
-          <div className={styles.wallpapersContainer}>
-            {settings.activeWallpaper && (
-              <div className={styles.blurSlider}>
-                <Slider
-                  label='Blur'
-                  value={blur}
-                  min={0}
-                  max={50}
-                  step={1}
-                  onChange={handleBlurChange}
-                />
-              </div>
-            )}
-            <div className={styles.colorChangeContainer}>
-              <Button
-                key={'profile-appearance-change-color-button'}
-                onClick={() => setColorPickerOpen(!colorPickerOpen)}
-                className={styles.changeColorButton}
-              >
-                {colorPickerOpen ? 'Close Color Picker' : 'Change Color'}
-              </Button>
-              {colorPickerOpen && <ColorPicker />}
+        <div className={styles.wallpapersContainer}>
+          {settings.activeWallpaper && (
+            <div className={styles.blurSlider}>
+              <Slider
+                label='Blur'
+                value={blur}
+                min={0}
+                max={50}
+                step={1}
+                onChange={handleBlurChange}
+              />
             </div>
+          )}
+          <div className={styles.colorChangeContainer}>
+            <Button
+              key={'profile-appearance-change-color-button'}
+              onClick={() => setColorPickerOpen(!colorPickerOpen)}
+              className={styles.changeColorButton}
+            >
+              {colorPickerOpen ? 'Close Color Picker' : 'Change Color'}
+            </Button>
+            {colorPickerOpen && <ColorPicker />}
+          </div>
+          {loading ? (
+            <div>Loading wallpapers...</div>
+          ) : (
             <div className={styles.wallpaperList}>
               <div
                 className={`${styles.wallpaperItem} ${
@@ -188,8 +188,8 @@ export default function ProfileAppearance() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

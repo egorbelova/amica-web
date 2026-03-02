@@ -32,7 +32,7 @@ const MessageTime: React.FC<MessageTimeProps> = ({ date, className = '' }) => {
     }
   };
 
-  return <span className={`time-left ${className}`}>{formatTime(date)}</span>;
+  return <time className={`time-left ${className}`}>{formatTime(date)}</time>;
 };
 
 export default MessageTime;

@@ -501,18 +501,6 @@ svg {
   display: none;
 }
 
-@keyframes blink_input_opacity_to_prevent_scrolling_when_focus {
-  0% {
-    opacity: 0;
-  }
-  99% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
 .liquidGlass-wrapper {
   position: relative;
   display: flex;
@@ -587,22 +575,6 @@ svg {
   .room_div {
     padding-bottom: calc(60px);
     transition: padding-bottom 300ms cubic-bezier(0.075, 0.82, 0.165, 1) !important;
-  }
-
-  .send_div_container {
-    // padding-bottom: var(--sab);
-    transition: padding-bottom 300ms cubic-bezier(0.075, 0.82, 0.165, 1);
-  }
-  .send_div_container:focus-within {
-    padding-bottom: calc(var(--keyboard-height)) !important;
-  }
-
-  .room_wrapper:has(.send_div_container:focus-within) .room_div {
-    padding-bottom: calc(var(--keyboard-height) + 60px) !important;
-  }
-
-  .textarea:focus {
-    animation: blink_input_opacity_to_prevent_scrolling_when_focus 0.5s;
   }
 
   .main_chat_window {

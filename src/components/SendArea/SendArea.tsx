@@ -5,15 +5,15 @@ import {
   useMessagesActions,
   useEditing,
 } from '../../contexts/ChatContextCore';
-import { useUser } from '../../contexts/UserContextCore';
-import DropZone from '../DropZone/DropZone';
-import { Icon } from '../Icons/AutoIcons';
-import { useSearchContext } from '@/contexts/search/SearchContextCore';
 import styles from './SendArea.module.scss';
-import JumpToBottom from '../JumpToBottom/JumpToBottom';
-import './SendArea.css';
-import Button from '../ui/button/Button';
+import { useUser } from '../../contexts/UserContextCore';
+import { useSearchContext } from '@/contexts/search/SearchContextCore';
 import { apiUpload } from '../../utils/apiFetch';
+import { Icon } from '../Icons/AutoIcons';
+import DropZone from '../DropZone/DropZone';
+import JumpToBottom from '../JumpToBottom/JumpToBottom';
+import Button from '../ui/button/Button';
+import FilesPreview from './FilesPreview';
 
 const MessageInput: React.FC = () => {
   const [message, setMessage] = useState('');
@@ -21,7 +21,6 @@ const MessageInput: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const selfieInputRef = useRef<HTMLInputElement>(null);
   const editableRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -109,7 +108,9 @@ const MessageInput: React.FC = () => {
   const handleInput = useCallback(() => {
     const el = editableRef.current;
     if (!el) return;
-    setMessage(el.innerText || '');
+    const rawText = el.innerText || '';
+    const normalizedText = rawText.replace(/\u00A0/g, ' ').trim();
+    setMessage(normalizedText);
   }, []);
 
   useEffect(() => {
@@ -119,7 +120,6 @@ const MessageInput: React.FC = () => {
     if (editableRef.current) {
       const el = editableRef.current;
       el.innerText = text;
-      // el.style.height = '20px';
       el.focus();
 
       const range = document.createRange();
@@ -166,53 +166,12 @@ const MessageInput: React.FC = () => {
 
       try {
         if (files.length > 0) {
-          // const tempMessage = {
-          //   chat_id: roomId,
-          //   type: 'chat_message',
-          //   data: {
-          //     id: `temp-${Date.now()}`,
-          //     value: message.trim(),
-          //     date: new Date().toISOString(),
-          //     user: {
-          //       id: user.id,
-          //       username: user.username,
-          //     },
-          //     files: files.map((file, index) => ({
-          //       id: `temp-file-${index}`,
-          //       file_url: URL.createObjectURL(file),
-          //       thumbnail_medium_url: URL.createObjectURL(file),
-          //       thumbnail_small_url: URL.createObjectURL(file),
-
-          //       extension: file.name.split('.').pop(),
-          //       category: file.type.startsWith('image')
-          //         ? 'image'
-          //         : file.type.startsWith('video')
-          //           ? 'video'
-          //           : file.type.startsWith('audio')
-          //             ? 'audio'
-          //             : 'other',
-          //       original_name: file.name,
-          //       file_size: file.size,
-          //       uploaded_at: new Date().toISOString(),
-          //       duration: null,
-          //       waveform: [],
-          //       cover_url: null,
-          //     })),
-          //     is_own: true,
-          //     is_viewed: false,
-          //     viewers: [],
-          //     uploading: true,
-          //   },
-          // };
-
-          // handleNewMessage(tempMessage);
           const success = await sendFilesViaHttp(files, message.trim());
           if (success) {
             setFiles([]);
             setMessage('');
             if (editableRef.current) {
               editableRef.current.innerText = '';
-              editableRef.current.style.height = '20px';
             }
           }
         } else {
@@ -282,16 +241,6 @@ const MessageInput: React.FC = () => {
     [MAX_FILE_SIZE],
   );
 
-  const handleSelfieUpload = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files && e.target.files.length > 0) {
-        const selfieFile = e.target.files[0];
-        setFiles((prev) => [...prev, selfieFile]);
-      }
-    },
-    [],
-  );
-
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (editingMessage && e.key === 'Escape') {
@@ -350,208 +299,97 @@ const MessageInput: React.FC = () => {
     fileInputRef.current?.click();
   }, []);
 
-  const handleSelfieClick = useCallback(() => {
-    selfieInputRef.current?.click();
-  }, []);
-
   const removeFile = useCallback((index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
-  const handleFiles = (newFiles: File[]) => {
+  const handleFiles = useCallback((newFiles: File[]) => {
     setFiles((prev) => [...prev, ...newFiles]);
-  };
-
-  function formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 B';
-
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    const size = bytes / Math.pow(k, i);
-    return `${size.toFixed(1)} ${sizes[i]}`;
-  }
+  }, []);
 
   return (
     <>
       <JumpToBottom />
       <DropZone onFiles={handleFiles} />
-
-      <div className='send_div_container'>
-        {files.length > 0 && (
-          <div className={styles['files-preview']}>
-            <div className={styles['files-preview-header']}>
-              <span>Attached Files ({files.length})</span>
-              <Button
-                key={'send-area-clear-all-button'}
-                className={styles['clear-all-btn']}
-                onClick={() => setFiles([])}
-                aria-label='Clear all files'
-              >
-                Clear All
-              </Button>
-            </div>
-            <div className={styles['files-preview-list']}>
-              {files.map((file, index) => {
-                const getFileType = (file: File) => {
-                  if (file.type.startsWith('image/')) return 'image';
-                  if (file.type.startsWith('video/')) return 'video';
-                  if (file.type === 'application/pdf') return 'pdf';
-                  return 'file';
-                };
-
-                const fileType = getFileType(file);
-
-                const previewUrl =
-                  fileType === 'image' || fileType === 'video'
-                    ? URL.createObjectURL(file)
-                    : null;
-
-                return (
-                  <div key={index} className={styles['file-preview-item']}>
-                    {fileType === 'image' && (
-                      <img
-                        src={previewUrl || ''}
-                        alt={file.name}
-                        className={styles['file-preview-image']}
-                      />
-                    )}
-
-                    {fileType === 'video' && (
-                      <video
-                        src={previewUrl || ''}
-                        muted
-                        autoPlay
-                        playsInline
-                        className={styles['file-preview-image']}
-                      />
-                    )}
-                    {fileType === 'file' && (
-                      <div className={styles['file-preview-file']}>📄</div>
-                    )}
-
-                    <div className={styles['file-info']}>
-                      <span className={styles['file-name']}>{file.name}</span>
-                      <span className={styles['file-size']}>
-                        <span>{formatFileSize(file.size)}</span>
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => removeFile(index)}
-                      type='button'
-                      className={styles['remove-file-btn']}
-                    >
-                      <Icon name='Cross' />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-        <form
-          id='post-form'
-          className='send_div send_div_class'
-          encType='multipart/form-data'
-          onSubmit={handleSubmit}
-          ref={formRef}
-        >
-          <button
-            id='file_div'
-            onClick={handleFileClick}
-            type='button'
-            onKeyDown={(e) => e.key === 'Enter' && handleFileClick()}
-          >
-            <input
-              type='file'
-              multiple
-              name='file'
-              id='file'
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              style={{ display: 'none' }}
-              // accept='image/*,video/*,audio/*,.pdf,.doc,.docx'
+      <div className={styles['send_area']}>
+        <div className={styles['send_div_container']}>
+          {files.length > 0 && (
+            <FilesPreview
+              files={files}
+              onClearAll={() => setFiles([])}
+              onRemoveFile={removeFile}
             />
-            <Icon name='Attachment' className='input_attach' />
-          </button>
-
-          <div
-            className='textarea_container'
-            // onMouseDown={(e) => {
-            //   // e.preventDefault();
-            //   // editableRef.current?.focus();
-            // }}
-            // onClick={(e) => {
-            //   // e.preventDefault();
-            //   // editableRef.current?.focus();
-            // }}
+          )}
+          <form
+            className={styles['send_div']}
+            encType='multipart/form-data'
+            onSubmit={handleSubmit}
+            ref={formRef}
           >
-            {editingMessage && (
-              <div className={styles['edit-bar']}>
-                <span className={styles['edit-bar-label']}>
-                  <Icon name='Edit' className={styles['edit-bar-icon']} />{' '}
-                  Editing message
-                </span>
-                <Button
-                  key={'send-area-cancel-edit-button'}
-                  onClick={cancelEdit}
-                  aria-label='Cancel edit'
-                  className={styles['edit-bar-cancel']}
-                >
-                  <Icon name='Cross' />
-                </Button>
-              </div>
-            )}
-            <div className={styles['textarea-container']}>
-              <div
-                ref={editableRef}
-                onInput={handleInput}
-                onKeyDown={handleKeyDown}
-                onPaste={handlePaste}
-                className='textarea'
-                contentEditable
-                suppressContentEditableWarning
-                spellCheck={false}
+            <button
+              className={styles['file_div']}
+              onClick={handleFileClick}
+              type='button'
+              onKeyDown={(e) => e.key === 'Enter' && handleFileClick()}
+            >
+              <input
+                type='file'
+                multiple
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                style={{ display: 'none' }}
+                // accept='image/*,video/*,audio/*,.pdf,.doc,.docx'
               />
-              <span className='textarea_placeholder'>
-                {message ? '' : 'Message'}
-              </span>
+              <Icon name='Attachment' className={styles['input_attach']} />
+            </button>
+
+            <div className={styles['textarea_container']}>
+              {editingMessage && (
+                <div className={styles['edit-bar']}>
+                  <span className={styles['edit-bar-label']}>
+                    <Icon name='Edit' className={styles['edit-bar-icon']} />{' '}
+                    Editing message
+                  </span>
+                  <Button
+                    key={'send-area-cancel-edit-button'}
+                    onClick={cancelEdit}
+                    aria-label='Cancel edit'
+                    className={styles['edit-bar-cancel']}
+                  >
+                    <Icon name='Cross' />
+                  </Button>
+                </div>
+              )}
+              <div className={styles['textarea-container']}>
+                <div
+                  ref={editableRef}
+                  onInput={handleInput}
+                  onKeyDown={handleKeyDown}
+                  onPaste={handlePaste}
+                  className={styles['textarea']}
+                  contentEditable
+                  suppressContentEditableWarning
+                  spellCheck={false}
+                />
+                <span
+                  className={`${styles['textarea_placeholder']} ${message ? styles.hidden : ''}`}
+                >
+                  Message
+                </span>
+              </div>
             </div>
-          </div>
 
-          <div
-            id='selfie'
-            style={{ display: 'none' }}
-            onClick={handleSelfieClick}
-            role='button'
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && handleSelfieClick()}
-          >
-            <input
-              type='file'
-              id='picture'
-              name='file'
-              accept='image/*'
-              capture='environment'
-              ref={selfieInputRef}
-              onChange={handleSelfieUpload}
-              style={{ display: 'none' }}
-            />
-            <Icon name='Selfie' className='camera_svg' />
-          </div>
-
-          <button
-            type='button'
-            onPointerDown={handleSubmit}
-            className='input_submit'
-            disabled={(!message.trim() && files.length === 0) || isUploading}
-            aria-label='Send Message'
-          >
-            <Icon name='SendMobile' className='send_svg' />
-          </button>
-        </form>
+            <button
+              type='button'
+              onPointerDown={handleSubmit}
+              className={styles['input_submit']}
+              disabled={(!message.trim() && files.length === 0) || isUploading}
+              aria-label='Send Message'
+            >
+              <Icon name='SendMobile' className={styles['send_svg']} />
+            </button>
+          </form>
+        </div>
       </div>
     </>
   );

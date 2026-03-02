@@ -10,10 +10,10 @@ import type { Chat } from '@/types';
 export function useAnimatedChatOrder(sortedChats: Chat[]) {
   const [animatedChats, setAnimatedChats] = useState<Chat[]>([]);
   const prevChatIdsRef = useRef<number[]>([]);
-  const chatItemsRef = useRef<Map<number, HTMLAnchorElement>>(new Map());
+  const chatItemsRef = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const setChatItemRef = useCallback(
-    (chatId: number, element: HTMLAnchorElement | null) => {
+    (chatId: number, element: HTMLDivElement | null) => {
       if (element) chatItemsRef.current.set(chatId, element);
       else chatItemsRef.current.delete(chatId);
     },
@@ -33,15 +33,7 @@ export function useAnimatedChatOrder(sortedChats: Chat[]) {
     const prevChatIds = prevChatIdsRef.current;
 
     const setIfChanged = (next: Chat[]) => {
-      setAnimatedChats((prev) => {
-        if (
-          prev.length === next.length &&
-          prev.every((c, i) => c.id === next[i].id)
-        ) {
-          return prev;
-        }
-        return next;
-      });
+      setAnimatedChats(next);
     };
 
     if (prevChatIds.length === 0) {

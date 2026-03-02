@@ -21,7 +21,7 @@ const ChatListContent = memo(function ChatListContent({
 }: {
   displayChats: Chat[];
   selectedChatId: number | null;
-  setChatItemRef: (chatId: number, el: HTMLAnchorElement | null) => void;
+  setChatItemRef: (chatId: number, el: HTMLDivElement | null) => void;
   onChatClick: (chatId: number) => void;
 }) {
   return (
