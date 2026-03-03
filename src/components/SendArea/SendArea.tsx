@@ -1,4 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect, memo } from 'react';
+import type { Message } from '@/types';
 import { websocketManager } from '../../utils/websocket-manager';
 import {
   useSelectedChat,
@@ -25,7 +26,19 @@ const MessageInput: React.FC = () => {
   const formRef = useRef<HTMLFormElement>(null);
   /** Per-chat draft text; key = roomId */
   const draftByChatIdRef = useRef<Record<number, string>>({});
+  /** Saved edit session when user switches chat while editing; restored on return */
+  const editStateByChatIdRef = useRef<
+    Record<number, { message: Message; editText: string } | null>
+  >({});
   const prevRoomIdRef = useRef<number | undefined>(undefined);
+  const messageRef = useRef(message);
+  messageRef.current = message;
+  const editingMessageRef =
+    useRef<ReturnType<typeof useEditing>['editingMessage']>(null);
+  /** When restoring edit from another chat, pass edit text so effect doesn't overwrite */
+  const pendingRestoreEditTextRef = useRef<string | null>(null);
+  /** Chat in which we started editing; used to avoid overwriting other chats' drafts when switching while in edit mode */
+  const editingRoomIdRef = useRef<number | undefined>(undefined);
 
   const { selectedChat } = useSelectedChat();
   const { updateMessageInChat } = useMessagesActions();
@@ -33,24 +46,50 @@ const MessageInput: React.FC = () => {
   const { user } = useUser();
   const { setTerm, setResults } = useSearchContext();
 
+  editingMessageRef.current = editingMessage;
+
   const roomId = selectedChat?.id;
 
-  // Per-chat drafts: on chat switch save current to previous room, load new room's draft
+  // Per-chat drafts: on chat switch save current to previous room, load new room's draft or edit state
   useEffect(() => {
     const prevId = prevRoomIdRef.current;
     if (prevId !== undefined && prevId !== roomId) {
-      draftByChatIdRef.current[prevId] = message;
+      if (editingMessageRef.current) {
+        editStateByChatIdRef.current[prevId] = {
+          message: editingMessageRef.current,
+          editText: messageRef.current,
+        };
+      } else {
+        draftByChatIdRef.current[prevId] = messageRef.current;
+      }
       setEditingMessage(null);
     }
     prevRoomIdRef.current = roomId;
     if (roomId !== undefined) {
-      const draft = draftByChatIdRef.current[roomId] ?? '';
-      setMessage(draft);
-      if (editableRef.current) {
-        editableRef.current.innerText = draft;
+      const editState = editStateByChatIdRef.current[roomId];
+      if (editState) {
+        pendingRestoreEditTextRef.current = editState.editText;
+        setEditingMessage(editState.message);
+        editStateByChatIdRef.current[roomId] = null;
+      } else {
+        if (!editingMessageRef.current) {
+          editingRoomIdRef.current = undefined;
+        }
+        const draft = draftByChatIdRef.current[roomId] ?? '';
+        setMessage(draft);
+        if (editableRef.current) {
+          editableRef.current.innerText = draft;
+        }
       }
     }
-  }, [roomId, setEditingMessage, message]);
+  }, [roomId, setEditingMessage]);
+
+  // Clear editing room ref when edit mode is left (so next edit in any chat is "fresh")
+  useEffect(() => {
+    if (!editingMessage) {
+      editingRoomIdRef.current = undefined;
+    }
+  }, [editingMessage]);
 
   useEffect(() => {
     const handleGlobalKeydown = (e: KeyboardEvent): void => {
@@ -136,8 +175,34 @@ const MessageInput: React.FC = () => {
 
   useEffect(() => {
     if (!editingMessage || !roomId) return;
-    // Save current draft before showing message being edited so we can restore after edit
-    draftByChatIdRef.current[roomId] = message;
+    if (pendingRestoreEditTextRef.current !== null) {
+      const editText = pendingRestoreEditTextRef.current;
+      pendingRestoreEditTextRef.current = null;
+      if (roomId !== undefined) {
+        editingRoomIdRef.current = roomId;
+      }
+      setMessage(editText);
+      if (editableRef.current) {
+        editableRef.current.innerText = editText;
+        editableRef.current.focus();
+        const range = document.createRange();
+        range.selectNodeContents(editableRef.current);
+        range.collapse(false);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+      return;
+    }
+    // Save current draft only when entering edit in this chat (not when we switched to another chat while edit was active)
+    if (
+      roomId !== undefined &&
+      (editingRoomIdRef.current === undefined ||
+        editingRoomIdRef.current === roomId)
+    ) {
+      editingRoomIdRef.current = roomId;
+      draftByChatIdRef.current[roomId] = messageRef.current;
+    }
     const text = editingMessage.value ?? '';
     setMessage(text);
     if (editableRef.current) {
@@ -152,10 +217,14 @@ const MessageInput: React.FC = () => {
       selection?.removeAllRanges();
       selection?.addRange(range);
     }
-  }, [editingMessage?.id, roomId, editingMessage, message]);
+  }, [editingMessage?.id, roomId, editingMessage]);
 
   const cancelEdit = useCallback(() => {
     setEditingMessage(null);
+    editingRoomIdRef.current = undefined;
+    if (roomId !== undefined) {
+      editStateByChatIdRef.current[roomId] = null;
+    }
     const draft =
       roomId !== undefined ? (draftByChatIdRef.current[roomId] ?? '') : '';
     setMessage(draft);
@@ -163,6 +232,18 @@ const MessageInput: React.FC = () => {
       editableRef.current.innerText = draft;
     }
   }, [setEditingMessage, roomId]);
+
+  // Escape cancels edit even when input is not focused (global listener)
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || !editingMessageRef.current) return;
+      cancelEdit();
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    window.addEventListener('keydown', handleEscape, true);
+    return () => window.removeEventListener('keydown', handleEscape, true);
+  }, [cancelEdit]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -214,7 +295,6 @@ const MessageInput: React.FC = () => {
           setMessage('');
           if (editableRef.current) {
             editableRef.current.innerText = '';
-            editableRef.current.style.height = '20px';
           }
         }
 

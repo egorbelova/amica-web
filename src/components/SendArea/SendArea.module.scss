@@ -433,6 +433,7 @@
   font-size: 0.875rem;
   top: 50%;
   transform: translateY(-50%);
+  pointer-events: none;
   transition:
     opacity 0.3s,
     transform 0.3s;

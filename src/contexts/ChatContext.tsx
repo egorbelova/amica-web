@@ -76,13 +76,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     [chats, selectedChatId],
   );
 
-  const selectChat = useCallback(
-    (chatId: number | null) => {
-      setSelectedChatId(chatId);
-      setEditingMessage(null);
-    },
-    [setEditingMessage],
-  );
+  const selectChat = useCallback((chatId: number | null) => {
+    setSelectedChatId(chatId);
+    // Don't clear editingMessage here — SendArea restores or clears it when roomId changes
+  }, []);
 
   const fetchChat = useCallback(
     async (chatId: number) => {
