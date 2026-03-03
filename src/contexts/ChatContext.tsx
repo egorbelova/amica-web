@@ -11,7 +11,11 @@ import { apiFetch, apiUpload } from '@/utils/apiFetch';
 import { websocketManager } from '@/utils/websocket-manager';
 import type { WebSocketMessage } from '@/utils/websocket-manager';
 import { useSettingsActions } from './settings/context';
-import { getChatState, setChatState } from '@/utils/chatStateStorage';
+import {
+  getChatState,
+  setChatState,
+  getLastUserId,
+} from '@/utils/chatStateStorage';
 import {
   ChatMetaContext,
   ChatMessagesContext,
@@ -37,10 +41,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialMessagesCache, setInitialMessagesCache] = useState<Record<
-    number,
-    Message[]
-  > | null>(null);
   const [loadingChatId, setLoadingChatId] = useState<number | null>(null);
   const initialFetchRef = useRef(true);
   const selectedChatIdRef = useRef(selectedChatId);
@@ -61,7 +61,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   } = useMessages({
     selectedChatId,
     setChats,
-    initialMessagesCache,
   });
 
   const selectedChat = useMemo(
@@ -296,7 +295,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       setError(null);
 
       if (!websocketManager.isConnected()) {
-        setError('Not connected');
         setLoading(false);
         return;
       }
@@ -315,8 +313,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           : null;
         if (hashRoomId) {
           setSelectedChatId(hashRoomId);
+          const cached = getCachedMessages(hashRoomId);
           const chat = chatsList.find((c) => c.id === hashRoomId);
-          if (chat?.last_message) {
+          if (
+            chat?.last_message &&
+            (!cached || cached.length === 0)
+          ) {
             updateMessages([chat.last_message], hashRoomId);
           }
           fetchChat(hashRoomId);
@@ -342,7 +344,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       setError(err instanceof Error ? err.message : 'Unknown error');
       setLoading(false);
     }
-  }, [fetchChat, updateMessages]);
+  }, [fetchChat, getCachedMessages, updateMessages]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -360,8 +362,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   }, [setActiveProfileTab]);
 
   useEffect(() => {
-    if (!user?.id) return;
-    getChatState(user.id)
+    if (!user) return;
+    const userId = user.id || getLastUserId();
+    if (!userId) return;
+    getChatState(userId)
       .then((state) => {
         if (!state) return;
         if (state.chats?.length) setChats(state.chats);
@@ -372,15 +376,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
             location.hash = String(hash);
           }
         }
-        if (
-          state.messagesCache &&
-          Object.keys(state.messagesCache).length > 0
-        ) {
-          setInitialMessagesCache(state.messagesCache);
-        }
       })
       .catch(() => {});
-  }, [user?.id]);
+  }, [user]);
 
   useEffect(() => {
     if (!user?.id || chats.length === 0) return;
@@ -390,7 +388,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       setChatState(user.id, {
         chats,
         selectedChatId,
-        messagesCache,
         savedAt: '',
       }).catch(() => {});
     }, 500);
@@ -400,7 +397,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         persistTimeoutRef.current = null;
       }
     };
-  }, [user?.id, chats, selectedChatId, messagesCache]);
+  }, [user?.id, chats, selectedChatId]);
 
   const handleCreateTemporaryChat = useCallback(
     (user: User) => {
@@ -428,13 +425,14 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     (chatId: number) => {
       if (selectedChatIdRef.current === chatId) return;
       selectChat(chatId);
+      const cached = getCachedMessages(chatId);
       const chat = chats.find((c) => c.id === chatId);
-      if (chat?.last_message) {
+      if (chat?.last_message && (!cached || cached.length === 0)) {
         updateMessages([chat.last_message], chatId);
       }
       fetchChat(chatId);
     },
-    [chats, fetchChat, selectChat, updateMessages],
+    [chats, fetchChat, getCachedMessages, selectChat, updateMessages],
   );
 
   const valueMeta: ChatMetaContextType = useMemo(

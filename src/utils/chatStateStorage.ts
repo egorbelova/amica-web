@@ -1,13 +1,36 @@
-import type { Chat, Message } from '@/types';
+import type { Chat } from '@/types';
 
 const DB_NAME = 'amica-chat-state';
 const STORE_NAME = 'state';
 const DB_VERSION = 1;
+const LAST_USER_ID_KEY = 'amica-last-user-id';
+
+export function getLastUserId(): number | null {
+  try {
+    const raw = localStorage.getItem(LAST_USER_ID_KEY);
+    if (raw == null) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setLastUserId(userId: number): void {
+  try {
+    if (userId > 0) {
+      localStorage.setItem(LAST_USER_ID_KEY, String(userId));
+    } else {
+      localStorage.removeItem(LAST_USER_ID_KEY);
+    }
+  } catch {
+    localStorage.removeItem(LAST_USER_ID_KEY);
+  }
+}
 
 export interface ChatStateSnapshot {
   chats: Chat[];
   selectedChatId: number | null;
-  messagesCache: Record<number, Message[]>;
   savedAt: string;
 }
 
@@ -54,7 +77,8 @@ export async function setChatState(
     const payload = {
       userId,
       data: {
-        ...snapshot,
+        chats: snapshot.chats,
+        selectedChatId: snapshot.selectedChatId,
         savedAt: new Date().toISOString(),
       },
     };
@@ -65,6 +89,7 @@ export async function setChatState(
     };
     req.onsuccess = () => {
       db.close();
+      setLastUserId(userId);
       resolve();
     };
   });

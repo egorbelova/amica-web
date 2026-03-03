@@ -20,6 +20,52 @@ import type { WallpaperSetting } from './settings/types';
 import { UserContext, postJson } from './UserContextCore';
 import type { UserState, ApiResponse } from './UserContextCore';
 import type { File as FileType } from '@/types';
+import { setLastUserId } from '@/utils/chatStateStorage';
+
+const USER_CACHE_KEY = 'amica-user-cache';
+
+function getCachedUser(): User | null {
+  try {
+    const raw = localStorage.getItem(USER_CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as User;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedUser(user: User | null): void {
+  if (user === null) {
+    localStorage.removeItem(USER_CACHE_KEY);
+    return;
+  }
+  try {
+    localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
+  } catch {
+    localStorage.removeItem(USER_CACHE_KEY);
+  }
+}
+
+/** Placeholder so we can render the app before WS connects; replaced by fetchUser(). */
+function getPlaceholderUser(): User {
+  return {
+    id: 0,
+    email: '',
+    username: '',
+    profile: {
+      id: 0,
+      last_seen: null,
+      bio: null,
+      phone: null,
+      date_of_birth: null,
+      location: null,
+      primary_media: { id: '0', type: 'photo' },
+      media: [],
+    },
+    preferred_session_lifetime_days: 0,
+    last_seen: null,
+  };
+}
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -32,7 +78,11 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const { setActiveWallpaper } = useSettingsActions();
 
   const fetchUser = useCallback(async () => {
-    setState((prev) => ({ ...prev, loading: true, error: null }));
+    setState((prev) => ({
+      ...prev,
+      loading: prev.user?.id !== 0,
+      error: null,
+    }));
 
     const applyGeneralInfo = (data: {
       user?: User;
@@ -41,6 +91,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       error?: string;
     }) => {
       if (data.success && data.user) {
+        setCachedUser(data.user);
         setState({ user: data.user, loading: false, error: null });
         if (data.active_wallpaper) {
           setActiveWallpaper({
@@ -51,6 +102,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
           });
         }
       } else {
+        setCachedUser(null);
         setState({
           user: null,
           loading: false,
@@ -87,6 +139,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       const handleError = (msg: WebSocketMessage) => {
         if (msg.type === 'error') {
           window.clearTimeout(timeoutId);
+          setCachedUser(null);
           setState({
             user: null,
             loading: false,
@@ -107,9 +160,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   }, [setActiveWallpaper]);
 
   useEffect(() => {
-    setApiFetchUnauthorizedHandler(() =>
-      setState({ user: null, loading: false, error: null }),
-    );
+    setApiFetchUnauthorizedHandler(() => {
+      setCachedUser(null);
+      setState({ user: null, loading: false, error: null });
+    });
 
     setCustomRefreshTokenFn(async () => {
       if (getAccessToken() === null) {
@@ -138,22 +192,40 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     websocketManager.connect();
 
     (async () => {
+      const cachedUser = getCachedUser();
+      if (cachedUser) {
+        setState({ user: cachedUser, loading: false, error: null });
+        if (!websocketManager.isConnected()) {
+          websocketManager.connect();
+        } else {
+          fetchUser().catch(() => {});
+        }
+        refreshTokenIfNeeded()
+          .then(() => {})
+          .catch(() => {
+            setCachedUser(null);
+            setState({ user: null, loading: false, error: null });
+          });
+        return;
+      }
+
+      setState({ user: null, loading: false, error: null });
       try {
         await refreshTokenIfNeeded();
       } catch {
-        setState({ user: null, loading: false, error: null });
         return;
       }
-      if (!getAccessToken()) {
-        setState({ user: null, loading: false, error: null });
-        return;
-      }
+      if (!getAccessToken()) return;
       if (websocketManager.isConnected()) {
         fetchUser().catch(() => {});
         return;
       }
-      await websocketManager.waitForConnection();
-      fetchUser().catch(() => {});
+      setState({
+        user: getPlaceholderUser(),
+        loading: false,
+        error: null,
+      });
+      websocketManager.connect();
     })();
 
     const handler = (msg: WebSocketMessage) => {
@@ -296,6 +368,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     try {
       await apiJson('/api/logout/', { method: 'POST' });
     } finally {
+      setCachedUser(null);
+      setLastUserId(0);
       authLogout();
       setState({ user: null, loading: false, error: null });
     }
