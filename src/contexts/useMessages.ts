@@ -1,4 +1,10 @@
-import { useCallback, useState, useEffect, useRef } from 'react';
+import {
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+  startTransition,
+} from 'react';
 import type { Message, Chat } from '@/types';
 import type { WebSocketMessage } from '@/utils/websocket-manager';
 import { websocketManager } from '@/utils/websocket-manager';
@@ -6,6 +12,8 @@ import { websocketManager } from '@/utils/websocket-manager';
 export interface UseMessagesParams {
   selectedChatId: number | null;
   setChats: React.Dispatch<React.SetStateAction<Chat[]>>;
+  /** From IDB hydration; applied once when set */
+  initialMessagesCache?: Record<number, Message[]> | null;
 }
 
 export interface UseMessagesReturn {
@@ -27,6 +35,7 @@ export interface UseMessagesReturn {
 export function useMessages({
   selectedChatId,
   setChats,
+  initialMessagesCache,
 }: UseMessagesParams): UseMessagesReturn {
   const [messagesCache, setMessagesCache] = useState<{
     [roomId: number]: Message[];
@@ -34,10 +43,24 @@ export function useMessages({
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
 
   const messagesCacheRef = useRef(messagesCache);
+  const appliedInitialRef = useRef(false);
 
   useEffect(() => {
     messagesCacheRef.current = messagesCache;
   }, [messagesCache]);
+
+  useEffect(() => {
+    if (
+      appliedInitialRef.current ||
+      !initialMessagesCache ||
+      Object.keys(initialMessagesCache).length === 0
+    )
+      return;
+    appliedInitialRef.current = true;
+    startTransition(() => {
+      setMessagesCache(initialMessagesCache);
+    });
+  }, [initialMessagesCache]);
 
   const messages = selectedChatId ? (messagesCache[selectedChatId] ?? []) : [];
 

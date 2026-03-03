@@ -1,9 +1,11 @@
-import type { Chat } from '@/types';
+import type { Chat, Message } from '@/types';
 
 const DB_NAME = 'amica-chat-state';
 const STORE_NAME = 'state';
 const DB_VERSION = 1;
 const LAST_USER_ID_KEY = 'amica-last-user-id';
+/** Max messages per chat to store in IDB (last N); keeps size small */
+const MAX_MESSAGES_PER_CHAT = 100;
 
 export function getLastUserId(): number | null {
   try {
@@ -31,7 +33,21 @@ export function setLastUserId(userId: number): void {
 export interface ChatStateSnapshot {
   chats: Chat[];
   selectedChatId: number | null;
+  messagesCache?: Record<number, Message[]>;
   savedAt: string;
+}
+
+/** Trim cache to last N messages per chat for storage. */
+export function trimMessagesCacheForStorage(
+  cache: Record<number, Message[]>,
+  maxPerChat = MAX_MESSAGES_PER_CHAT,
+): Record<number, Message[]> {
+  return Object.fromEntries(
+    Object.entries(cache).map(([k, list]) => [
+      k,
+      list.length <= maxPerChat ? list : list.slice(-maxPerChat),
+    ]),
+  );
 }
 
 function openDB(): Promise<IDBDatabase> {
@@ -79,6 +95,9 @@ export async function setChatState(
       data: {
         chats: snapshot.chats,
         selectedChatId: snapshot.selectedChatId,
+        messagesCache: trimMessagesCacheForStorage(
+          snapshot.messagesCache ?? {},
+        ),
         savedAt: new Date().toISOString(),
       },
     };

@@ -42,6 +42,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingChatId, setLoadingChatId] = useState<number | null>(null);
+  const [initialMessagesCache, setInitialMessagesCache] = useState<Record<
+    number,
+    Message[]
+  > | null>(null);
   const initialFetchRef = useRef(true);
   const selectedChatIdRef = useRef(selectedChatId);
   const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -61,6 +65,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   } = useMessages({
     selectedChatId,
     setChats,
+    initialMessagesCache,
   });
 
   const selectedChat = useMemo(
@@ -84,7 +89,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         members?: Chat['members'];
         messages?: Message[];
       }) => {
-        setLoadingChatId(null);
+        setLoadingChatId((prev) => (prev === chatId ? null : prev));
+        if (selectedChatIdRef.current !== chatId) return;
         if (data.media) {
           setChats((prevChats) =>
             prevChats.map((chat) =>
@@ -102,19 +108,23 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         setSelectedChatId(chatId);
       };
 
-      const clearLoading = () => setLoadingChatId(null);
+      const clearLoadingForThis = () =>
+        setLoadingChatId((prev) => (prev === chatId ? null : prev));
 
       if (websocketManager.isConnected()) {
         const timeoutId = window.setTimeout(() => {
           websocketManager.off('chat', handleChat);
           websocketManager.off('message', handleError);
-          clearLoading();
+          clearLoadingForThis();
           apiFetch(`/api/get_chat/${chatId}/`)
             .then((res) => (res.ok ? res.json() : Promise.reject(res)))
             .then(applyChatData)
             .catch(() => {
-              updateMessages([], chatId);
-              setSelectedChatId(chatId);
+              setLoadingChatId((prev) => (prev === chatId ? null : prev));
+              if (selectedChatIdRef.current === chatId) {
+                updateMessages([], chatId);
+                setSelectedChatId(chatId);
+              }
             });
         }, 10000);
 
@@ -138,13 +148,16 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           window.clearTimeout(timeoutId);
           websocketManager.off('chat', handleChat);
           websocketManager.off('message', handleError);
-          clearLoading();
+          clearLoadingForThis();
           apiFetch(`/api/get_chat/${chatId}/`)
             .then((res) => (res.ok ? res.json() : Promise.reject(res)))
             .then(applyChatData)
             .catch(() => {
-              updateMessages([], chatId);
-              setSelectedChatId(chatId);
+              setLoadingChatId((prev) => (prev === chatId ? null : prev));
+              if (selectedChatIdRef.current === chatId) {
+                updateMessages([], chatId);
+                setSelectedChatId(chatId);
+              }
             });
         };
 
@@ -161,9 +174,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         applyChatData(data);
       } catch (err) {
         console.error(err);
-        clearLoading();
-        updateMessages([], chatId);
-        setSelectedChatId(chatId);
+        setLoadingChatId((prev) => (prev === chatId ? null : prev));
+        if (selectedChatIdRef.current === chatId) {
+          updateMessages([], chatId);
+          setSelectedChatId(chatId);
+        }
       }
     },
     [updateMessages],
@@ -381,9 +396,31 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           }
           fetchChat(state.selectedChatId);
         }
+        if (
+          state.messagesCache &&
+          Object.keys(state.messagesCache).length > 0
+        ) {
+          setInitialMessagesCache(state.messagesCache);
+        }
       })
       .catch(() => {});
   }, [user, fetchChat, updateMessages]);
+
+  useEffect(() => {
+    if (!user) return;
+    const onConnected = () => {
+      if (chats.length === 0) {
+        fetchChats();
+      }
+    };
+    websocketManager.on('connection_established', onConnected);
+    if (websocketManager.isConnected() && chats.length === 0) {
+      fetchChats();
+    }
+    return () => {
+      websocketManager.off('connection_established', onConnected);
+    };
+  }, [user, fetchChats, chats.length]);
 
   useEffect(() => {
     if (!user?.id || chats.length === 0) return;
@@ -393,6 +430,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       setChatState(user.id, {
         chats,
         selectedChatId,
+        messagesCache,
         savedAt: '',
       }).catch(() => {});
     }, 500);
@@ -402,7 +440,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         persistTimeoutRef.current = null;
       }
     };
-  }, [user?.id, chats, selectedChatId]);
+  }, [user?.id, chats, selectedChatId, messagesCache]);
 
   const handleCreateTemporaryChat = useCallback(
     (user: User) => {
