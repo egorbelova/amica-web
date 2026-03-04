@@ -50,6 +50,16 @@ const MessageInput: React.FC = () => {
 
   const roomId = selectedChat?.id;
 
+  const placeCaretAtEnd = useCallback((el: HTMLDivElement) => {
+    el.focus();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  }, []);
+
   // Per-chat drafts: on chat switch save current to previous room, load new room's draft or edit state
   useEffect(() => {
     const prevId = prevRoomIdRef.current;
@@ -79,10 +89,11 @@ const MessageInput: React.FC = () => {
         setMessage(draft);
         if (editableRef.current) {
           editableRef.current.innerText = draft;
+          placeCaretAtEnd(editableRef.current);
         }
       }
     }
-  }, [roomId, setEditingMessage]);
+  }, [roomId, setEditingMessage, placeCaretAtEnd]);
 
   // Clear editing room ref when edit mode is left (so next edit in any chat is "fresh")
   useEffect(() => {
@@ -184,22 +195,19 @@ const MessageInput: React.FC = () => {
       setMessage(editText);
       if (editableRef.current) {
         editableRef.current.innerText = editText;
-        editableRef.current.focus();
-        const range = document.createRange();
-        range.selectNodeContents(editableRef.current);
-        range.collapse(false);
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(range);
+        placeCaretAtEnd(editableRef.current);
       }
       return;
     }
-    // Save current draft only when entering edit in this chat (not when we switched to another chat while edit was active)
+    // Switched to another chat while edit was active: switch effect already set field to that chat's draft; don't overwrite with previous chat's edit
     if (
-      roomId !== undefined &&
-      (editingRoomIdRef.current === undefined ||
-        editingRoomIdRef.current === roomId)
+      editingRoomIdRef.current !== undefined &&
+      editingRoomIdRef.current !== roomId
     ) {
+      return;
+    }
+    // Save "new message" draft only on first entering edit (messageRef still has draft); do not overwrite with edit text on re-runs
+    if (roomId !== undefined && editingRoomIdRef.current === undefined) {
       editingRoomIdRef.current = roomId;
       draftByChatIdRef.current[roomId] = messageRef.current;
     }
@@ -208,16 +216,9 @@ const MessageInput: React.FC = () => {
     if (editableRef.current) {
       const el = editableRef.current;
       el.innerText = text;
-      el.focus();
-
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      range.collapse(false);
-      const selection = window.getSelection();
-      selection?.removeAllRanges();
-      selection?.addRange(range);
+      placeCaretAtEnd(el);
     }
-  }, [editingMessage?.id, roomId, editingMessage]);
+  }, [editingMessage?.id, roomId, editingMessage, placeCaretAtEnd]);
 
   const cancelEdit = useCallback(() => {
     setEditingMessage(null);
@@ -230,8 +231,9 @@ const MessageInput: React.FC = () => {
     setMessage(draft);
     if (editableRef.current) {
       editableRef.current.innerText = draft;
+      placeCaretAtEnd(editableRef.current);
     }
-  }, [setEditingMessage, roomId]);
+  }, [setEditingMessage, roomId, placeCaretAtEnd]);
 
   // Escape cancels edit even when input is not focused (global listener)
   useEffect(() => {

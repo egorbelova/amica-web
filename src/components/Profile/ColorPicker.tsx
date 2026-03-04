@@ -18,9 +18,10 @@ const suggestedColors = [
   '#FF3B30',
   '#FF2D55',
   '#FF375F',
-  '#FFB07C',
-  '#FF9E7B',
+  // '#FFB07C',
+  // '#FF9E7B',
   '#8E8E93',
+  '#392828',
   '#000000',
 ];
 
