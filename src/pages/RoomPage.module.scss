@@ -1,9 +1,20 @@
 .wallpaperContainer {
-  position: absolute;
+  position: fixed;
   inset: 0;
   overflow: hidden;
+  pointer-events: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.2);
+  }
 }
 
+.wallpaperMainOverlay {
+  position: fixed;
+}
 // .wallpaperOverlay {
 //   position: relative;
 //   width: 100%;
@@ -26,12 +37,14 @@
 //   }
 // }
 
-.wallpaper {
+:global(.wallpaper) {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  // scale: 1.05;
+  // opacity: 0.8;
 }
 
 .wallpaperGlow {

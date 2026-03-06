@@ -7,19 +7,24 @@ export function JumpProvider({ children }: { children: ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
+  const setContainerRef = useCallback((node: HTMLDivElement | null) => {
+    (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+  }, []);
+
   const jumpToBottom = useCallback(() => {
     const el = containerRef.current;
     if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    el.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
   const actionsValue: JumpActionsContextValue = useMemo(
     () => ({
       containerRef,
+      setContainerRef,
       setIsVisible,
       jumpToBottom,
     }),
-    [jumpToBottom],
+    [setContainerRef, jumpToBottom],
   );
 
   const fullValue: JumpContextValue = useMemo(

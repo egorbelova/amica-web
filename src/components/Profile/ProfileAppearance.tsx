@@ -91,6 +91,15 @@ export default function ProfileAppearance() {
           />
         </div>
       )}
+      {windowWidth > 768 && settings.activeWallpaper && (
+        <div className={styles.optionRow}>
+          <div>Wallpaper glow</div>
+          <Toggle
+            checked={settings.wallpaperGlowEnabled}
+            onChange={setSetting.bind(null, 'wallpaperGlowEnabled')}
+          />
+        </div>
+      )}
 
       <div className={styles.optionRow}>
         <div className={styles.wallpapersContainer}>

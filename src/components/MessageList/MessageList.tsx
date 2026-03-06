@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, memo, useCallback, useMemo } from 'react';
 import ContextMenu from '../ContextMenu/ContextMenu';
 import styles from './MessageList.module.scss';
 import { useJumpActions } from '@/hooks/useJump';
-import { useMergedRefs } from '@/hooks/useMergedRefs';
 import { useLazyCanCopyToClipboard } from '@/hooks/useCanCopyToClipboard';
 import { useSnackbar } from '@/contexts/snackbar/SnackbarContextCore';
 import type { Message as MessageType, User } from '@/types';
@@ -16,10 +15,14 @@ const MessageList: React.FC = () => {
   const {
     messages,
     messagesLoading,
+    loadingOlderMessages,
+    loadOlderMessages,
+    trimMessagesToLast,
     setEditingMessage,
     removeMessageFromChat,
   } = useChatMessages();
-  const { containerRef: jumpContainerRef, setIsVisible } = useJumpActions();
+  const { selectedChatId } = useSelectedChat();
+  const { containerRef: jumpContainerRef } = useJumpActions();
   const { showSnackbar } = useSnackbar();
   const { canCopy: canCopyToClipboard, triggerCheck: triggerClipboardCheck } =
     useLazyCanCopyToClipboard();
@@ -55,7 +58,13 @@ const MessageList: React.FC = () => {
   });
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const mergedRef = useMergedRefs([containerRef, jumpContainerRef]);
+  const loadOlderTriggeredRef = useRef(false);
+  const scrollRestoreRef = useRef<{
+    scrollHeight: number;
+    scrollTop: number;
+  } | null>(null);
+  const scrollContainerRef = jumpContainerRef;
+  const mergedRef = containerRef;
   const messagesRef = useRef(messages);
   const messagesByIdRef = useRef(new Map<string, MessageType>());
   const handlersRef = useRef({
@@ -116,46 +125,92 @@ const MessageList: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const THROTTLE_MS = 100;
-    const SCROLL_END_MS = 120;
-    let rafId: number | null = null;
-    let scrollEndTimerId: ReturnType<typeof setTimeout> | null = null;
-    let lastRun = 0;
-    let lastValue: boolean | null = null;
+    let cancelled = false;
+    let teardown: (() => void) | void;
+    // const THROTTLE_MS = 100;
+    // const SCROLL_END_MS = 120;
 
-    const runCheck = () => {
-      const visible = el.scrollTop < -50;
-      if (lastValue !== visible) {
-        lastValue = visible;
-        setIsVisible(visible);
+    const attach = (): void => {
+      const el = scrollContainerRef.current;
+      if (!el) {
+        if (!cancelled) setTimeout(attach, 30);
+        return;
       }
+
+      let rafId: number | null = null;
+
+      const onScroll = () => {
+        if (rafId !== null) return;
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+
+          if (
+            selectedChatId != null &&
+            !loadingOlderMessages &&
+            !loadOlderTriggeredRef.current
+          ) {
+            const threshold = 80;
+            const nearTop = el.scrollHeight - el.clientHeight - threshold;
+            if (el.scrollTop >= nearTop) {
+              loadOlderTriggeredRef.current = true;
+              scrollRestoreRef.current = {
+                scrollHeight: el.scrollHeight,
+                scrollTop: el.scrollTop,
+              };
+              loadOlderMessages(selectedChatId);
+            }
+          }
+          if (
+            selectedChatId != null &&
+            messages.length > 100 &&
+            el.scrollTop < 500
+          ) {
+            trimMessagesToLast(selectedChatId, 75);
+          }
+        });
+      };
+
+      el.addEventListener('scroll', onScroll, { passive: true });
+
+      teardown = () => {
+        if (rafId !== null) cancelAnimationFrame(rafId);
+        el.removeEventListener('scroll', onScroll);
+      };
     };
 
-    const onScroll = () => {
-      if (rafId !== null) return;
-      rafId = requestAnimationFrame(() => {
-        rafId = null;
-        const now = Date.now();
-        if (now - lastRun >= THROTTLE_MS) {
-          lastRun = now;
-          runCheck();
-        }
-        if (scrollEndTimerId !== null) clearTimeout(scrollEndTimerId);
-        scrollEndTimerId = setTimeout(() => {
-          scrollEndTimerId = null;
-          runCheck();
-        }, SCROLL_END_MS);
-      });
-    };
-    el.addEventListener('scroll', onScroll, { passive: true });
+    attach();
     return () => {
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      if (scrollEndTimerId !== null) clearTimeout(scrollEndTimerId);
-      el.removeEventListener('scroll', onScroll);
+      cancelled = true;
+      if (typeof teardown === 'function') teardown();
     };
-  }, [setIsVisible]);
+  }, [
+    selectedChatId,
+    loadingOlderMessages,
+    loadOlderMessages,
+    trimMessagesToLast,
+    messages.length,
+    scrollContainerRef,
+  ]);
+
+  useEffect(() => {
+    if (!loadingOlderMessages && loadOlderTriggeredRef.current) {
+      loadOlderTriggeredRef.current = false;
+    }
+  }, [loadingOlderMessages]);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    const saved = scrollRestoreRef.current;
+    if (!el || !saved || loadingOlderMessages) return;
+    scrollRestoreRef.current = null;
+    const delta = el.scrollHeight - saved.scrollHeight;
+    if (delta > 0) {
+      const raf = requestAnimationFrame(() => {
+        el.scrollTop = saved.scrollTop + delta;
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  });
 
   const reversedMessages = useMemo(() => [...messages].reverse(), [messages]);
   const reelItems = useMemo(
@@ -180,6 +235,9 @@ const MessageList: React.FC = () => {
 
       {messagesLoading && (
         <div className={styles['messages-loading']}>Loading</div>
+      )}
+      {loadingOlderMessages && (
+        <div className={styles['messages-loading']}>Loading older…</div>
       )}
       {messages.length === 0 && !messagesLoading && (
         <div className={styles['no-messages']}>No messages yet</div>

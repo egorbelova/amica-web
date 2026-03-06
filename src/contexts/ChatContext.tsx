@@ -46,6 +46,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     number,
     Message[]
   > | null>(null);
+  const [loadingOlderChatId, setLoadingOlderChatId] = useState<number | null>(
+    null,
+  );
+  const nextCursorByChatRef = useRef<Record<number, number | null>>({});
   const initialFetchRef = useRef(true);
   const selectedChatIdRef = useRef(selectedChatId);
   const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,6 +63,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     editingMessage,
     setEditingMessage,
     updateMessages,
+    prependMessages,
     updateMessageInChat,
     removeMessageFromChat,
     getCachedMessages,
@@ -76,6 +81,47 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     [chats, selectedChatId],
   );
 
+  const loadOlderMessages = useCallback(
+    async (chatId: number) => {
+      const cursor = nextCursorByChatRef.current[chatId];
+      if (cursor === null || cursor === undefined) return;
+      setLoadingOlderChatId(chatId);
+      try {
+        const res = await apiFetch(
+          `/api/get_chat/${chatId}/?cursor=${cursor}&page_size=25`,
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          messages?: Message[];
+          next_cursor?: number | null;
+          media?: Chat['media'];
+          members?: Chat['members'];
+        };
+        if (selectedChatIdRef.current !== chatId) return;
+        if (data.messages?.length) {
+          prependMessages(data.messages, chatId);
+        }
+        if (data.next_cursor !== undefined) {
+          nextCursorByChatRef.current[chatId] = data.next_cursor ?? null;
+        }
+      } finally {
+        setLoadingOlderChatId((prev) => (prev === chatId ? null : prev));
+      }
+    },
+    [prependMessages],
+  );
+
+  const trimMessagesToLast = useCallback(
+    (chatId: number, keepCount: number) => {
+      const cached = getCachedMessages(chatId);
+      if (!cached || cached.length <= keepCount) return;
+      const trimmed = cached.slice(-keepCount);
+      updateMessages(trimmed, chatId);
+      nextCursorByChatRef.current[chatId] = (trimmed[0]?.id ?? null) as number | null;
+    },
+    [getCachedMessages, updateMessages],
+  );
+
   const selectChat = useCallback((chatId: number | null) => {
     setSelectedChatId(chatId);
     // Don't clear editingMessage here — SendArea restores or clears it when roomId changes
@@ -84,11 +130,15 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const fetchChat = useCallback(
     async (chatId: number) => {
       setLoadingChatId(chatId);
-      const applyChatData = (data: {
-        media?: Chat['media'];
-        members?: Chat['members'];
-        messages?: Message[];
-      }) => {
+      const applyChatData = (
+        data: {
+          media?: Chat['media'];
+          members?: Chat['members'];
+          messages?: Message[];
+          next_cursor?: number | null;
+        },
+        isPrepend = false,
+      ) => {
         setLoadingChatId((prev) => (prev === chatId ? null : prev));
         if (selectedChatIdRef.current !== chatId) return;
         if (data.media) {
@@ -104,8 +154,15 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
             ),
           );
         }
-        updateMessages(data.messages || [], chatId);
-        setSelectedChatId(chatId);
+        if (isPrepend && data.messages?.length) {
+          prependMessages(data.messages, chatId);
+        } else {
+          updateMessages(data.messages || [], chatId);
+        }
+        if (data.next_cursor !== undefined) {
+          nextCursorByChatRef.current[chatId] = data.next_cursor ?? null;
+        }
+        if (!isPrepend) setSelectedChatId(chatId);
       };
 
       const clearLoadingForThis = () =>
@@ -134,6 +191,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
             media?: Chat['media'];
             members?: Chat['members'];
             messages?: Message[];
+            next_cursor?: number | null;
           },
         ) => {
           if (data.chat_id !== chatId) return;
@@ -181,7 +239,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         }
       }
     },
-    [updateMessages],
+    [updateMessages, prependMessages],
   );
 
   const saveContact = useCallback(
@@ -524,9 +582,14 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       messagesCache,
       messagesLoading:
         selectedChatId !== null && loadingChatId === selectedChatId,
+      loadingOlderMessages:
+        selectedChatId !== null && loadingOlderChatId === selectedChatId,
+      loadOlderMessages,
+      trimMessagesToLast,
       editingMessage,
       setEditingMessage,
       updateMessages,
+      prependMessages,
       updateMessageInChat,
       removeMessageFromChat,
       getCachedMessages,
@@ -539,9 +602,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       messagesCache,
       selectedChatId,
       loadingChatId,
+      loadingOlderChatId,
+      loadOlderMessages,
+      trimMessagesToLast,
       editingMessage,
       setEditingMessage,
       updateMessages,
+      prependMessages,
       updateMessageInChat,
       removeMessageFromChat,
       getCachedMessages,
@@ -563,6 +630,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const valueMessagesActions: MessagesActionsContextType = useMemo(
     () => ({
       updateMessages,
+      prependMessages,
       updateMessageInChat,
       removeMessageFromChat,
       updateChatLastMessage,
@@ -571,6 +639,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     }),
     [
       updateMessages,
+      prependMessages,
       updateMessageInChat,
       removeMessageFromChat,
       updateChatLastMessage,

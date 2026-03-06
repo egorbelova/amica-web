@@ -1,11 +1,11 @@
 .header-container {
   position: absolute;
   padding-top: var(--sat);
-  margin-top: 10px;
-  margin-right: 10px;
+  margin-top: var(--global-gap);
+  margin-right: var(--global-gap);
   display: flex;
   flex-direction: column;
-  width: calc(100% - 10px);
+  width: 100%;
   align-self: start;
   z-index: 99;
 }
@@ -24,15 +24,15 @@
     width 0.2s ease-in;
 
   &__avatar {
-    height: 36px;
-    width: 36px;
+    height: 40px;
+    width: 40px;
     margin: 0 10px;
   }
 
   &__title {
     width: 100%;
-    font-weight: 500;
-    color: #fff;
+    font-weight: 600;
+    font-size: 1.0625rem;
     transition:
       padding 1s,
       color 1s;

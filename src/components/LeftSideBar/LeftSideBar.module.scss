@@ -1,3 +1,110 @@
+:global(.choose_list) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  width: var(--left-side-bar-width);
+  flex-shrink: 0;
+  position: relative;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.6);
+  background: color-mix(in srgb, rgb(0, 0, 0) 50%, transparent);
+  margin: 10px 0px 10px 10px;
+  transform: translateZ(0);
+  z-index: 9999;
+
+  @media screen and (max-width: 768px) {
+    z-index: 9;
+  }
+}
+
+:global(.left-menu) {
+  overscroll-behavior: contain;
+  order: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  overflow: scroll;
+  padding-top: calc(var(--sat));
+}
+
+:global(.left-menu)::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(5px);
+  z-index: -1;
+}
+
+:global(.left-menu)::after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.2);
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0px,
+    rgba(0, 0, 0, 0) calc(60px + var(--sat)),
+    rgba(0, 0, 0, 0) calc(100% - 60px - var(--sab)),
+    rgba(0, 0, 0, 1) 100%
+  );
+  pointer-events: none;
+}
+
+:global(.chat-list-title) {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  :global(.choose_list) {
+    border-radius: 0;
+    margin: 0;
+    border: none;
+    clip-path: none;
+  }
+
+  :global(.choose_list) {
+    transform: translateX(var(--swipe-margin-choose-list));
+  }
+
+  :global(.choose_list:not(.swipe)) {
+    transition: transform 0.35s ease !important;
+  }
+
+  :global(.choose_list.swipe) {
+    transform: translateX(calc(var(--swipe-margin) / 3 - 33%));
+    transition: transform 0s;
+  }
+
+  :global(.choose_list) {
+    width: 100%;
+    height: 100%;
+  }
+
+  :global(.left-menu) {
+    order: 2;
+  }
+
+  :global(.chat-list-title) {
+    display: block;
+    text-align: left;
+    width: 100%;
+    padding: 15px 15px;
+    font-size: 1.75rem;
+    font-weight: 600;
+    position: absolute;
+  }
+}
+
 .tab-content {
   width: 100%;
   height: 100%;

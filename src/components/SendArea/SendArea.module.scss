@@ -288,15 +288,28 @@
 }
 
 .send_area {
+  position: absolute;
+  bottom: 0;
+  padding: 0 15px;
+  padding-bottom: calc(10px + var(--sab));
   transition: padding-bottom 300ms cubic-bezier(0.075, 0.82, 0.165, 1);
-}
-.send_area:focus-within {
-  padding-bottom: calc(var(--keyboard-height)) !important;
+
+  width: var(--main-chat-window-width);
+  max-width: 100%;
+  // width: calc(100% - var(--left-side-bar-width) - 20px);
+
+  &:focus-within {
+    padding-bottom: calc(var(--keyboard-height) + 10px) !important;
+  }
+
+  @media screen and (max-width: 768px) {
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
 .send_div_container {
   padding: 0px 15px 0px 15px;
-  margin-bottom: 10px;
   padding: 2px;
   background: rgba(30, 30, 30, 0.4);
   backdrop-filter: blur(4px);
@@ -305,13 +318,6 @@
   transition:
     background 1s,
     width 1s;
-}
-
-.send_area {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  padding: 0 15px;
 }
 
 .send_svg {

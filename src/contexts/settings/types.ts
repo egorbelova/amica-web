@@ -29,6 +29,7 @@ export type Settings = {
   activeWallpaper?: WallpaperSetting | null;
   activeWallpaperEditMode?: ActiveWallpaperEditMode;
   useBackgroundThroughoutTheApp: boolean;
+  wallpaperGlowEnabled: boolean;
 };
 
 export type SubTab =
@@ -68,5 +69,4 @@ export interface SettingsActionsValue {
 }
 
 export interface SettingsContextValue
-  extends SettingsStateValue,
-    SettingsActionsValue {}
+  extends SettingsStateValue, SettingsActionsValue {}

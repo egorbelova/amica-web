@@ -1,3 +1,96 @@
+:global(.main_chat_window) {
+  height: 100%;
+  width: 100%;
+  z-index: 999;
+  position: relative;
+  border-radius: var(--device-corner-radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  // &::before {
+  //   content: '';
+  //   position: absolute;
+  //   top: 0;
+  //   left: 0;
+  //   width: 100%;
+  //   height: 60px;
+  //   backdrop-filter: blur(30px);
+  //   mask-image: linear-gradient(
+  //     to top,
+  //     rgba(0, 0, 0, 0) 0%,
+  //     rgba(0, 0, 0, 0.8) 50%,
+  //     rgba(0, 0, 0, 1) 100%
+  //   );
+  //   z-index: 1;
+  // }
+}
+
+.roomWrapperContainer {
+  container: main_chat_window / inline-size;
+  height: 100%;
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex-direction: column-reverse;
+  --mask-height: calc(var(--sat) + 80px);
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0.8) calc(var(--mask-height) / 2),
+    rgba(0, 0, 0, 1) var(--mask-height),
+    rgba(0, 0, 0, 1) calc(100% - 50px),
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+}
+
+:global(.room_wrapper) {
+  position: relative;
+  width: var(--main-chat-window-width);
+  container: room_wrapper / inline-size;
+  max-width: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  flex-direction: column;
+  transition: all 0.2s;
+}
+
+:global(.room_wrapper.shifted) {
+  margin-right: var(--left-side-bar-width);
+}
+
+:global(.wallpaper.shifted) {
+  scale: 1 !important;
+}
+
+@container main_chat_window (max-width: 1070px) {
+  :global(.room_wrapper.shifted) {
+    margin-right: 0;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  :global(.main_chat_window) {
+    background-color: #000;
+    margin: 0;
+    width: 100%;
+    position: fixed;
+    display: none;
+  }
+
+  :global(.main_chat_window.swiped) {
+    display: flex;
+  }
+}
+
 .settingsContainer {
   // display: flex;
   // flex-direction: column;
@@ -12,7 +105,7 @@
   height: calc(100% - 20px);
 
   position: relative;
-  width: 700px;
+  width: calc(var(--main-chat-window-width) - var(--global-gap));
   max-width: 100%;
   top: 0;
   left: 0;

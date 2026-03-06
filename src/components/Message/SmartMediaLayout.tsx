@@ -195,16 +195,16 @@ function SmartMediaLayoutInner({ files, items }: InnerProps) {
 function SmartMediaLayoutWithContext({ files }: { files: File[] }) {
   const { messages } = useChatMessages();
   const items = useMemo(
-    () =>
-      messages.filter(
-        (m) => Array.isArray(m.files) && m.files.length > 0,
-      ),
+    () => messages.filter((m) => Array.isArray(m.files) && m.files.length > 0),
     [messages],
   );
   return <SmartMediaLayoutInner files={files} items={items} />;
 }
 
-const SmartMediaLayout: React.FC<Props> = ({ files, reelItems: reelItemsProp }) => {
+const SmartMediaLayout: React.FC<Props> = ({
+  files,
+  reelItems: reelItemsProp,
+}) => {
   if (reelItemsProp != null) {
     return <SmartMediaLayoutInner files={files} items={reelItemsProp} />;
   }

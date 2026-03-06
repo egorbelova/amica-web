@@ -114,6 +114,7 @@ const defaultSettings: Settings = {
   activeWallpaper: defaultWallpapers[0],
   activeWallpaperEditMode: 'natural',
   useBackgroundThroughoutTheApp: false,
+  wallpaperGlowEnabled: true,
 };
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
@@ -207,6 +208,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       activeWallpaperEditMode:
         initialParsed.activeWallpaperEditMode ??
         defaultSettings.activeWallpaperEditMode,
+      wallpaperGlowEnabled:
+        initialParsed.wallpaperGlowEnabled ??
+        defaultSettings.wallpaperGlowEnabled,
     };
   });
 

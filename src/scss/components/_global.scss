@@ -1,3 +1,253 @@
+@use '../variables' as *;
+
+:root {
+  --swipe-margin-inactive: 100%;
+  --swipe-margin-choose-list: 0%;
+  --device-corner-radius: 0px;
+
+  --room_BG_color_hex: #4d8ddb;
+  --myColor1: #4d8ddb;
+  --myColor2: #4d8ddb99;
+  --myColor3: #4d8ddb33;
+  --darker_: #1972de;
+  --message_color: #1c1c1c;
+
+  --sat: env(safe-area-inset-top);
+  --sar: env(safe-area-inset-right);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+
+  --c-glass: #0a0a0a;
+  --c-light: #fff;
+  --c-dark: #000;
+
+  --glass-reflex-dark: 2;
+  --glass-reflex-light: 0.3;
+
+  --mainColor: #{$mainColor};
+  --keyboard-height: 0px;
+
+  --secondaryColor: #d5eaff;
+
+  --messageMainColor: #fff;
+
+  --bodyBackground: #{$bodyBackground};
+
+  --left-side-bar-width: 384px;
+  --main-chat-window-width: 700px;
+  --global-gap: 10px;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+input {
+  all: unset;
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  color: inherit;
+  caret-color: currentColor;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  animation-name: autofill;
+  animation-duration: 0.01ms;
+  transition-delay: 50000s;
+  color: inherit !important;
+}
+
+@keyframes autofill {
+  from,
+  to {
+  }
+}
+
+@font-face {
+  font-family: 'SFProRounded';
+  font-weight: 600;
+  font-display: swap;
+  src: url('../../Fonts/Nunito-Bold.woff2') format('woff2');
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+img {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+html {
+  font-size: 106.25%;
+}
+
+html,
+body {
+  user-select: none;
+  overflow: hidden;
+  height: calc(var(--sat) + 100%);
+  max-height: calc(var(--sat) + 100%);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior: contain;
+}
+
+@supports (-webkit-touch-callout: none) {
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+}
+
+body {
+  font-family:
+    'SF Pro Text',
+    'SF Pro Icons',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Roboto',
+    'Apple Color Emoji',
+    'Helvetica Neue',
+    sans-serif;
+  font-weight: 400;
+  color: #fff;
+  background: var(--bodyBackground);
+  max-height: calc(100%);
+  border-radius: var(--device-corner-radius);
+}
+
+svg {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+@keyframes page-loaded {
+  0% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shakeError {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-1px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(1px);
+  }
+}
+
+@keyframes window-appear {
+  0% {
+    transform: scale(0.99);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.chat-container {
+  width: 100%;
+  max-width: 1680px;
+  margin: 0 auto;
+  min-height: 100%;
+  height: 100%;
+  justify-content: center;
+  position: relative;
+  padding-right: var(--sar);
+  padding-left: var(--sal);
+  background: #000;
+  transform: translateZ(0);
+}
+
+.liquidGlass-wrapper {
+  position: relative;
+  display: flex;
+  font-weight: 600;
+  overflow: hidden;
+  box-shadow:
+    0 6px 6px rgba(0, 0, 0, 0.2),
+    0 0 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 2.2);
+}
+
+@media screen and (max-width: 768px) {
+  html,
+  body {
+    margin: 0 auto;
+    overflow: hidden;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  .chat-container {
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .scroll_down {
+    bottom: calc(min(var(--sab), 10px) + 65px);
+  }
+
+  #opponent_title_name {
+    min-width: 100%;
+  }
+
+  .chat-background-image {
+    background-size:
+      cover,
+      450px auto !important;
+  }
+}
+
 button {
   background: none;
   outline: none;

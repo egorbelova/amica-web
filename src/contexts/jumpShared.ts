@@ -3,6 +3,7 @@ import { createContext } from 'react';
 /** Stable ref/setters – use in MessageList to avoid re-renders when isVisible toggles */
 export interface JumpActionsContextValue {
   containerRef: React.RefObject<HTMLDivElement>;
+  setContainerRef: (node: HTMLDivElement | null) => void;
   setIsVisible: (isVisible: boolean) => void;
   jumpToBottom: () => void;
 }

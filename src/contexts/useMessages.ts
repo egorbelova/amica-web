@@ -22,6 +22,7 @@ export interface UseMessagesReturn {
   editingMessage: Message | null;
   setEditingMessage: (message: Message | null) => void;
   updateMessages: (messages: Message[], chatId: number) => void;
+  prependMessages: (messages: Message[], chatId: number) => void;
   updateMessageInChat: (
     chatId: number,
     messageId: number,
@@ -122,6 +123,25 @@ export function useMessages({
       }
     },
     [setChats],
+  );
+
+  const prependMessages = useCallback(
+    (olderMessages: Message[], chatId: number) => {
+      if (olderMessages.length === 0) return;
+      setMessagesCache((prev) => {
+        const existing = prev[chatId] ?? [];
+        const existingIds = new Set(existing.map((m) => String(m.id)));
+        const newOnes = olderMessages.filter(
+          (m) => !existingIds.has(String(m.id)),
+        );
+        if (newOnes.length === 0) return prev;
+        return {
+          ...prev,
+          [chatId]: [...newOnes, ...existing],
+        };
+      });
+    },
+    [],
   );
 
   const updateMessageInChat = useCallback(
@@ -225,6 +245,7 @@ export function useMessages({
     editingMessage,
     setEditingMessage,
     updateMessages,
+    prependMessages,
     updateMessageInChat,
     removeMessageFromChat,
     getCachedMessages,

@@ -130,7 +130,7 @@
   display: flex;
   margin: 3px 15px;
   z-index: 0;
-  border-radius: 20px;
+  // border-radius: 20px;
   max-width: min(432px, calc(100% - 60px));
   font-size: 1rem;
   overflow: hidden;
@@ -163,28 +163,27 @@
   background-color: rgb(from var(--message_color) r g b / 50%);
   backdrop-filter: blur(10px);
   outline: 1px solid rgba(127, 127, 127, 0.3);
+  border-radius: 20px;
 
   &.darker {
     // background-color: rgb(from var(--mainColor) r g b / 90%);
     // position: absolute;
-    clip-path: inset(0 round 20px);
 
     // background-attachment: fixed;
+    clip-path: inset(0 round 20px);
     background: none;
+    backdrop-filter: none;
+    outline: none;
     &::before {
       pointer-events: none;
       z-index: -1;
       content: '';
       position: fixed;
       top: 0;
-      right: 0;
       bottom: 0;
       left: 0;
-      // background-image: linear-gradient(
-      //   180deg,
-      //   var(--mainColor) 0%,
-      //   color-mix(in srgb, var(--mainColor) 70%, #000) 100%
-      // );
+      right: 0;
+
       background: linear-gradient(
         var(--messageGradientDegree, 168deg),
         var(--messageColor1) var(--messageStop1),
@@ -197,13 +196,11 @@
       // background: linear-gradient(168deg, rgb(229, 124, 0), rgb(94, 0, 0));
       // background: linear-gradient(90deg, #08203e, #557c93);
     }
-    backdrop-filter: none;
+
     // background-size: cover;
     // background-position: center;
-
-    outline: none;
   }
-  animation: message_loaded 0.2s ease-in-out;
+  // animation: message_loaded 0.2s ease-in-out;
 }
 
 @keyframes message_loaded {
@@ -222,7 +219,7 @@
   height: fit-content;
   position: relative;
   width: max-content;
-  max-width: min(432px, calc(100dvw - 60px));
+  max-width: min(432px, calc(100cqw - 60px));
   flex-shrink: 0;
 }
 
@@ -255,4 +252,134 @@
   font-size: 0.625rem;
   color: var(--secondaryColor);
   white-space: nowrap;
+}
+
+:global(.temp_full) {
+  display: flex;
+  align-items: center;
+  transition: background 1.5s;
+  position: relative;
+  width: 100%;
+}
+
+:global(.temp_full.active) {
+  background: rgba(0, 0, 0, 0.3);
+  transition: background 0.7s;
+}
+
+:global(.temp_full.selected) {
+  user-select: none;
+  background: rgba(127, 127, 127, 0.2);
+  transition: background 0.4s;
+}
+
+:global(.temp_full.new_message_not_own),
+:global(.temp_full.new_message_own) {
+  animation: temp_full_new_message_not_own 0.85s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+:global(.message_select_check) {
+  position: absolute;
+  margin-left: 12px;
+}
+
+:global(.time-left) {
+  font-size: 0.625rem;
+  color: var(--secondaryColor);
+  user-select: none;
+  white-space: nowrap;
+}
+
+:global(.message_div_temp_time_view) {
+  display: flex;
+  flex-direction: row;
+  gap: 3px;
+  align-items: center;
+}
+
+@keyframes message_div_recieve {
+  0% {
+    background: transparent;
+    min-width: calc(100% - 52px);
+  }
+  100% {
+    background: rgb(from var(--mainColor) r g b / 95%);
+    min-width: 0;
+  }
+}
+
+@keyframes temp_full_new_message {
+  0% {
+    z-index: 999;
+  }
+  100% {
+    z-index: 0;
+  }
+}
+
+@keyframes message_details_opacity {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes temp_full_new_message_not_own {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.message_div.visible {
+  translate: 0 0;
+}
+
+.message_div.selected_prepare {
+  user-select: none;
+  margin-left: 40px;
+  transition: margin-left 0.4s;
+}
+
+@media screen and (max-width: 768px) {
+  :global(.temp_full.new_message_own) > .message_div {
+    animation: message_div_recieve 0.85s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  :global(.temp_full.new_message_own) .viewed_span,
+  :global(.temp_full.new_message_own) :global(.time-left) {
+    animation: message_details_opacity 0.85s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  :global(.temp_full.new_message_own) {
+    animation: temp_full_new_message 0.85s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  @keyframes message_div_selected_animation {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(0.9);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .message_div.select {
+    animation: message_div_selected_animation 0.5s ease-in-out;
+  }
+
+  .message_div.contextMenu {
+    z-index: 1001;
+  }
+
+  :global(.temp_full) {
+    width: 100%;
+  }
 }

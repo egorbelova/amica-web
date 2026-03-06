@@ -16,9 +16,10 @@
     inset 0 1px 1px rgba(255, 255, 255, 0.4),
     0 2px 4px rgba(39, 53, 71, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
   font-weight: 400;
   z-index: 99;
-  color: #ddd;
+  color: #fff;
   cursor: pointer;
   visibility: visible;
   opacity: 1;
@@ -32,7 +33,6 @@
     background-color 0.2s,
     width 0.2s,
     height 0.2s;
-  white-space: nowrap;
 
   &:hover {
     background-color: rgba(127, 127, 127, 0.3);
