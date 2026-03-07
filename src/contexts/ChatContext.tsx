@@ -54,6 +54,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const selectedChatIdRef = useRef(selectedChatId);
   const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const editingMessageRef = useRef<Message | null>(null);
+  /** Guard: server chats already applied — don't overwrite with IDB */
+  const hasServerChatsRef = useRef(false);
   selectedChatIdRef.current = selectedChatId;
   const { setActiveProfileTab } = useSettingsActions();
 
@@ -378,6 +380,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 
       const handleChats = (data: { chats?: unknown[] }) => {
         window.clearTimeout(timeoutId);
+        hasServerChatsRef.current = true;
         const chatsList = Array.isArray(data.chats)
           ? (data.chats as Chat[])
           : [];
@@ -438,9 +441,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     if (!user) return;
     const userId = user.id || getLastUserId();
     if (!userId) return;
+    hasServerChatsRef.current = false;
     getChatState(userId)
       .then((state) => {
         if (!state) return;
+        // Apply IDB only if server hasn't responded yet (so we don't overwrite fresh data)
+        if (hasServerChatsRef.current) return;
         if (state.chats?.length) setChats(state.chats);
         if (state.selectedChatId != null) {
           setSelectedChatId(state.selectedChatId);
@@ -467,18 +473,16 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     if (!user) return;
     const onConnected = () => {
-      if (chats.length === 0) {
-        fetchChats();
-      }
+      fetchChats();
     };
     websocketManager.on('connection_established', onConnected);
-    if (websocketManager.isConnected() && chats.length === 0) {
+    if (websocketManager.isConnected()) {
       fetchChats();
     }
     return () => {
       websocketManager.off('connection_established', onConnected);
     };
-  }, [user, fetchChats, chats.length]);
+  }, [user, fetchChats]);
 
   useEffect(() => {
     if (!user?.id || chats.length === 0) return;

@@ -137,7 +137,7 @@ const MainChatWindow: React.FC = () => {
       )}
       {selectedChat && (!settingsFullWindow || current === 'chats') && (
         <>
-          <Wallpaper isChatWindow />
+          <Wallpaper />
 
           <ChatHeader
             onChatInfoClick={handleHeaderClick}
@@ -148,7 +148,7 @@ const MainChatWindow: React.FC = () => {
             ref={scrollContainerCallbackRef}
           >
             <div className={`room_wrapper ${sideBarVisible ? 'shifted' : ''}`}>
-              <Wallpaper isChatWindow />
+              <Wallpaper />
               <MessageList />
             </div>
           </div>

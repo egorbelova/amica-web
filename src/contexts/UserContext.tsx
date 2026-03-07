@@ -15,18 +15,19 @@ import {
   type WebSocketMessage,
 } from '@/utils/websocket-manager';
 import type { DisplayMedia, User } from '@/types';
-import { useSettingsActions } from './settings/context';
 import type { WallpaperSetting } from './settings/types';
 import { UserContext, postJson } from './UserContextCore';
 import type { UserState, ApiResponse } from './UserContextCore';
 import type { File as FileType } from '@/types';
 import { setLastUserId, getLastUserId, deleteChatState } from '@/utils/chatStateStorage';
 
-const USER_CACHE_KEY = 'amica-user-cache';
+const USER_CACHE_KEY_PREFIX = 'amica-user-cache';
 
 function getCachedUser(): User | null {
   try {
-    const raw = localStorage.getItem(USER_CACHE_KEY);
+    const userId = getLastUserId();
+    if (userId == null) return null;
+    const raw = localStorage.getItem(`${USER_CACHE_KEY_PREFIX}-${userId}`);
     if (!raw) return null;
     return JSON.parse(raw) as User;
   } catch {
@@ -36,13 +37,28 @@ function getCachedUser(): User | null {
 
 function setCachedUser(user: User | null): void {
   if (user === null) {
-    localStorage.removeItem(USER_CACHE_KEY);
+    const userId = getLastUserId();
+    if (userId != null) {
+      try {
+        localStorage.removeItem(`${USER_CACHE_KEY_PREFIX}-${userId}`);
+      } catch {
+        /* ignore */
+      }
+    }
     return;
   }
   try {
-    localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
+    localStorage.setItem(
+      `${USER_CACHE_KEY_PREFIX}-${user.id}`,
+      JSON.stringify(user),
+    );
+    setLastUserId(user.id);
   } catch {
-    localStorage.removeItem(USER_CACHE_KEY);
+    try {
+      localStorage.removeItem(`${USER_CACHE_KEY_PREFIX}-${user.id}`);
+    } catch {
+      /* ignore */
+    }
   }
 }
 
@@ -75,7 +91,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     loading: true,
     error: null,
   });
-  const { setActiveWallpaper } = useSettingsActions();
 
   const fetchUser = useCallback(async () => {
     setState((prev) => ({
@@ -92,23 +107,24 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     }) => {
       if (data.success && data.user) {
         setCachedUser(data.user);
-        if (data.active_wallpaper) {
-          setActiveWallpaper({
-            id: data.active_wallpaper.id,
-            url: data.active_wallpaper.url,
-            type: data.active_wallpaper.type,
-            blur: 0,
-          });
-        }
         setState((prev) => {
           if (
             prev.user &&
             prev.user.id !== 0 &&
             prev.user.id === data.user!.id
           ) {
-            return { ...prev, loading: false };
+            return {
+              ...prev,
+              loading: false,
+              activeWallpaperFromServer: data.active_wallpaper ?? prev.activeWallpaperFromServer,
+            };
           }
-          return { user: data.user!, loading: false, error: null };
+          return {
+            user: data.user!,
+            loading: false,
+            error: null,
+            activeWallpaperFromServer: data.active_wallpaper ?? null,
+          };
         });
       } else {
         setCachedUser(null);
@@ -166,7 +182,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     }
 
     websocketManager.connect();
-  }, [setActiveWallpaper]);
+  }, []);
 
   useEffect(() => {
     setApiFetchUnauthorizedHandler(() => {

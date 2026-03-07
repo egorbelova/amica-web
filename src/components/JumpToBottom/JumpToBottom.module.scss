@@ -1,11 +1,10 @@
 .jump-to-bottom {
   padding: 5px;
-  position: absolute;
+  margin-left: auto;
   display: flex;
   justify-content: center;
   align-items: center;
-  bottom: calc(min(var(--sab), 10px) + 65px);
-  right: 15px;
+  bottom: 15px;
   overflow: hidden;
   border-radius: 100%;
   width: 45px !important;

@@ -91,7 +91,8 @@ input:-webkit-autofill:active {
   touch-action: manipulation;
 }
 
-img {
+img,
+video {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;

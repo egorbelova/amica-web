@@ -8,6 +8,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  container: main_chat_window / inline-size;
 
   // &::before {
   //   content: '';
@@ -28,7 +29,6 @@
 }
 
 .roomWrapperContainer {
-  container: main_chat_window / inline-size;
   height: 100%;
   width: 100%;
   max-width: 100%;
@@ -36,15 +36,32 @@
   align-items: center;
   flex-wrap: nowrap;
   flex-direction: column-reverse;
-  --mask-height: calc(var(--sat) + 80px);
+  --mask-height: calc(var(--sat) + 60px);
   mask-image: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0.8) calc(var(--mask-height) / 2),
+    rgba(0, 0, 0, 0.2) calc(var(--mask-height) / 2),
     rgba(0, 0, 0, 1) var(--mask-height),
     rgba(0, 0, 0, 1) calc(100% - 50px),
     rgba(0, 0, 0, 0.3) 100%
   );
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+    height: var(--mask-height);
+    backdrop-filter: blur(10px);
+    mask-image: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 1) 0px,
+      rgba(0, 0, 0, 0) 100%
+    );
+  }
+
   overflow-y: scroll;
   overscroll-behavior: contain;
 }
@@ -54,6 +71,7 @@
   width: var(--main-chat-window-width);
   container: room_wrapper / inline-size;
   max-width: 100%;
+  // min-height: 100%;
   top: 0;
   left: 0;
   right: 0;
@@ -67,12 +85,19 @@
   margin-right: var(--left-side-bar-width);
 }
 
-:global(.wallpaper.shifted) {
-  scale: 1 !important;
+:global(.main_chat_window:has(.room_wrapper.shifted) .send_area) {
+  margin-right: var(--left-side-bar-width);
 }
 
-@container main_chat_window (max-width: 1070px) {
+:global(.main_chat_window:has(.room_wrapper.shifted) .wallpaper) {
+  scale: 1;
+}
+
+@container main_chat_window (max-width: 1094px) {
   :global(.room_wrapper.shifted) {
+    margin-right: 0;
+  }
+  :global(.main_chat_window:has(.room_wrapper.shifted) .send_area) {
     margin-right: 0;
   }
 }

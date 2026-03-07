@@ -1,10 +1,13 @@
 import { createContext, useContext } from 'react';
 import type { User } from '@/types';
+import type { WallpaperSetting } from './settings/types';
 
 export interface UserState {
   user: User | null;
   loading: boolean;
   error: string | null;
+  /** Set when general_info returns active_wallpaper; sync to settings in UI. */
+  activeWallpaperFromServer?: WallpaperSetting | null;
 }
 
 export interface ApiResponse {

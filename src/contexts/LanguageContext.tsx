@@ -1,4 +1,11 @@
-import { useEffect, useState, useCallback, useMemo, type ReactNode } from 'react';
+import {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  type ReactNode,
+  startTransition,
+} from 'react';
 import {
   LanguageContext,
   locales,
@@ -6,6 +13,12 @@ import {
   type Messages,
   type LocaleKeys,
 } from './languageCore';
+import { useUser } from './UserContextCore';
+import { getLastUserId } from '@/utils/chatStateStorage';
+
+function getLangStorageKey(userId: number | null | undefined): string {
+  return userId != null ? `app-lang-${userId}` : 'app-lang';
+}
 
 function getNested(obj: Messages, keys: string[]): unknown {
   let acc: unknown = obj;
@@ -24,8 +37,10 @@ function getNested(obj: Messages, keys: string[]): unknown {
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
+  const { user } = useUser();
+  const storageKey = getLangStorageKey(user?.id ?? getLastUserId());
   const browserLang = navigator.language.split('-')[0] as Locale;
-  const savedLang = localStorage.getItem('app-lang') as Locale | null;
+  const savedLang = localStorage.getItem(storageKey) as Locale | null;
   const defaultLang =
     (savedLang && locales[savedLang]) || locales[browserLang] || locales.en;
 
@@ -39,8 +54,20 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<Messages>(defaultLang);
 
   useEffect(() => {
-    localStorage.setItem('app-lang', locale);
-  }, [locale]);
+    startTransition(() => {
+      localStorage.setItem(storageKey, locale);
+    });
+  }, [locale, storageKey]);
+
+  useEffect(() => {
+    const next = localStorage.getItem(storageKey) as Locale | null;
+    if (next && next in locales && next !== locale) {
+      startTransition(() => {
+        setLocale(next);
+        setMessages(locales[next]);
+      });
+    }
+  }, [storageKey, locale]);
 
   useEffect(() => {
     document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
@@ -84,4 +111,3 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     </LanguageContext.Provider>
   );
 }
- 

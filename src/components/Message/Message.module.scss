@@ -161,7 +161,7 @@
   }
 
   background-color: rgb(from var(--message_color) r g b / 50%);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(3px);
   outline: 1px solid rgba(127, 127, 127, 0.3);
   border-radius: 20px;
 

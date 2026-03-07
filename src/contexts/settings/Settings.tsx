@@ -23,9 +23,12 @@ import {
   SettingsStateContext,
   SettingsActionsContext,
   BlurContext,
+  useSettingsActions,
 } from './context';
+import { useUser } from '../UserContextCore';
+import { getLastUserId } from '@/utils/chatStateStorage';
 
-const STORAGE_KEY = 'app-settings';
+const STORAGE_KEY_PREFIX = 'app-settings';
 const SAVE_DEBOUNCE_MS = 400;
 const BLUR_SAVE_DEBOUNCE_MS = 300;
 
@@ -38,9 +41,13 @@ type StoredSettings = Partial<
   }
 >;
 
-function parseStoredSettings(): StoredSettings {
+function getSettingsStorageKey(userId: number | null | undefined): string {
+  return userId != null ? `${STORAGE_KEY_PREFIX}-${userId}` : STORAGE_KEY_PREFIX;
+}
+
+function parseStoredSettings(storageKey: string): StoredSettings {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(storageKey);
     if (!saved) return {};
     return JSON.parse(saved) as StoredSettings;
   } catch (e) {
@@ -117,8 +124,32 @@ const defaultSettings: Settings = {
   wallpaperGlowEnabled: true,
 };
 
+/** Syncs active wallpaper from user (general_info) into settings when it arrives. */
+function SyncWallpaperFromUser() {
+  const { activeWallpaperFromServer } = useUser();
+  const { setActiveWallpaper } = useSettingsActions();
+  useEffect(() => {
+    if (!activeWallpaperFromServer) return;
+    setActiveWallpaper({
+      id: activeWallpaperFromServer.id,
+      url: activeWallpaperFromServer.url,
+      type: activeWallpaperFromServer.type ?? 'photo',
+      blur: activeWallpaperFromServer.blur ?? 0,
+    });
+  }, [activeWallpaperFromServer, setActiveWallpaper]);
+  return null;
+}
+
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const initialParsed = useMemo(parseStoredSettings, []);
+  const { user } = useUser();
+  const storageKey = useMemo(
+    () => getSettingsStorageKey(user?.id ?? getLastUserId()),
+    [user?.id],
+  );
+  const initialParsed = useMemo(
+    () => parseStoredSettings(storageKey),
+    [storageKey],
+  );
 
   const [isResizingPermitted, setIsResizingPermitted] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -286,7 +317,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       saveTimeoutRef.current = null;
       const { ...rest } = settings;
       localStorage.setItem(
-        STORAGE_KEY,
+        storageKey,
         JSON.stringify({
           ...rest,
           autoplayVideos,
@@ -302,7 +333,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       }
       const { ...rest } = settings;
       localStorage.setItem(
-        STORAGE_KEY,
+        storageKey,
         JSON.stringify({
           ...rest,
           autoplayVideos,
@@ -311,7 +342,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         }),
       );
     };
-  }, [settings, autoplayVideos, color, gradient]);
+  }, [settings, autoplayVideos, color, gradient, storageKey]);
 
   const setSetting = useCallback(
     <K extends keyof Settings>(key: K, value: Settings[K]) =>
@@ -539,6 +570,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     <SettingsActionsContext.Provider value={actionsValue}>
       <SettingsStateContext.Provider value={stateValue}>
         <BlurContext.Provider value={blurValue}>
+          <SyncWallpaperFromUser />
           {children}
         </BlurContext.Provider>
       </SettingsStateContext.Provider>

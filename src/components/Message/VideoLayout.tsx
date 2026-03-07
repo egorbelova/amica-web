@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Icon } from '../Icons/AutoIcons';
 import { JWTVideo } from './JWTVideo';
 import { useSettings } from '@/contexts/settings/context';
@@ -37,76 +37,39 @@ export default function VideoLayout({
     setProgress(clamped * 100);
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePointerDown = (e: React.PointerEvent) => {
     e.stopPropagation();
-
     const video = videoRef.current;
     if (!video) return;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 
     wasPlayingBeforeDrag.current = playing;
     setPlaying(false);
-
     isDragging.current = true;
     seekByClientX(e.clientX);
   };
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
+  const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging.current) return;
     seekByClientX(e.clientX);
-  }, []);
+  };
 
-  const handleMouseUp = (e: MouseEvent) => {
+  const handlePointerUp = (e: React.PointerEvent) => {
     e.stopPropagation();
     if (!isDragging.current) return;
-
     isDragging.current = false;
-
     if (wasPlayingBeforeDrag.current) {
       setPlaying(true);
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    e.stopPropagation();
-
-    const video = videoRef.current;
-    if (!video) return;
-
-    wasPlayingBeforeDrag.current = playing;
-    setPlaying(false);
-
-    isDragging.current = true;
-    seekByClientX(e.touches[0].clientX);
-  };
-
-  const handleTouchMove = useCallback((e: TouchEvent) => {
+  const handlePointerCancel = () => {
     if (!isDragging.current) return;
-    seekByClientX(e.touches[0].clientX);
-  }, []);
-
-  const handleTouchEnd = () => {
-    if (!isDragging.current) return;
-
     isDragging.current = false;
-
     if (wasPlayingBeforeDrag.current) {
       setPlaying(true);
     }
   };
-
-  useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('touchmove', handleTouchMove);
-    window.addEventListener('touchend', handleTouchEnd);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [handleMouseMove, handleTouchMove]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -184,8 +147,10 @@ export default function VideoLayout({
 
       <div
         ref={progressRef}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
         onClick={(e) => e.stopPropagation()}
         className={styles['progress-bar-container']}
       >

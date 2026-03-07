@@ -25,7 +25,7 @@ const RoomPage: React.FC = () => {
   return (
     <>
       <div className={styles.roomPageContainer}>
-        <Wallpaper />
+        <Wallpaper isChatWindow={false} />
         <LeftSideBar />
         <MainChatWindow />
       </div>

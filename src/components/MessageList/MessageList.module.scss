@@ -1,7 +1,9 @@
 :global(.room_div) {
   -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(min(var(--sat), 10px) + 50px);
+  padding-bottom: calc(max(10px, var(--sab)) + 40px);
   max-width: 100%;
+  height: max-content;
+  min-height: 100dvh;
   overflow-y: visible;
   display: flex;
   flex-direction: column-reverse;
@@ -21,7 +23,6 @@
 
 @media screen and (max-width: 768px) {
   :global(.room_div) {
-    padding-bottom: calc(60px);
     transition: padding-bottom 300ms cubic-bezier(0.075, 0.82, 0.165, 1) !important;
   }
 }

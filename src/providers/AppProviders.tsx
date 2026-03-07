@@ -34,12 +34,12 @@ const GlobalSearchProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => <SearchProvider searchFn={searchGlobal}>{children}</SearchProvider>;
 
 const AppProvidersComponent = composeProviders(
-  LanguageProvider,
   SnackbarProvider,
   PageStackProvider,
   AuthProvider,
-  SettingsProvider,
   UserProvider,
+  LanguageProvider,
+  SettingsProvider,
   GlobalSearchProvider,
   ChatProvider,
   MessagesProvider,

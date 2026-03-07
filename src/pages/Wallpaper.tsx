@@ -12,7 +12,7 @@ type Props = {
 
 const Wallpaper: React.FC<Props> = ({
   glow = false,
-  isChatWindow = false,
+  isChatWindow = true,
   isMainOverlay = false,
 }) => {
   const { settings } = useSettings();
@@ -102,7 +102,7 @@ const Wallpaper: React.FC<Props> = ({
             playsInline
             muted
             preload='metadata'
-            className={styles.wallpaper}
+            className='wallpaper'
             style={{
               mixBlendMode: colourWash ? 'multiply' : 'normal',
             }}
@@ -111,7 +111,7 @@ const Wallpaper: React.FC<Props> = ({
           <img
             src={activeWallpaper.url}
             alt='Wallpaper'
-            className={styles.wallpaper}
+            className='wallpaper'
             style={{
               mixBlendMode: colourWash ? 'multiply' : 'normal',
             }}
@@ -133,7 +133,7 @@ const Wallpaper: React.FC<Props> = ({
         <img
           src={activeWallpaper.url}
           alt='Wallpaper'
-          className={styles.wallpaper}
+          className='wallpaper'
           style={{
             filter: `blur(${blur}px) ${blackAndWhite ? 'grayscale(100%)' : ''}`,
             mixBlendMode: colourWash ? 'overlay' : 'normal',
@@ -148,7 +148,7 @@ const Wallpaper: React.FC<Props> = ({
           muted
           loop
           preload='metadata'
-          className={styles.wallpaper}
+          className='wallpaper'
           style={{
             filter: `blur(${blur}px) ${blackAndWhite ? 'grayscale(100%)' : ''}`,
             mixBlendMode: colourWash ? 'overlay' : 'normal',

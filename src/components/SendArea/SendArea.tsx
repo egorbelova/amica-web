@@ -417,7 +417,7 @@ const MessageInput: React.FC = () => {
   return (
     <>
       <DropZone onFiles={handleFiles} />
-      <div className={styles['send_area']}>
+      <div className='send_area'>
         <JumpToBottom />
         <div className={styles['send_div_container']}>
           {files.length > 0 && (
