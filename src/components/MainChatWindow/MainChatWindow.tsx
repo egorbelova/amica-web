@@ -29,9 +29,7 @@ import type { Message as MessageType } from '@/types';
 import { websocketManager } from '@/utils/websocket-manager';
 import { useSnackbar } from '@/contexts/snackbar/SnackbarContextCore';
 
-const fullscreenExitIcon = (
-  <Icon name='FullscreenExit' />
-);
+const fullscreenExitIcon = <Icon name='FullscreenExit' />;
 const EMPTY_SELECTED_MESSAGE_IDS = new Set<number>();
 
 const MainChatWindow: React.FC = () => {
@@ -166,7 +164,9 @@ const MainChatWindow: React.FC = () => {
 
     exitSelectionMode();
     if (ownSelectedMessages.length > 0) {
-      showSnackbar(`Deleted ${ownSelectedMessages.length} message(s)`);
+      const messageLabel =
+        ownSelectedMessages.length === 1 ? 'message' : 'messages';
+      showSnackbar(`Deleted ${ownSelectedMessages.length} ${messageLabel}`);
     }
   }, [
     selectedChat,

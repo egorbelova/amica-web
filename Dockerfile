@@ -1,17 +1,23 @@
 FROM node:25-alpine AS build
 
-RUN npm install -g pnpm
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+
+# RUN npm install -g pnpm
+RUN corepack enable
 
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
 
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm install --frozen-lockfile
 
 COPY . .
 
-RUN pnpm run build:ignore
-
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm run build:ignore
+    
 FROM fholzer/nginx-brotli:latest
 
 COPY --from=build /app/dist /usr/share/nginx/html
