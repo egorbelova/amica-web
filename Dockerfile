@@ -4,7 +4,7 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
 # RUN npm install -g pnpm
-RUN npx corepack enable
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
