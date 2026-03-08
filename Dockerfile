@@ -4,7 +4,7 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
 # RUN npm install -g pnpm
-RUN corepack enable
+RUN npx corepack enable
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY . .
 
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm run build:ignore
-    
+
 FROM fholzer/nginx-brotli:latest
 
 COPY --from=build /app/dist /usr/share/nginx/html
