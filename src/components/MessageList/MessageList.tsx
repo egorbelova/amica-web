@@ -369,7 +369,8 @@ const MessageList: React.FC = () => {
             const delta = el.scrollTop - lastScrollTopRef.current;
             if (delta < 0) lastScrollDirectionRef.current = 'up';
             else if (delta > 0) lastScrollDirectionRef.current = 'down';
-            const scrollingDown = el.scrollTop < lastScrollTopRef.current;
+            // column-reverse: scrollTop растёт при скролле к новым (вниз), уменьшается при скролле к старым (вверх)
+            const scrollingDown = el.scrollTop > lastScrollTopRef.current;
             lastScrollTopRef.current = el.scrollTop;
             if (
               chatId != null &&

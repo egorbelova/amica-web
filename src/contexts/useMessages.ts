@@ -27,7 +27,11 @@ export interface UseMessagesReturn {
     options?: { updateChatLastMessage?: boolean },
   ) => void;
   prependMessages: (messages: Message[], chatId: number) => void;
-  appendMessages: (messages: Message[], chatId: number) => void;
+  appendMessages: (
+    messages: Message[],
+    chatId: number,
+    options?: { updateChatLastMessage?: boolean },
+  ) => void;
   updateMessageInChat: (
     chatId: number,
     messageId: number,
@@ -156,7 +160,11 @@ export function useMessages({
   );
 
   const appendMessages = useCallback(
-    (newerMessages: Message[], chatId: number) => {
+    (
+      newerMessages: Message[],
+      chatId: number,
+      options?: { updateChatLastMessage?: boolean },
+    ) => {
       if (newerMessages.length === 0) return;
       setMessagesCache((prev) => {
         const existing = prev[chatId] ?? [];
@@ -170,6 +178,9 @@ export function useMessages({
           [chatId]: [...existing, ...newOnes],
         };
       });
+      const shouldUpdateChatLastMessage =
+        options?.updateChatLastMessage !== false;
+      if (!shouldUpdateChatLastMessage) return;
       const lastMessage = newerMessages[newerMessages.length - 1];
       setChats((prevChats) => {
         const targetChat = prevChats.find((chat) => chat.id === chatId);

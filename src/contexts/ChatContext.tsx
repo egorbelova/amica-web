@@ -138,7 +138,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         };
         if (selectedChatIdRef.current !== chatId) return true;
         if (data.messages?.length) {
-          appendMessages(data.messages, chatId);
+          appendMessages(data.messages, chatId, {
+            updateChatLastMessage: false,
+          });
         }
         return true;
       } finally {
