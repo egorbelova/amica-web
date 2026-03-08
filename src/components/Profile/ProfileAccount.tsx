@@ -5,6 +5,8 @@ import { Icon } from '../Icons/AutoIcons';
 import EditableAvatar from '@/components/Avatar/EditableAvatar';
 import type { DisplayMedia, User, UserProfile } from '@/types';
 
+const logoutIcon = <Icon name='Logout' className={styles.logoutIcon} />;
+
 export default function ProfileAccount() {
   const { user, logout, setUser } = useUser();
   const { t } = useTranslation();
@@ -33,7 +35,7 @@ export default function ProfileAccount() {
       </div>
 
       <div tabIndex={0} onClick={logout} className={styles.logoutBtn}>
-        <Icon name='Logout' className={styles.logoutIcon} />
+        {logoutIcon}
         {t('profile.signOut')}
       </div>
     </div>

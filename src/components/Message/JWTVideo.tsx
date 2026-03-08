@@ -36,12 +36,16 @@ export const JWTVideo = forwardRef<HTMLVideoElement, JWTVideoProps>(
       addTokenToUrl();
     }, [url]);
 
+    // Устанавливаем src только при смене signedUrl, чтобы не перезагружать видео при play/pause
     useEffect(() => {
       const video = videoRef.current;
       if (!video || !signedUrl) return;
-
       if (video.src !== signedUrl) video.src = signedUrl;
+    }, [signedUrl]);
 
+    useEffect(() => {
+      const video = videoRef.current;
+      if (!video || !signedUrl) return;
       if (playing && video.paused) video.play().catch(() => {});
       if (!playing && !video.paused) video.pause();
     }, [playing, signedUrl]);

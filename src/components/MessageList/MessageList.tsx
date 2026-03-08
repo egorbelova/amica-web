@@ -1,6 +1,14 @@
 import Message from '../Message/Message';
 import { useSelectedChat, useChatMessages } from '@/contexts/ChatContextCore';
-import { useEffect, useRef, useState, memo, useCallback, useMemo } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  memo,
+  useCallback,
+  useMemo,
+} from 'react';
 import ContextMenu from '../ContextMenu/ContextMenu';
 import styles from './MessageList.module.scss';
 import { useJumpActions } from '@/hooks/useJump';
@@ -10,14 +18,20 @@ import type { Message as MessageType, User } from '@/types';
 import ViewersList from './ViewersList';
 import { useMessageContextMenu } from './useMessageContextMenu';
 
+const VISIBLE_BUFFER = 7;
+const PAGINATION_THRESHOLD_PX = 300;
+const MIN_MESSAGES_TO_TRIM = 40;
+const TRIM_DEBOUNCE_MS = 1000;
 const MessageList: React.FC = () => {
   const { selectedChat } = useSelectedChat();
   const {
     messages,
     messagesLoading,
     loadingOlderMessages,
+    loadingNewerMessages,
     loadOlderMessages,
-    trimMessagesToLast,
+    loadNewerMessages,
+    trimMessagesToRange,
     setEditingMessage,
     removeMessageFromChat,
   } = useChatMessages();
@@ -59,10 +73,32 @@ const MessageList: React.FC = () => {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const loadOlderTriggeredRef = useRef(false);
+  const loadNewerTriggeredRef = useRef(false);
+  const lastScrollTopRef = useRef(0);
+  const isFirstScrollAfterOpenRef = useRef(true);
   const scrollRestoreRef = useRef<{
+    chatId: number;
     scrollHeight: number;
     scrollTop: number;
+    anchorMessageId?: string | null;
+    anchorOffsetFromTop?: number;
   } | null>(null);
+  const fillNoMoreOlderRef = useRef(false);
+  const trimDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const trimScrollAnchorRef = useRef<{
+    messageId: string;
+    offsetFromTop: number;
+  } | null>(null);
+  const isRestoringRef = useRef(false);
+  const lastScrollDirectionRef = useRef<'up' | 'down' | null>(null);
+  const loadingOlderRef = useRef(loadingOlderMessages);
+  const loadingNewerRef = useRef(loadingNewerMessages);
+  const selectedChatIdRef = useRef(selectedChatId);
+  useEffect(() => {
+    loadingOlderRef.current = loadingOlderMessages;
+    loadingNewerRef.current = loadingNewerMessages;
+    selectedChatIdRef.current = selectedChatId;
+  }, [loadingOlderMessages, loadingNewerMessages, selectedChatId]);
   const scrollContainerRef = jumpContainerRef;
   const mergedRef = containerRef;
   const messagesRef = useRef(messages);
@@ -85,6 +121,149 @@ const MessageList: React.FC = () => {
       handleTouchEnd,
     };
   }, [handleMessageContextMenu, handleTouchStart, handleTouchEnd]);
+
+  const clearScheduledTrim = useCallback(() => {
+    if (trimDebounceRef.current) {
+      clearTimeout(trimDebounceRef.current);
+      trimDebounceRef.current = null;
+    }
+  }, []);
+
+  const getTopVisibleAnchor = useCallback(
+    (el: HTMLDivElement, listEl: HTMLDivElement) => {
+      const scrollRect = el.getBoundingClientRect();
+      const messageEls = listEl.querySelectorAll('[data-message-id]');
+      let anchorMessageId: string | null = null;
+      let anchorOffsetFromTop = 0;
+      let topmostTop = Infinity;
+      for (let i = 0; i < messageEls.length; i++) {
+        const msgEl = messageEls[i] as HTMLElement;
+        const rect = msgEl.getBoundingClientRect();
+        if (rect.bottom <= scrollRect.top || rect.top >= scrollRect.bottom)
+          continue;
+        if (rect.top < topmostTop) {
+          topmostTop = rect.top;
+          anchorMessageId = msgEl.getAttribute('data-message-id');
+          anchorOffsetFromTop = rect.top - scrollRect.top;
+        }
+      }
+      return { anchorMessageId, anchorOffsetFromTop };
+    },
+    [],
+  );
+
+  const restoreAnchorPosition = useCallback(
+    (
+      el: HTMLDivElement,
+      listEl: HTMLDivElement,
+      anchorMessageId?: string | null,
+      anchorOffsetFromTop = 0,
+      fallback?: { scrollHeight: number; scrollTop: number },
+    ) => {
+      if (anchorMessageId) {
+        const anchorEl = listEl.querySelector(
+          `[data-message-id="${CSS.escape(anchorMessageId)}"]`,
+        ) as HTMLElement | null;
+        if (anchorEl) {
+          void listEl.offsetHeight;
+          const scrollRect = el.getBoundingClientRect();
+          const anchorRect = anchorEl.getBoundingClientRect();
+          const currentOffsetFromTop = anchorRect.top - scrollRect.top;
+          const diff = currentOffsetFromTop - anchorOffsetFromTop;
+          const minScrollTop = -(el.scrollHeight - el.clientHeight);
+          const newScrollTop = Math.max(minScrollTop, el.scrollTop - diff);
+          el.scrollTo({ top: newScrollTop, behavior: 'auto' });
+          return;
+        }
+      }
+      if (!fallback) return;
+      const delta = el.scrollHeight - fallback.scrollHeight;
+      if (delta <= 0) return;
+      const minScrollTop = -(el.scrollHeight - el.clientHeight);
+      const newScrollTop = Math.max(minScrollTop, fallback.scrollTop - delta);
+      el.scrollTo({ top: newScrollTop, behavior: 'auto' });
+    },
+    [],
+  );
+
+  const runTrim = useCallback(() => {
+    const el = scrollContainerRef.current;
+    const listEl = containerRef.current;
+    const chatId = selectedChatIdRef.current;
+    const n = messagesRef.current.length;
+    if (
+      !el ||
+      !listEl ||
+      chatId == null ||
+      n <= MIN_MESSAGES_TO_TRIM ||
+      loadingOlderRef.current ||
+      loadingNewerRef.current ||
+      loadOlderTriggeredRef.current ||
+      loadNewerTriggeredRef.current
+    )
+      return;
+    const scrollRect = el.getBoundingClientRect();
+    const messageEls = listEl.querySelectorAll('[data-message-id]');
+    let bottommostVisibleIndex = -1;
+    let bottommostBottom = -Infinity;
+    let topmostVisibleIndex = -1;
+    let topmostMessageId: string | null = null;
+    let topmostOffsetFromTop = 0;
+    let topmostTop = Infinity;
+    for (let i = 0; i < messageEls.length; i++) {
+      const cacheIndex = n - 1 - i;
+      const msgEl = messageEls[i] as HTMLElement;
+      const rect = msgEl.getBoundingClientRect();
+      const visible =
+        rect.bottom > scrollRect.top && rect.top < scrollRect.bottom;
+      if (visible) {
+        if (rect.bottom > bottommostBottom) {
+          bottommostBottom = rect.bottom;
+          bottommostVisibleIndex = cacheIndex;
+        }
+        if (rect.top < topmostTop) {
+          topmostTop = rect.top;
+          topmostVisibleIndex = cacheIndex;
+          topmostMessageId = msgEl.getAttribute('data-message-id');
+          topmostOffsetFromTop = rect.top - scrollRect.top;
+        }
+      }
+    }
+    if (bottommostVisibleIndex < 0 || topmostVisibleIndex < 0) return;
+
+    const scrollingDown = lastScrollDirectionRef.current === 'down';
+    if (scrollingDown) {
+      // Скроллим к новым — убираем только старые (с начала массива)
+      const start = Math.max(0, topmostVisibleIndex - VISIBLE_BUFFER);
+      if (start > 0) {
+        if (topmostMessageId)
+          trimScrollAnchorRef.current = {
+            messageId: topmostMessageId,
+            offsetFromTop: topmostOffsetFromTop,
+          };
+        trimMessagesToRange(chatId, start, n - 1);
+      }
+    } else {
+      // Скроллим к старым или стоим — убираем только новые (с конца массива)
+      const end = Math.min(n - 1, bottommostVisibleIndex + VISIBLE_BUFFER);
+      if (end < n - 1) {
+        if (topmostMessageId)
+          trimScrollAnchorRef.current = {
+            messageId: topmostMessageId,
+            offsetFromTop: topmostOffsetFromTop,
+          };
+        trimMessagesToRange(chatId, 0, end);
+      }
+    }
+  }, [trimMessagesToRange, scrollContainerRef]);
+
+  const scheduleTrimAfterScrollEnd = useCallback(() => {
+    clearScheduledTrim();
+    trimDebounceRef.current = setTimeout(() => {
+      trimDebounceRef.current = null;
+      runTrim();
+    }, TRIM_DEBOUNCE_MS);
+  }, [clearScheduledTrim, runTrim]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -144,29 +323,89 @@ const MessageList: React.FC = () => {
         rafId = requestAnimationFrame(() => {
           rafId = null;
 
+          const listEl = containerRef.current;
+          const chatId = selectedChatIdRef.current;
+          const scrollRange = el.scrollHeight - el.clientHeight;
+          // column-reverse: scrollTop=0 внизу (новые), при скролле вверх scrollTop уходит в минус
+          const minScrollTop = scrollRange > 0 ? -scrollRange : 0;
+          const nearTop =
+            scrollRange > 0 &&
+            el.scrollTop <= minScrollTop + PAGINATION_THRESHOLD_PX;
+
+          // Подгрузка старых: 1 раз, когда до верха меньше 300px
           if (
-            selectedChatId != null &&
-            !loadingOlderMessages &&
-            !loadOlderTriggeredRef.current
+            chatId != null &&
+            !loadingOlderRef.current &&
+            !loadOlderTriggeredRef.current &&
+            !loadNewerTriggeredRef.current &&
+            nearTop
           ) {
-            const threshold = 80;
-            const nearTop = el.scrollHeight - el.clientHeight - threshold;
-            if (el.scrollTop >= nearTop) {
-              loadOlderTriggeredRef.current = true;
-              scrollRestoreRef.current = {
-                scrollHeight: el.scrollHeight,
-                scrollTop: el.scrollTop,
-              };
-              loadOlderMessages(selectedChatId);
+            const { anchorMessageId, anchorOffsetFromTop } =
+              listEl != null
+                ? getTopVisibleAnchor(el, listEl)
+                : { anchorMessageId: null, anchorOffsetFromTop: 0 };
+            clearScheduledTrim();
+            loadOlderTriggeredRef.current = true;
+            loadingOlderRef.current = true;
+            scrollRestoreRef.current = {
+              chatId,
+              scrollHeight: el.scrollHeight,
+              scrollTop: el.scrollTop,
+              anchorMessageId,
+              anchorOffsetFromTop,
+            };
+            loadOlderMessages(chatId).then((started) => {
+              if (!started) {
+                loadOlderTriggeredRef.current = false;
+                loadingOlderRef.current = false;
+              }
+            });
+          }
+
+          if (isFirstScrollAfterOpenRef.current) {
+            isFirstScrollAfterOpenRef.current = false;
+            lastScrollTopRef.current = el.scrollTop;
+          } else {
+            const delta = el.scrollTop - lastScrollTopRef.current;
+            if (delta < 0) lastScrollDirectionRef.current = 'up';
+            else if (delta > 0) lastScrollDirectionRef.current = 'down';
+            const scrollingDown = el.scrollTop < lastScrollTopRef.current;
+            lastScrollTopRef.current = el.scrollTop;
+            if (
+              chatId != null &&
+              !loadingNewerRef.current &&
+              !loadNewerTriggeredRef.current &&
+              !loadOlderTriggeredRef.current &&
+              scrollingDown
+            ) {
+              const isNearNewest =
+                el.scrollTop >= -PAGINATION_THRESHOLD_PX &&
+                el.scrollTop <= PAGINATION_THRESHOLD_PX;
+              if (isNearNewest) {
+                const { anchorMessageId, anchorOffsetFromTop } =
+                  listEl != null
+                    ? getTopVisibleAnchor(el, listEl)
+                    : { anchorMessageId: null, anchorOffsetFromTop: 0 };
+                clearScheduledTrim();
+                loadNewerTriggeredRef.current = true;
+                loadingNewerRef.current = true;
+                scrollRestoreRef.current = {
+                  chatId,
+                  scrollHeight: el.scrollHeight,
+                  scrollTop: el.scrollTop,
+                  anchorMessageId,
+                  anchorOffsetFromTop,
+                };
+                loadNewerMessages(chatId).then((started) => {
+                  if (!started) {
+                    loadNewerTriggeredRef.current = false;
+                    loadingNewerRef.current = false;
+                  }
+                });
+              }
             }
           }
-          if (
-            selectedChatId != null &&
-            messages.length > 100 &&
-            el.scrollTop < 500
-          ) {
-            trimMessagesToLast(selectedChatId, 75);
-          }
+          if (!isRestoringRef.current) scheduleTrimAfterScrollEnd();
         });
       };
 
@@ -174,6 +413,10 @@ const MessageList: React.FC = () => {
 
       teardown = () => {
         if (rafId !== null) cancelAnimationFrame(rafId);
+        if (trimDebounceRef.current) {
+          clearTimeout(trimDebounceRef.current);
+          trimDebounceRef.current = null;
+        }
         el.removeEventListener('scroll', onScroll);
       };
     };
@@ -185,10 +428,11 @@ const MessageList: React.FC = () => {
     };
   }, [
     selectedChatId,
-    loadingOlderMessages,
     loadOlderMessages,
-    trimMessagesToLast,
-    messages.length,
+    loadNewerMessages,
+    getTopVisibleAnchor,
+    clearScheduledTrim,
+    scheduleTrimAfterScrollEnd,
     scrollContainerRef,
   ]);
 
@@ -196,21 +440,120 @@ const MessageList: React.FC = () => {
     if (!loadingOlderMessages && loadOlderTriggeredRef.current) {
       loadOlderTriggeredRef.current = false;
     }
-  }, [loadingOlderMessages]);
+    if (!loadingNewerMessages && loadNewerTriggeredRef.current) {
+      loadNewerTriggeredRef.current = false;
+    }
+  }, [loadingOlderMessages, loadingNewerMessages]);
+
+  useEffect(() => {
+    fillNoMoreOlderRef.current = false;
+  }, [selectedChatId]);
 
   useEffect(() => {
     const el = scrollContainerRef.current;
+    if (el) lastScrollTopRef.current = el.scrollTop;
+    isFirstScrollAfterOpenRef.current = true;
+  }, [selectedChatId, scrollContainerRef]);
+
+  useLayoutEffect(() => {
+    const el = scrollContainerRef.current;
+    if (
+      !el ||
+      selectedChatId == null ||
+      messages.length === 0 ||
+      loadingOlderMessages ||
+      loadingNewerMessages ||
+      fillNoMoreOlderRef.current
+    )
+      return;
+    const needsMore = el.scrollHeight <= el.clientHeight;
+    if (!needsMore) return;
+    const listEl = containerRef.current;
+    const { anchorMessageId, anchorOffsetFromTop } =
+      listEl != null
+        ? getTopVisibleAnchor(el, listEl)
+        : { anchorMessageId: null, anchorOffsetFromTop: 0 };
+    clearScheduledTrim();
+    loadingOlderRef.current = true;
+    scrollRestoreRef.current = {
+      chatId: selectedChatId,
+      scrollHeight: el.scrollHeight,
+      scrollTop: el.scrollTop,
+      anchorMessageId,
+      anchorOffsetFromTop,
+    };
+    loadOlderMessages(selectedChatId).then((started) => {
+      if (!started) {
+        fillNoMoreOlderRef.current = true;
+        loadingOlderRef.current = false;
+      }
+    });
+  }, [
+    selectedChatId,
+    messages.length,
+    loadingOlderMessages,
+    loadingNewerMessages,
+    loadOlderMessages,
+    getTopVisibleAnchor,
+    clearScheduledTrim,
+    scrollContainerRef,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      scrollRestoreRef.current = null;
+      trimScrollAnchorRef.current = null;
+      lastScrollDirectionRef.current = null;
+      clearScheduledTrim();
+    };
+  }, [selectedChatId, clearScheduledTrim]);
+
+  useLayoutEffect(() => {
+    const el = scrollContainerRef.current;
+    const listEl = containerRef.current;
+    if (!el || selectedChatId == null) return;
+
+    // 1) Restore after prepend (load older)
     const saved = scrollRestoreRef.current;
-    if (!el || !saved || loadingOlderMessages) return;
-    scrollRestoreRef.current = null;
-    const delta = el.scrollHeight - saved.scrollHeight;
-    if (delta > 0) {
-      const raf = requestAnimationFrame(() => {
-        el.scrollTop = saved.scrollTop + delta;
-      });
-      return () => cancelAnimationFrame(raf);
+    if (saved && saved.chatId === selectedChatId) {
+      scrollRestoreRef.current = null;
+      if (listEl) {
+        isRestoringRef.current = true;
+        restoreAnchorPosition(
+          el,
+          listEl,
+          saved.anchorMessageId,
+          saved.anchorOffsetFromTop ?? 0,
+          {
+            scrollHeight: saved.scrollHeight,
+            scrollTop: saved.scrollTop,
+          },
+        );
+        setTimeout(() => {
+          isRestoringRef.current = false;
+        }, 0);
+      }
+      scheduleTrimAfterScrollEnd();
+      return;
     }
-  });
+
+    // 2) Restore after trim
+    const anchor = trimScrollAnchorRef.current;
+    if (anchor && listEl) {
+      trimScrollAnchorRef.current = null;
+      isRestoringRef.current = true;
+      restoreAnchorPosition(el, listEl, anchor.messageId, anchor.offsetFromTop);
+      setTimeout(() => {
+        isRestoringRef.current = false;
+      }, 0);
+    }
+  }, [
+    messages.length,
+    selectedChatId,
+    restoreAnchorPosition,
+    scheduleTrimAfterScrollEnd,
+    scrollContainerRef,
+  ]);
 
   const reversedMessages = useMemo(() => [...messages].reverse(), [messages]);
   const reelItems = useMemo(
@@ -233,12 +576,15 @@ const MessageList: React.FC = () => {
         <ViewersList viewers={currentViewers} onClose={handleViewersClose} />
       )}
 
-      {messagesLoading && (
+      {/* {messagesLoading && (
         <div className={styles['messages-loading']}>Loading</div>
-      )}
-      {loadingOlderMessages && (
+      )} */}
+      {/* {loadingOlderMessages && (
         <div className={styles['messages-loading']}>Loading older…</div>
       )}
+      {loadingNewerMessages && (
+        <div className={styles['messages-loading']}>Loading newer…</div>
+      )} */}
       {messages.length === 0 && !messagesLoading && (
         <div className={styles['no-messages']}>No messages yet</div>
       )}

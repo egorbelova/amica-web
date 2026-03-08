@@ -2,6 +2,10 @@ import { Icon } from '../Icons/AutoIcons';
 import styles from './SmartMediaLayout.module.scss';
 import type { File } from '@/types';
 
+const fileIcon = (
+  <Icon name='File' className={styles.documentLayoutContentIcon} />
+);
+
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B';
 
@@ -16,7 +20,7 @@ function formatFileSize(bytes: number): string {
 const DocumentLayout = ({ file }: { file: File }) => {
   return (
     <div className={styles.documentLayoutContent}>
-      <Icon name='File' className={styles.documentLayoutContentIcon} />
+      {fileIcon}
       <div className={styles.documentLayoutContentHeader}>
         <span className={styles.documentLayoutContentTitle}>
           <span className={styles.documentLayoutContentTitleFilename}>

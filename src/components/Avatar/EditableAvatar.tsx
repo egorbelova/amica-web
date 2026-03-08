@@ -5,6 +5,8 @@ import AvatarCropModal from './AvatarCropModal';
 import styles from './AvatarCropModal.module.scss';
 import type { DisplayMedia } from '@/types';
 
+const editIcon = <Icon name='Edit' className={styles.uploadIcon} />;
+
 type EditableAvatarProps = {
   displayName: string;
   avatar?: DisplayMedia | null;
@@ -91,7 +93,7 @@ export default function EditableAvatar({
           size={isAvatarRollerOpen ? 'medium' : 'small'}
           onClick={onClick}
         />
-        {isEditable && <Icon name='Edit' className={styles.uploadIcon} />}
+        {isEditable && editIcon}
       </div>
 
       {isEditable && (

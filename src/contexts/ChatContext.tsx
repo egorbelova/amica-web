@@ -49,6 +49,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const [loadingOlderChatId, setLoadingOlderChatId] = useState<number | null>(
     null,
   );
+  const [loadingNewerChatId, setLoadingNewerChatId] = useState<number | null>(
+    null,
+  );
   const nextCursorByChatRef = useRef<Record<number, number | null>>({});
   const initialFetchRef = useRef(true);
   const selectedChatIdRef = useRef(selectedChatId);
@@ -66,6 +69,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     setEditingMessage,
     updateMessages,
     prependMessages,
+    appendMessages,
     updateMessageInChat,
     removeMessageFromChat,
     getCachedMessages,
@@ -84,28 +88,29 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   );
 
   const loadOlderMessages = useCallback(
-    async (chatId: number) => {
+    async (chatId: number): Promise<boolean> => {
       const cursor = nextCursorByChatRef.current[chatId];
-      if (cursor === null || cursor === undefined) return;
+      if (cursor === null || cursor === undefined) return false;
       setLoadingOlderChatId(chatId);
       try {
         const res = await apiFetch(
           `/api/get_chat/${chatId}/?cursor=${cursor}&page_size=25`,
         );
-        if (!res.ok) return;
+        if (!res.ok) return true;
         const data = (await res.json()) as {
           messages?: Message[];
           next_cursor?: number | null;
           media?: Chat['media'];
           members?: Chat['members'];
         };
-        if (selectedChatIdRef.current !== chatId) return;
+        if (selectedChatIdRef.current !== chatId) return true;
         if (data.messages?.length) {
           prependMessages(data.messages, chatId);
         }
         if (data.next_cursor !== undefined) {
           nextCursorByChatRef.current[chatId] = data.next_cursor ?? null;
         }
+        return true;
       } finally {
         setLoadingOlderChatId((prev) => (prev === chatId ? null : prev));
       }
@@ -113,12 +118,77 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     [prependMessages],
   );
 
+  const loadNewerMessages = useCallback(
+    async (chatId: number): Promise<boolean> => {
+      const cached = getCachedMessages(chatId);
+      const newestId =
+        cached?.length ? (cached[cached.length - 1]?.id as number) : undefined;
+      if (newestId == null) return false;
+      setLoadingNewerChatId(chatId);
+      try {
+        const res = await apiFetch(
+          `/api/get_chat/${chatId}/?cursor_newer=${newestId}&page_size=25`,
+        );
+        if (!res.ok) return true;
+        const data = (await res.json()) as {
+          messages?: Message[];
+          next_newer_cursor?: number | null;
+          media?: Chat['media'];
+          members?: Chat['members'];
+        };
+        if (selectedChatIdRef.current !== chatId) return true;
+        if (data.messages?.length) {
+          appendMessages(data.messages, chatId);
+        }
+        return true;
+      } finally {
+        setLoadingNewerChatId((prev) => (prev === chatId ? null : prev));
+      }
+    },
+    [getCachedMessages, appendMessages],
+  );
+
+  const updateChatLastMessage = useCallback(
+    (chatId: number, lastMessage: Message | null) => {
+      setChats((prevChats) =>
+        prevChats.map((chat) =>
+          chat.id === chatId ? { ...chat, last_message: lastMessage } : chat,
+        ),
+      );
+    },
+    [],
+  );
+
+  const updateChatUnreadCount = useCallback(
+    (chatId: number, unreadCount: number) => {
+      setChats((prevChats) =>
+        prevChats.map((chat) =>
+          chat.id === chatId ? { ...chat, unread_count: unreadCount } : chat,
+        ),
+      );
+    },
+    [],
+  );
+
   const trimMessagesToLast = useCallback(
     (chatId: number, keepCount: number) => {
       const cached = getCachedMessages(chatId);
       if (!cached || cached.length <= keepCount) return;
       const trimmed = cached.slice(-keepCount);
-      updateMessages(trimmed, chatId);
+      updateMessages(trimmed, chatId, { updateChatLastMessage: false });
+      nextCursorByChatRef.current[chatId] = (trimmed[0]?.id ?? null) as number | null;
+    },
+    [getCachedMessages, updateMessages],
+  );
+
+  const trimMessagesToRange = useCallback(
+    (chatId: number, startIndex: number, endIndex: number) => {
+      const cached = getCachedMessages(chatId);
+      if (!cached || startIndex < 0 || endIndex >= cached.length) return;
+      if (startIndex > endIndex) return;
+      const trimmed = cached.slice(startIndex, endIndex + 1);
+      if (trimmed.length >= cached.length) return;
+      updateMessages(trimmed, chatId, { updateChatLastMessage: false });
       nextCursorByChatRef.current[chatId] = (trimmed[0]?.id ?? null) as number | null;
     },
     [getCachedMessages, updateMessages],
@@ -163,6 +233,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         }
         if (data.next_cursor !== undefined) {
           nextCursorByChatRef.current[chatId] = data.next_cursor ?? null;
+        } else if (!isPrepend && data.messages?.length) {
+          // Fallback: API may omit next_cursor (e.g. WebSocket); use oldest message id for pagination
+          const oldest = data.messages[0];
+          nextCursorByChatRef.current[chatId] =
+            oldest?.id != null ? (oldest.id as number) : null;
         }
         if (!isPrepend) setSelectedChatId(chatId);
       };
@@ -336,28 +411,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       );
     },
     [selectedChatId],
-  );
-
-  const updateChatLastMessage = useCallback(
-    (chatId: number, lastMessage: Message | null) => {
-      setChats((prevChats) =>
-        prevChats.map((chat) =>
-          chat.id === chatId ? { ...chat, last_message: lastMessage } : chat,
-        ),
-      );
-    },
-    [],
-  );
-
-  const updateChatUnreadCount = useCallback(
-    (chatId: number, unreadCount: number) => {
-      setChats((prevChats) =>
-        prevChats.map((chat) =>
-          chat.id === chatId ? { ...chat, unread_count: unreadCount } : chat,
-        ),
-      );
-    },
-    [],
   );
 
   const fetchChats = useCallback(async () => {
@@ -588,8 +641,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         selectedChatId !== null && loadingChatId === selectedChatId,
       loadingOlderMessages:
         selectedChatId !== null && loadingOlderChatId === selectedChatId,
+      loadingNewerMessages:
+        selectedChatId !== null && loadingNewerChatId === selectedChatId,
       loadOlderMessages,
+      loadNewerMessages,
       trimMessagesToLast,
+      trimMessagesToRange,
       editingMessage,
       setEditingMessage,
       updateMessages,
@@ -607,8 +664,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       selectedChatId,
       loadingChatId,
       loadingOlderChatId,
+      loadingNewerChatId,
       loadOlderMessages,
+      loadNewerMessages,
       trimMessagesToLast,
+      trimMessagesToRange,
       editingMessage,
       setEditingMessage,
       updateMessages,

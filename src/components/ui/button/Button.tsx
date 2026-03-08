@@ -29,6 +29,8 @@ const Button = memo(
       ref,
     ) => {
       const BLUR_DURATION_MS = 150;
+      const { onPointerDown, onPointerUp, onPointerLeave, ...restProps } =
+        props;
 
       const buttonRef = useRef<HTMLButtonElement>(null);
       const releaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -104,30 +106,36 @@ const Button = memo(
           type={type}
           disabled={disabled}
           className={classes}
-          onPointerDown={() => {
+          onPointerDown={(e) => {
             if (releaseTimeoutRef.current) {
               clearTimeout(releaseTimeoutRef.current);
               releaseTimeoutRef.current = null;
             }
+
             setIsPulsing(true);
+            onPointerDown?.(e);
           }}
-          onPointerUp={() => {
+          onPointerUp={(e) => {
             releaseTimeoutRef.current = setTimeout(() => {
               setIsPulsing(false);
               releaseTimeoutRef.current = null;
             }, 70);
+
+            onPointerUp?.(e);
           }}
-          onPointerLeave={() => {
+          onPointerLeave={(e) => {
             if (releaseTimeoutRef.current) {
               clearTimeout(releaseTimeoutRef.current);
               releaseTimeoutRef.current = null;
             }
+
             setIsPulsing(false);
+            onPointerLeave?.(e);
           }}
           style={{
             width: width ? `${width}px` : 'auto',
           }}
-          {...props}
+          {...restProps}
         >
           <span className={styles.content}>{children}</span>
         </button>

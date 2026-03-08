@@ -1,4 +1,9 @@
-import React, { forwardRef, useRef, useImperativeHandle } from 'react';
+import React, {
+  forwardRef,
+  useRef,
+  useImperativeHandle,
+  useMemo,
+} from 'react';
 import { lastMessageDateFormat, unreadCountFormat } from '../../utils/index';
 import Avatar from '../Avatar/Avatar';
 import styles from './ChatListItem.module.scss';
@@ -47,6 +52,21 @@ const ChatListItem = forwardRef<HTMLDivElement, ChatListItemProps>(
           file.category === 'audio',
       )
       .slice(0, 3);
+
+    const readIcon = useMemo(
+      () => <Icon name='Read' className={styles['chat-list-item__read']} />,
+      [],
+    );
+    const unreadIcon = useMemo(
+      () => (
+        <Icon
+          name='Unread'
+          className={styles['chat-list-item__read']}
+          style={{ width: '12px', height: '12px' }}
+        />
+      ),
+      [],
+    );
 
     const unread_counter = unreadCountFormat(unread_count);
     const goToChat = (
@@ -124,15 +144,7 @@ const ChatListItem = forwardRef<HTMLDivElement, ChatListItemProps>(
           <div className={styles['chat-list-item__header']}>
             <div className={styles['chat-list-item__name']}>{displayName}</div>
             {lastMessage?.is_own &&
-              (lastMessage?.is_viewed ? (
-                <Icon name='Read' className={styles['chat-list-item__read']} />
-              ) : (
-                <Icon
-                  name='Unread'
-                  className={styles['chat-list-item__read']}
-                  style={{ width: '12px', height: '12px' }}
-                />
-              ))}
+              (lastMessage?.is_viewed ? readIcon : unreadIcon)}
             <time className={styles['chat-list-item__date']}>
               {lastMessageDate}
             </time>

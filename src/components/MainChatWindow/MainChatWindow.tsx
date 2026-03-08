@@ -22,6 +22,10 @@ import Button from '../ui/button/Button';
 import AppearanceMenu from './AppearanceMenu';
 import Wallpaper from '@/pages/Wallpaper';
 
+const fullscreenExitIcon = (
+  <Icon name='FullscreenExit' />
+);
+
 const MainChatWindow: React.FC = () => {
   const {
     // settings,
@@ -130,7 +134,7 @@ const MainChatWindow: React.FC = () => {
             onClick={handleMinimizeSettings}
             className={styles.minimize}
           >
-            <Icon name='FullscreenExit' />
+            {fullscreenExitIcon}
           </Button>
           <ActiveProfileTab />
         </div>

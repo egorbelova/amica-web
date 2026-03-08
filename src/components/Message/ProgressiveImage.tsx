@@ -3,6 +3,8 @@ import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import styles from './SmartMediaLayout.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 
+const spinnerIcon = <Icon name='Spinner' className={styles.spinner} />;
+
 interface ProgressiveImageProps {
   small: string | null;
   full: string;
@@ -87,7 +89,7 @@ export default function ProgressiveImage({
       {isVisible && (smallLoading || fullLoading || !loaded) && (
         <div className={styles.loading}>
           <div className={styles['loading__background']} />
-          <Icon name='Spinner' className={styles.spinner} />
+          {spinnerIcon}
         </div>
       )}
     </div>

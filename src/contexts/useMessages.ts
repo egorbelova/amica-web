@@ -21,8 +21,13 @@ export interface UseMessagesReturn {
   messages: Message[];
   editingMessage: Message | null;
   setEditingMessage: (message: Message | null) => void;
-  updateMessages: (messages: Message[], chatId: number) => void;
+  updateMessages: (
+    messages: Message[],
+    chatId: number,
+    options?: { updateChatLastMessage?: boolean },
+  ) => void;
   prependMessages: (messages: Message[], chatId: number) => void;
+  appendMessages: (messages: Message[], chatId: number) => void;
   updateMessageInChat: (
     chatId: number,
     messageId: number,
@@ -101,13 +106,19 @@ export function useMessages({
   }, [handleNewMessage]);
 
   const updateMessages = useCallback(
-    (newMessages: Message[], chatId: number) => {
+    (
+      newMessages: Message[],
+      chatId: number,
+      options?: { updateChatLastMessage?: boolean },
+    ) => {
       setMessagesCache((prev) => ({
         ...prev,
         [chatId]: newMessages,
       }));
 
-      if (newMessages.length > 0) {
+      const shouldUpdateChatLastMessage =
+        options?.updateChatLastMessage !== false;
+      if (newMessages.length > 0 && shouldUpdateChatLastMessage) {
         const lastMessage = newMessages[newMessages.length - 1];
         setChats((prevChats) => {
           const targetChat = prevChats.find((chat) => chat.id === chatId);
@@ -142,6 +153,37 @@ export function useMessages({
       });
     },
     [],
+  );
+
+  const appendMessages = useCallback(
+    (newerMessages: Message[], chatId: number) => {
+      if (newerMessages.length === 0) return;
+      setMessagesCache((prev) => {
+        const existing = prev[chatId] ?? [];
+        const existingIds = new Set(existing.map((m) => String(m.id)));
+        const newOnes = newerMessages.filter(
+          (m) => !existingIds.has(String(m.id)),
+        );
+        if (newOnes.length === 0) return prev;
+        return {
+          ...prev,
+          [chatId]: [...existing, ...newOnes],
+        };
+      });
+      const lastMessage = newerMessages[newerMessages.length - 1];
+      setChats((prevChats) => {
+        const targetChat = prevChats.find((chat) => chat.id === chatId);
+        if (!targetChat) return prevChats;
+        const currentLastMessage = targetChat.last_message;
+        const shouldUpdate =
+          !currentLastMessage || lastMessage.id !== currentLastMessage.id;
+        if (!shouldUpdate) return prevChats;
+        return prevChats.map((chat) =>
+          chat.id === chatId ? { ...chat, last_message: lastMessage } : chat,
+        );
+      });
+    },
+    [setChats],
   );
 
   const updateMessageInChat = useCallback(
@@ -246,6 +288,7 @@ export function useMessages({
     setEditingMessage,
     updateMessages,
     prependMessages,
+    appendMessages,
     updateMessageInChat,
     removeMessageFromChat,
     getCachedMessages,

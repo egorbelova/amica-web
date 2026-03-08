@@ -4,6 +4,7 @@ import {
   useState,
   useCallback,
   useLayoutEffect,
+  useMemo,
 } from 'react';
 import { usePrivateMedia } from '@/hooks/usePrivateMedia';
 import styles from './SmartMediaLayout.module.scss';
@@ -243,11 +244,22 @@ export default function AudioLayout({
 
   const volumePercent = volume * 100;
 
-  const getVolumeIcon = () => {
-    if (volume === 0) return 'SoundMuteFill';
-    if (volume < 0.5) return 'SoundMinFill';
-    return 'SoundMaxFill';
-  };
+  const pauseIcon = useMemo(() => <Icon name='Pause' />, []);
+  const playIcon = useMemo(() => <Icon name='Play' />, []);
+  const volumeIcon = useMemo(
+    () => (
+      <Icon
+        name={
+          volume === 0
+            ? 'SoundMuteFill'
+            : volume < 0.5
+              ? 'SoundMinFill'
+              : 'SoundMaxFill'
+        }
+      />
+    ),
+    [volume],
+  );
 
   const setVolumeByClientX = (clientX: number) => {
     const rect = volumeRef.current?.getBoundingClientRect();
@@ -381,11 +393,7 @@ export default function AudioLayout({
       {cover && <img src={cover} alt='' className={styles.cover} />}
 
       <button onClick={togglePlay} className={styles.play}>
-        {isAudioPlaying && currentAudioId === id ? (
-          <Icon name='Pause' />
-        ) : (
-          <Icon name='Play' />
-        )}
+        {isAudioPlaying && currentAudioId === id ? pauseIcon : playIcon}
       </button>
 
       <div className={styles.timeline}>
@@ -425,9 +433,7 @@ export default function AudioLayout({
 
           {canChangeVolume && (
             <div className={styles.volumeWrapper}>
-              <button className={styles.volumeButton}>
-                <Icon name={getVolumeIcon()} />
-              </button>
+              <button className={styles.volumeButton}>{volumeIcon}</button>
 
               <div className={styles.volumePopover}>
                 <div

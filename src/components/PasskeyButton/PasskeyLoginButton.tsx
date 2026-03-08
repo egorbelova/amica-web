@@ -16,6 +16,7 @@ function bufferToBase64Url(buffer: ArrayBuffer): string {
     .replace(/=+$/, '');
 }
 
+import { useMemo } from 'react';
 import { Icon } from '@/components/Icons/AutoIcons';
 
 interface PasskeyLoginButtonProps {
@@ -23,6 +24,10 @@ interface PasskeyLoginButtonProps {
 }
 
 export function PasskeyLoginButton({ styles }: PasskeyLoginButtonProps) {
+  const passkeyIcon = useMemo(
+    () => <Icon name='Passkey' className={styles?.['passkey-icon']} />,
+    [styles],
+  );
   const handleLogin = async () => {
     try {
       const startRes = await fetch('/api/passkey/auth/start/', {
@@ -91,7 +96,7 @@ export function PasskeyLoginButton({ styles }: PasskeyLoginButtonProps) {
 
   return (
     <div onClick={handleLogin} className={styles?.['passkey-login-button']}>
-      <Icon name='Passkey' className={styles?.['passkey-icon']} />
+      {passkeyIcon}
       Sign in with Passkey
     </div>
   );

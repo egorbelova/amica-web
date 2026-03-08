@@ -11,6 +11,8 @@ import { Dropdown } from '../Dropdown/Dropdown';
 import ColorPicker from './ColorPicker';
 import Button from '../ui/button/Button';
 
+const crossIcon = <Icon name='Cross' />;
+
 export default function ProfileAppearance() {
   const { t } = useTranslation();
   const {
@@ -192,7 +194,7 @@ export default function ProfileAppearance() {
                     className={styles.removeWallpaper}
                     onClick={removeWallpaper.bind(null, wall.id as string)}
                   >
-                    <Icon name='Cross' />
+                    {crossIcon}
                   </div>
                 </div>
               ))}

@@ -15,6 +15,8 @@ const formatPreviewTitle = (filesCount: number) => {
   return `${filesCount} Files`;
 };
 
+const crossIcon = <Icon name='Cross' />;
+
 const FilesPreview: React.FC<FilesPreviewProps> = ({
   files,
   onClearAll,
@@ -89,7 +91,7 @@ const FilesPreview: React.FC<FilesPreviewProps> = ({
                 type='button'
                 className={styles['remove-file-btn']}
               >
-                <Icon name='Cross' />
+                {crossIcon}
               </button>
             </div>
           );

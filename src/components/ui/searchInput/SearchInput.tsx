@@ -5,6 +5,8 @@ import { Icon } from '@/components/Icons/AutoIcons';
 import './SearchInput.css';
 import { useSearchContext } from '@/contexts/search/SearchContextCore';
 
+const searchIcon = <Icon name='Search' className='search_icon' />;
+
 const UserSearchInput = ({ placeholder = 'Search' }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { term, onChange, clear } = useSearchContext();
@@ -16,7 +18,7 @@ const UserSearchInput = ({ placeholder = 'Search' }) => {
 
       <div className='search_field_div'>
         <div className='search_icon_div'>
-          <Icon name='Search' className='search_icon' />
+          {searchIcon}
         </div>
         <div className='search_field_input'>
           <input

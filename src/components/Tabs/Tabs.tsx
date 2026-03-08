@@ -10,6 +10,12 @@ import Button from '../ui/button/Button';
 
 const NEW_WALLPAPER_HEIGHT = '50px';
 
+const contactHeartIcon = <Icon name='ContactHeart' />;
+const chatsIcon = <Icon name='Chats' />;
+const wallpaperIcon = (
+  <Icon name='Wallpaper' className={styles['new-wallpaper__icon']} />
+);
+
 type TabValue = 'contacts' | 'chats' | 'profile';
 
 type TabConfig = {
@@ -46,9 +52,9 @@ export function Tabs() {
     {
       id: 'contacts',
       label: t('tabs.contacts'),
-      icon: <Icon name='ContactHeart' />,
+      icon: contactHeartIcon,
     },
-    { id: 'chats', label: t('tabs.chats'), icon: <Icon name='Chats' /> },
+    { id: 'chats', label: t('tabs.chats'), icon: chatsIcon },
     { id: 'profile', label: t('tabs.profile'), avatar: true },
   ];
 
@@ -63,7 +69,7 @@ export function Tabs() {
               wallpaperInputRef.current?.click();
             }}
           >
-            <Icon name='Wallpaper' className={styles['new-wallpaper__icon']} />
+            {wallpaperIcon}
             Add New Wallpaper
           </Button>
           <input

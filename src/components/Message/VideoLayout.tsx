@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Icon } from '../Icons/AutoIcons';
 import { JWTVideo } from './JWTVideo';
 import { useSettings } from '@/contexts/settings/context';
@@ -23,6 +23,13 @@ export default function VideoLayout({
   const progressRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const wasPlayingBeforeDrag = useRef(false);
+
+  const soundIcon = useMemo(
+    () => (
+      <Icon name={muted ? 'SoundMuteFill' : 'SoundMaxFill'} />
+    ),
+    [muted],
+  );
 
   const seekByClientX = (clientX: number) => {
     const video = videoRef.current;
@@ -209,7 +216,7 @@ export default function VideoLayout({
             cursor: 'pointer',
           }}
         >
-          <Icon name={muted ? 'SoundMuteFill' : 'SoundMaxFill'} />
+          {soundIcon}
         </div>
       )}
     </div>

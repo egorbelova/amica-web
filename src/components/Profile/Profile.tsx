@@ -9,6 +9,16 @@ import { usePageStack } from '@/contexts/useStackHistory';
 import { ActiveProfileTab } from './ActiveProfileTab';
 import Button from '@/components/ui/button/Button';
 
+const languageIcon = <Icon name='Language' />;
+const privacyIcon = <Icon name='Privacy' />;
+const appearanceIcon = <Icon name='Appearance' />;
+const sessionsIcon = <Icon name='Sessions' />;
+const arrowBackIcon = (
+  <Icon name='Arrow' style={{ transform: 'rotate(180deg)' }} />
+);
+const fullscreenIcon = <Icon name='Fullscreen' />;
+const arrowNavIcon = <Icon name='Arrow' className={styles.arrow} />;
+
 export default function Profile() {
   const { t, locale } = useTranslation();
   const { user } = useUser();
@@ -40,17 +50,17 @@ export default function Profile() {
         ' (' +
         availableLanguages.find((l) => l.code === locale)?.name +
         ')',
-      icon: <Icon name='Language' />,
+      icon: languageIcon,
     },
     {
       id: 'privacy' as const,
       label: t('profileTabs.privacy'),
-      icon: <Icon name='Privacy' />,
+      icon: privacyIcon,
     },
     {
       id: 'appearance' as const,
       label: t('profileTabs.appearance'),
-      icon: <Icon name='Appearance' />,
+      icon: appearanceIcon,
     },
     // {
     //   id: 'notifications' as const,
@@ -60,7 +70,7 @@ export default function Profile() {
     {
       id: 'active_sessions' as const,
       label: t('profileTabs.active_sessions'),
-      icon: <Icon name='Sessions' />,
+      icon: sessionsIcon,
     },
   ];
 
@@ -81,7 +91,7 @@ export default function Profile() {
             onClick={() => setActiveProfileTab(null)}
             className={styles.close}
           >
-            <Icon name='Arrow' style={{ transform: 'rotate(180deg)' }} />
+            {arrowBackIcon}
           </Button>
           // <button
           //   type='button'
@@ -101,7 +111,7 @@ export default function Profile() {
             className={styles.maximize}
             onClick={() => setSettingsFullWindow(true)}
           >
-            <Icon name='Fullscreen' />
+            {fullscreenIcon}
           </Button>
         )}
       </div>
@@ -121,7 +131,7 @@ export default function Profile() {
                 {tab.icon}
                 <span>{tab.label}</span>
               </div>
-              <Icon name='Arrow' className={styles.arrow} />
+              {arrowNavIcon}
             </button>
           ))}
         </nav>

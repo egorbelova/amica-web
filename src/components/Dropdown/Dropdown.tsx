@@ -1,4 +1,10 @@
-import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+} from 'react';
 import { createPortal } from 'react-dom';
 import styles from './Dropdown.module.scss';
 import { Icon, type IconName } from '../Icons/AutoIcons';
@@ -210,6 +216,14 @@ export function Dropdown<T extends string | number>({
 
   const selected = items.find((item) => item.value === value);
 
+  const selectedIcon = useMemo(
+    () =>
+      selected?.icon ? (
+        <Icon name={selected.icon} className={styles.icon} />
+      ) : null,
+    [selected],
+  );
+
   return (
     <div className={`${styles.dropdown} ${dropdownStyles}`} ref={containerRef}>
       <Button
@@ -221,9 +235,7 @@ export function Dropdown<T extends string | number>({
       >
         {selected ? (
           <>
-            {selected.icon && (
-              <Icon name={selected.icon} className={styles.icon} />
-            )}
+            {selected.icon && selectedIcon}
             {selected.label}
           </>
         ) : (

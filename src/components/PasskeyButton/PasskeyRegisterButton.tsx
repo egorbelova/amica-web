@@ -2,6 +2,8 @@ import { useUser } from '../../contexts/UserContextCore';
 import styles from './PasskeyButton.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 
+const passkeyIcon = <Icon name='Passkey' />;
+
 function base64UrlToUint8Array(base64UrlString: string) {
   const base64 =
     base64UrlString.replace(/-/g, '+').replace(/_/g, '/') +
@@ -91,7 +93,7 @@ export default function PasskeyRegisterButton() {
 
   return (
     <button onClick={handleRegister} className={styles.passkeyButton}>
-      <Icon name='Passkey' />
+      {passkeyIcon}
       Add Passkey
     </button>
   );

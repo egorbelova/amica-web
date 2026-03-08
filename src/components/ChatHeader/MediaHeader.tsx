@@ -4,6 +4,10 @@ import { Icon } from '../Icons/AutoIcons';
 import AudioEqualizer from './AudioEqualizer';
 import Button from '../ui/button/Button';
 
+const pauseIcon = <Icon name='Pause' />;
+const playIcon = <Icon name='Play' />;
+const crossIcon = <Icon name='Cross' className={styles.close} />;
+
 export const MediaHeader: React.FC = () => {
   const {
     isPlaying,
@@ -32,7 +36,7 @@ export const MediaHeader: React.FC = () => {
             <img src={coverUrl} className={styles['media-header__cover']} />
           )}
 
-          {isPlaying ? <Icon name='Pause' /> : <Icon name='Play' />}
+          {isPlaying ? pauseIcon : playIcon}
         </button>
         {currentTrack && (
           <div className={styles['media-header__current']}>
@@ -47,7 +51,7 @@ export const MediaHeader: React.FC = () => {
           onClick={() => setCurrentAudioId(null)}
           className={styles['media-header__close']}
         >
-          <Icon name='Cross' className={styles.close} />
+          {crossIcon}
         </Button>
       </div>
     </div>

@@ -29,49 +29,56 @@ const SideBarMediaHeader: React.FC<SideBarMediaHeaderProps> = ({
   filterItems,
   effectiveFilterType,
   onFilterChange,
-}) => (
-  <div className={styles.header}>
-    <Button
-      key="sidebar-header-button"
-      onClick={onBackOrClose}
-      className={styles.button}
-    >
-      {interlocutorEditVisible ? (
-        <Icon name="Arrow" style={{ transform: 'rotate(180deg)' }} />
+}) => {
+  const backButtonIcon = React.useMemo(
+    () =>
+      interlocutorEditVisible ? (
+        <Icon name='Arrow' style={{ transform: 'rotate(180deg)' }} />
       ) : (
-        <Icon name="Cross" />
-      )}
-    </Button>
-
-    {showEditButton && !attachmentsActive && (
+        <Icon name='Cross' />
+      ),
+    [interlocutorEditVisible],
+  );
+  return (
+    <div className={styles.header}>
       <Button
-        key="sidebar-header-button-edit"
-        className={`${styles.button} ${
-          interlocutorEditVisible ? styles.hidden : ''
-        }`}
-        onClick={onEditClick}
+        key='sidebar-header-button'
+        onClick={onBackOrClose}
+        className={styles.button}
       >
-        {editLabel}
+        {backButtonIcon}
       </Button>
-    )}
 
-    {attachmentsActive && showFilterDropdown && (
-      <>
-        <Dropdown
-          items={filterItems}
-          placeholder=""
-          value={
-            filterItems.find((item) => item.label === effectiveFilterType)
-              ?.value ?? 0
-          }
-          onChange={(value) => {
-            const selected = filterItems.find((item) => item.value === value);
-            if (selected) onFilterChange(selected.label);
-          }}
-        />
-      </>
-    )}
-  </div>
-);
+      {showEditButton && !attachmentsActive && (
+        <Button
+          key='sidebar-header-button-edit'
+          className={`${styles.button} ${
+            interlocutorEditVisible ? styles.hidden : ''
+          }`}
+          onClick={onEditClick}
+        >
+          {editLabel}
+        </Button>
+      )}
+
+      {attachmentsActive && showFilterDropdown && (
+        <>
+          <Dropdown
+            items={filterItems}
+            placeholder=''
+            value={
+              filterItems.find((item) => item.label === effectiveFilterType)
+                ?.value ?? 0
+            }
+            onChange={(value) => {
+              const selected = filterItems.find((item) => item.value === value);
+              if (selected) onFilterChange(selected.label);
+            }}
+          />
+        </>
+      )}
+    </div>
+  );
+};
 
 export default memo(SideBarMediaHeader);

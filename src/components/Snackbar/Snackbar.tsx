@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import styles from './Snackbar.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 
+const unreadIcon = <Icon name='Unread' className={styles.icon} />;
+
 const Snackbar = ({
   message,
   open,
@@ -35,7 +37,7 @@ const Snackbar = ({
       ref={ref}
       className={`${styles.snackbar} ${open ? styles.show : styles.hide}`}
     >
-      <Icon name='Unread' className={styles.icon} />
+      {unreadIcon}
       {message}
     </div>
   );

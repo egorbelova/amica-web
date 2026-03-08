@@ -1,4 +1,11 @@
-import React, { useRef, useState, useCallback, useEffect, memo } from 'react';
+import React, {
+  useRef,
+  useState,
+  useCallback,
+  useEffect,
+  memo,
+  useMemo,
+} from 'react';
 import type { Message } from '@/types';
 import { websocketManager } from '../../utils/websocket-manager';
 import {
@@ -414,6 +421,40 @@ const MessageInput: React.FC = () => {
     setFiles((prev) => [...prev, ...newFiles]);
   }, []);
 
+  const attachmentIcon = useMemo(
+    () => <Icon name='Attachment' className={styles['input_attach']} />,
+    [],
+  );
+  const sendIcon = useMemo(
+    () => <Icon name='SendMobile' className={styles['send_svg']} />,
+    [],
+  );
+  const crossIcon = useMemo(() => <Icon name='Cross' />, []);
+  const editIcon = useMemo(
+    () => <Icon name='Edit' className={styles['edit-bar-icon']} />,
+    [],
+  );
+
+  const fileButtonContent = useMemo(
+    () => (
+      <>
+        <input
+          type='file'
+          multiple
+          ref={fileInputRef}
+          onChange={handleFileUpload}
+          style={{ display: 'none' }}
+        />
+        {attachmentIcon}
+      </>
+    ),
+    [attachmentIcon],
+  );
+
+  useEffect(() => {
+    editableRef.current?.blur();
+  }, []);
+
   return (
     <>
       <DropZone onFiles={handleFiles} />
@@ -433,29 +474,19 @@ const MessageInput: React.FC = () => {
             onSubmit={handleSubmit}
             ref={formRef}
           >
-            <button
+            <Button
               className={styles['file_div']}
               onClick={handleFileClick}
-              type='button'
               onKeyDown={(e) => e.key === 'Enter' && handleFileClick()}
             >
-              <input
-                type='file'
-                multiple
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                style={{ display: 'none' }}
-                // accept='image/*,video/*,audio/*,.pdf,.doc,.docx'
-              />
-              <Icon name='Attachment' className={styles['input_attach']} />
-            </button>
+              {fileButtonContent}
+            </Button>
 
             <div className={styles['textarea_container']}>
               {editingMessage && (
                 <div className={styles['edit-bar']}>
                   <span className={styles['edit-bar-label']}>
-                    <Icon name='Edit' className={styles['edit-bar-icon']} />{' '}
-                    Editing message
+                    {editIcon} Editing message
                   </span>
                   <Button
                     key={'send-area-cancel-edit-button'}
@@ -463,7 +494,7 @@ const MessageInput: React.FC = () => {
                     aria-label='Cancel edit'
                     className={styles['edit-bar-cancel']}
                   >
-                    <Icon name='Cross' />
+                    {crossIcon}
                   </Button>
                 </div>
               )}
@@ -477,6 +508,7 @@ const MessageInput: React.FC = () => {
                   contentEditable
                   suppressContentEditableWarning
                   spellCheck={false}
+                  autoFocus={false}
                 />
                 <span
                   className={`${styles['textarea_placeholder']} ${message ? styles.hidden : ''}`}
@@ -486,15 +518,17 @@ const MessageInput: React.FC = () => {
               </div>
             </div>
 
-            <button
-              type='button'
-              onPointerDown={handleSubmit}
+            <Button
+              onPointerDown={(e) => {
+                e.preventDefault();
+              }}
+              onClick={handleSubmit}
               className={styles['input_submit']}
               disabled={(!message.trim() && files.length === 0) || isUploading}
               aria-label='Send Message'
             >
-              <Icon name='SendMobile' className={styles['send_svg']} />
-            </button>
+              {sendIcon}
+            </Button>
           </form>
         </div>
       </div>

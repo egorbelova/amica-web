@@ -34,7 +34,11 @@ export interface MessagesDataContextType {
 
 /** Message actions – stable references. Use in SendArea etc. to avoid re-renders when one message is updated. */
 export interface MessagesActionsContextType {
-  updateMessages: (messages: Message[], chatId: number) => void;
+  updateMessages: (
+    messages: Message[],
+    chatId: number,
+    options?: { updateChatLastMessage?: boolean },
+  ) => void;
   prependMessages: (messages: Message[], chatId: number) => void;
   updateMessageInChat: (
     chatId: number,
@@ -59,11 +63,22 @@ export interface ChatMessagesContextType {
   messagesCache: { [roomId: number]: Message[] };
   messagesLoading: boolean;
   loadingOlderMessages: boolean;
-  loadOlderMessages: (chatId: number) => Promise<void>;
+  loadingNewerMessages: boolean;
+  loadOlderMessages: (chatId: number) => Promise<boolean>;
+  loadNewerMessages: (chatId: number) => Promise<boolean>;
   trimMessagesToLast: (chatId: number, keepCount: number) => void;
+  trimMessagesToRange: (
+    chatId: number,
+    startIndex: number,
+    endIndex: number,
+  ) => void;
   editingMessage: Message | null;
   setEditingMessage: (message: Message | null) => void;
-  updateMessages: (messages: Message[], chatId: number) => void;
+  updateMessages: (
+    messages: Message[],
+    chatId: number,
+    options?: { updateChatLastMessage?: boolean },
+  ) => void;
   prependMessages: (messages: Message[], chatId: number) => void;
   updateMessageInChat: (
     chatId: number,

@@ -12,6 +12,8 @@ interface ChatHeaderProps {
   onChatInfoClick?: () => void;
 }
 
+const arrowIcon = <Icon name='Arrow' />;
+
 const ChatHeader: React.FC<ChatHeaderProps> = ({
   onGoHome,
   onChatInfoClick,
@@ -44,7 +46,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           onClick={handleGoHome}
           className={styles['chat-header__back-button']}
         >
-          <Icon name='Arrow' />
+          {arrowIcon}
         </Button>
 
         <div className={styles['chat-header__title']}>

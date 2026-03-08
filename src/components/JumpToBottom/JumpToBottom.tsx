@@ -3,6 +3,8 @@ import { useJump } from '@/hooks/useJump';
 import { Icon } from '../Icons/AutoIcons';
 import Button from '../ui/button/Button';
 
+const arrowIcon = <Icon name='Arrow' className={styles.icon} />;
+
 export default function JumpToBottom() {
   const { isVisible, jumpToBottom } = useJump();
 
@@ -14,7 +16,7 @@ export default function JumpToBottom() {
       }`}
       onClick={jumpToBottom}
     >
-      <Icon name='Arrow' className={styles.icon} />
+      {arrowIcon}
     </Button>
   );
 }

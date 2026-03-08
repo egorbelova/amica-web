@@ -6,6 +6,16 @@ import styles from './AppearanceMenu.module.scss';
 
 const tabs: Array<'chats' | 'appearance'> = ['chats', 'appearance'];
 
+const crossIcon = <Icon name='Cross' />;
+const arrowLeftIcon = (
+  <Icon
+    name='Arrow'
+    className={styles.arrowIcon}
+    style={{ transform: 'rotate(180deg)' }}
+  />
+);
+const arrowRightIcon = <Icon name='Arrow' className={styles.arrowIcon} />;
+
 const AppearanceMenu: React.FC = () => {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(true);
@@ -31,7 +41,7 @@ const AppearanceMenu: React.FC = () => {
         className={styles.menuSwitch}
         onClick={() => setVisible(!visible)}
       >
-        {visible ? <Icon name='Cross' /> : '?'}
+        {visible ? crossIcon : '?'}
       </Button>
       {!visible && (
         <div className={styles.noChatText}>
@@ -56,11 +66,7 @@ const AppearanceMenu: React.FC = () => {
               className={styles.switchButton}
               onClick={handlePrevTab}
             >
-              <Icon
-                name='Arrow'
-                className={styles.arrowIcon}
-                style={{ transform: 'rotate(180deg)' }}
-              />
+              {arrowLeftIcon}
               {t('tipsMenu.previousTip')}
             </Button>
             <Button
@@ -69,7 +75,7 @@ const AppearanceMenu: React.FC = () => {
               onClick={handleNextTab}
             >
               {t('tipsMenu.nextTip')}
-              <Icon name='Arrow' className={styles.arrowIcon} />
+              {arrowRightIcon}
             </Button>
           </div>
         </div>
