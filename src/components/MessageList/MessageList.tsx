@@ -421,10 +421,6 @@ const MessageList: React.FC<MessageListProps> = ({
         );
     };
     const onTouchStart = (e: TouchEvent) => {
-      if (isSelectionModeRef.current) {
-        handlersRef.current.handleTouchEnd();
-        return;
-      }
       if (e.touches.length === 2) {
         handlersRef.current.handleTouchEnd();
         const msgEl = (e.target as HTMLElement).closest('[data-message-id]');
@@ -441,6 +437,10 @@ const MessageList: React.FC<MessageListProps> = ({
         };
         return;
       }
+      if (isSelectionModeRef.current) {
+        handlersRef.current.handleTouchEnd();
+        return;
+      }
       selectionGestureCandidateRef.current = null;
       const msgEl = (e.target as HTMLElement).closest('[data-message-id]');
       const id = msgEl?.getAttribute('data-message-id');
@@ -453,7 +453,12 @@ const MessageList: React.FC<MessageListProps> = ({
         );
     };
     const onTouchMove = (e: TouchEvent) => {
-      if (e.touches.length !== 2) {
+      const hasTwoFingerSelectionFlow =
+        e.touches.length === 2 &&
+        (selectionGestureCandidateRef.current?.kind === 'touch' ||
+          dragSelectionModeRef.current != null);
+
+      if (!hasTwoFingerSelectionFlow) {
         if (
           selectionGestureCandidateRef.current?.kind === 'touch' &&
           dragSelectionModeRef.current == null
@@ -462,13 +467,14 @@ const MessageList: React.FC<MessageListProps> = ({
         }
         return;
       }
+
+      e.preventDefault();
+
       const center = getTouchesCenter(e.touches);
       if (maybeActivateSelectionGesture(center.x, center.y)) {
-        e.preventDefault();
         return;
       }
       if (dragSelectionModeRef.current != null) {
-        e.preventDefault();
         applyPointerSelectionAtPoint(center.x, center.y);
       }
     };
