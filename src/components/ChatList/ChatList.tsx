@@ -1,4 +1,4 @@
-import React, { memo, useLayoutEffect, useRef } from 'react';
+import React, { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import ChatListItem from './ChatListItem';
 import { useChatMeta, useSelectedChat } from '@/contexts/ChatContextCore';
 import type { Chat, DisplayMedia } from '@/types';
@@ -18,11 +18,15 @@ const ChatListContent = memo(function ChatListContent({
   selectedChatId,
   setChatItemRef,
   onChatClick,
+  shouldAnimateOnInit,
+  shouldHideBeforeInitAnimation,
 }: {
   displayChats: Chat[];
   selectedChatId: number | null;
   setChatItemRef: (chatId: number, el: HTMLDivElement | null) => void;
   onChatClick: (chatId: number) => void;
+  shouldAnimateOnInit: boolean;
+  shouldHideBeforeInitAnimation: boolean;
 }) {
   return (
     <>
@@ -38,6 +42,8 @@ const ChatListContent = memo(function ChatListContent({
           onChatClick={onChatClick}
           ref={(el) => setChatItemRef(chat.id, el)}
           index={index}
+          shouldAnimateOnInit={shouldAnimateOnInit}
+          shouldHideBeforeInitAnimation={shouldHideBeforeInitAnimation}
         />
       ))}
     </>
@@ -52,10 +58,35 @@ function ChatList() {
   const sortedChats = useSortedChats(chats);
   const { displayChats, setChatItemRef } = useAnimatedChatOrder(sortedChats);
   const shouldShowInitialLoading = loading && chats.length === 0;
+  const [hasPlayedInitialAnimation, setHasPlayedInitialAnimation] =
+    useState(false);
+  const [isInitialAnimationActive, setIsInitialAnimationActive] = useState(false);
+  const shouldStartInitialAnimation =
+    !hasPlayedInitialAnimation && sortedChats.length > 0;
+  const shouldAnimateOnInit = shouldStartInitialAnimation && isInitialAnimationActive;
+  const shouldHideBeforeInitAnimation =
+    shouldStartInitialAnimation && !isInitialAnimationActive;
 
   useLayoutEffect(() => {
     fetchChats();
   }, [fetchChats]);
+
+  useEffect(() => {
+    if (!shouldStartInitialAnimation) return;
+
+    const activationId = window.setTimeout(() => {
+      setIsInitialAnimationActive(true);
+    }, 0);
+    const timeoutId = window.setTimeout(() => {
+      setIsInitialAnimationActive(false);
+      setHasPlayedInitialAnimation(true);
+    }, 450);
+
+    return () => {
+      window.clearTimeout(activationId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [shouldStartInitialAnimation]);
 
   const chatListRef = useRef<HTMLDivElement>(null);
   const isActive = chats.length > 0 && term.length === 0;
@@ -86,6 +117,8 @@ function ChatList() {
           selectedChatId={selectedChatId}
           setChatItemRef={setChatItemRef}
           onChatClick={handleChatClick}
+          shouldAnimateOnInit={shouldAnimateOnInit}
+          shouldHideBeforeInitAnimation={shouldHideBeforeInitAnimation}
         />
       )}
     </div>

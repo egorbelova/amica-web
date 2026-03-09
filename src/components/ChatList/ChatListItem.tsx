@@ -1,9 +1,4 @@
-import React, {
-  forwardRef,
-  useRef,
-  useImperativeHandle,
-  useMemo,
-} from 'react';
+import React, { forwardRef, useRef, useImperativeHandle, useMemo } from 'react';
 import { lastMessageDateFormat, unreadCountFormat } from '../../utils/index';
 import Avatar from '../Avatar/Avatar';
 import styles from './ChatListItem.module.scss';
@@ -13,6 +8,8 @@ import { Icon } from '../Icons/AutoIcons';
 
 export interface ChatListItemProps {
   index?: number;
+  shouldAnimateOnInit?: boolean;
+  shouldHideBeforeInitAnimation?: boolean;
   chatId: number;
   displayPrimaryMedia?: DisplayMedia;
   displayName: string;
@@ -26,6 +23,8 @@ const ChatListItem = forwardRef<HTMLDivElement, ChatListItemProps>(
   (
     {
       index,
+      shouldAnimateOnInit = false,
+      shouldHideBeforeInitAnimation = false,
       chatId,
       displayPrimaryMedia,
       displayName,
@@ -129,6 +128,8 @@ const ChatListItem = forwardRef<HTMLDivElement, ChatListItemProps>(
       <div
         className={`${styles['chat-list-item']} ${
           isActive ? styles['chat-list-item--active'] : ''
+        } ${shouldHideBeforeInitAnimation ? styles['chat-list-item--pre-init-hidden'] : ''} ${
+          shouldAnimateOnInit ? styles['chat-list-item--animate-in'] : ''
         }`}
         onMouseDown={goToChat}
         style={{ '--index': `${index}` } as React.CSSProperties}

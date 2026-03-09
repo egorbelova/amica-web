@@ -5,13 +5,7 @@
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  --animation-duration: 0.4s;
-  animation-duration: var(--animation-duration);
-  animation-timing-function: ease;
-  animation-fill-mode: forwards;
-  animation-name: chatListItemAnimation;
-  animation-delay: calc(var(--index, 0) * 0.02s);
-  opacity: 0;
+  opacity: 1;
 
   cursor: pointer;
   position: relative;
@@ -27,6 +21,18 @@
     border-bottom 0.3s,
     color 0.3s;
   transform-origin: center top;
+  will-change: transform;
+
+  &--animate-in {
+    --animation-duration: 0.4s;
+    opacity: 0;
+    animation: chatListItemAnimation var(--animation-duration) ease forwards;
+    animation-delay: calc(var(--index, 0) * 0.02s);
+  }
+
+  &--pre-init-hidden {
+    opacity: 0;
+  }
 
   &__message-text {
     color: inherit;

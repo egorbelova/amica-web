@@ -69,13 +69,16 @@ export function useAnimatedChatOrder(sortedChats: Chat[]) {
           const dx = prevRect.left - newRect.left;
           const dy = prevRect.top - newRect.top;
           if (dx !== 0 || dy !== 0) {
-            el.style.transition = 'none';
-            el.style.transform = `translate(${dx}px, ${dy}px)`;
-            void el.offsetHeight;
-            requestAnimationFrame(() => {
-              el.style.transition = 'transform 0.3s ease';
-              el.style.transform = '';
-            });
+            el.animate(
+              [
+                { transform: `translate(${dx}px, ${dy}px)` },
+                { transform: 'translate(0, 0)' },
+              ],
+              {
+                duration: 300,
+                easing: 'ease',
+              },
+            );
           }
         });
       });

@@ -120,6 +120,12 @@
   font-size: 0.875rem;
   white-space: nowrap;
   color: var(--textarea_font);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .selection-bar-cancel,
