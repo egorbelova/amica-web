@@ -51,16 +51,17 @@ function ChatList() {
 
   const sortedChats = useSortedChats(chats);
   const { displayChats, setChatItemRef } = useAnimatedChatOrder(sortedChats);
+  const shouldShowInitialLoading = loading && chats.length === 0;
 
   useLayoutEffect(() => {
     fetchChats();
   }, [fetchChats]);
 
   const chatListRef = useRef<HTMLDivElement>(null);
-  const isActive = !loading && chats.length > 0 && term.length === 0;
+  const isActive = chats.length > 0 && term.length === 0;
   const isEmpty = displayChats.length === 0;
 
-  if (loading) return <ChatListLoading />;
+  if (shouldShowInitialLoading) return <ChatListLoading />;
   if (error) return <ChatListError message={error} onRetry={fetchChats} />;
   if (sortedChats.length === 0 && isEmpty) {
     return <ChatListEmpty text='No chats' />;

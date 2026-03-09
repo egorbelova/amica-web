@@ -92,7 +92,15 @@ export function Tabs() {
             className={`${styles.tab} ${
               activeTab === tab.id ? styles.active : ''
             }`}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={(e) => {
+              const el = e.currentTarget;
+
+              el.classList.remove(styles.active);
+              void el.offsetWidth;
+              el.classList.add(styles.active);
+
+              setActiveTab(tab.id);
+            }}
             type='button'
           >
             {tab.icon && !tab.avatar && (
