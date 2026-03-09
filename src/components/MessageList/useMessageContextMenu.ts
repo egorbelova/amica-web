@@ -24,6 +24,7 @@ export interface UseMessageContextMenuResult {
   menuPos: { x: number; y: number } | null;
   menuVisible: boolean;
   isMenuHiding: boolean;
+  menuInstanceKey: number;
   handleClose: () => void;
   handleAnimationEnd: () => void;
   handleMessageContextMenu: (
@@ -32,6 +33,7 @@ export interface UseMessageContextMenuResult {
   ) => void;
   handleTouchStart: (e: React.TouchEvent, msg: MessageType) => void;
   handleTouchEnd: () => void;
+  consumeNextContextMenuSuppression: () => boolean;
 }
 
 export function useMessageContextMenu({
@@ -48,7 +50,9 @@ export function useMessageContextMenu({
   const [menuVisible, setMenuVisible] = useState(false);
   const [isMenuHiding, setIsMenuHiding] = useState(false);
   const [menuMessage, setMenuMessage] = useState<MessageType | null>(null);
+  const [menuInstanceKey, setMenuInstanceKey] = useState(0);
   const timerRef = useRef<number | null>(null);
+  const suppressNextContextMenuRef = useRef(false);
 
   const handleClose = useCallback(() => setIsMenuHiding(true), []);
 
@@ -283,6 +287,7 @@ export function useMessageContextMenu({
           x: 'touches' in e ? e.touches[0].clientX : e.clientX,
           y: 'touches' in e ? e.touches[0].clientY : e.clientY,
         });
+        setMenuInstanceKey((prev) => prev + 1);
         setMenuVisible(true);
         setIsMenuHiding(false);
       }, 0);
@@ -293,6 +298,7 @@ export function useMessageContextMenu({
   const handleTouchStart = useCallback(
     (e: React.TouchEvent, msg: MessageType) => {
       timerRef.current = window.setTimeout(() => {
+        suppressNextContextMenuRef.current = true;
         handleMessageContextMenu(e, msg);
       }, 200);
     },
@@ -306,15 +312,23 @@ export function useMessageContextMenu({
     }
   }, []);
 
+  const consumeNextContextMenuSuppression = useCallback(() => {
+    if (!suppressNextContextMenuRef.current) return false;
+    suppressNextContextMenuRef.current = false;
+    return true;
+  }, []);
+
   return {
     menuItems,
     menuPos,
     menuVisible,
     isMenuHiding,
+    menuInstanceKey,
     handleClose,
     handleAnimationEnd,
     handleMessageContextMenu,
     handleTouchStart,
     handleTouchEnd,
+    consumeNextContextMenuSuppression,
   };
 }

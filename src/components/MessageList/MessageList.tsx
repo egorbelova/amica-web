@@ -71,11 +71,13 @@ const MessageList: React.FC<MessageListProps> = ({
     menuPos,
     menuVisible,
     isMenuHiding,
+    menuInstanceKey,
     handleClose,
     handleAnimationEnd,
     handleMessageContextMenu,
     handleTouchStart,
     handleTouchEnd,
+    consumeNextContextMenuSuppression,
   } = useMessageContextMenu({
     selectedChat,
     setEditingMessage,
@@ -136,6 +138,7 @@ const MessageList: React.FC<MessageListProps> = ({
     handleMessageContextMenu,
     handleTouchStart,
     handleTouchEnd,
+    consumeNextContextMenuSuppression,
   });
 
   useEffect(() => {
@@ -158,8 +161,14 @@ const MessageList: React.FC<MessageListProps> = ({
       handleMessageContextMenu,
       handleTouchStart,
       handleTouchEnd,
+      consumeNextContextMenuSuppression,
     };
-  }, [handleMessageContextMenu, handleTouchStart, handleTouchEnd]);
+  }, [
+    handleMessageContextMenu,
+    handleTouchStart,
+    handleTouchEnd,
+    consumeNextContextMenuSuppression,
+  ]);
 
   const stopPointerSelection = useCallback(() => {
     selectionGestureCandidateRef.current = null;
@@ -426,6 +435,10 @@ const MessageList: React.FC<MessageListProps> = ({
     const el = containerRef.current;
     if (!el) return;
     const onContextMenu = (e: MouseEvent) => {
+      if (handlersRef.current.consumeNextContextMenuSuppression()) {
+        e.preventDefault();
+        return;
+      }
       const msgEl = (e.target as HTMLElement).closest('[data-message-id]');
       const id = msgEl?.getAttribute('data-message-id');
       if (id == null) return;
@@ -808,6 +821,7 @@ const MessageList: React.FC<MessageListProps> = ({
     >
       {menuVisible && (
         <ContextMenu
+          key={`message-context-menu-${menuInstanceKey}`}
           items={menuItems}
           position={menuPos || { x: 0, y: 0 }}
           onClose={handleClose}

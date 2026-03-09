@@ -1,4 +1,10 @@
-import React, { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, {
+  memo,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import ChatListItem from './ChatListItem';
 import { useChatMeta, useSelectedChat } from '@/contexts/ChatContextCore';
 import type { Chat, DisplayMedia } from '@/types';
@@ -62,18 +68,26 @@ function ChatList() {
     useChatMeta();
   const { selectedChatId } = useSelectedChat();
   const { term } = useSearchContext();
-  const [contextMenuChatId, setContextMenuChatId] = useState<number | null>(null);
-  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+  const [contextMenuChatId, setContextMenuChatId] = useState<number | null>(
+    null,
+  );
+  const [contextMenuPosition, setContextMenuPosition] = useState({
+    x: 0,
+    y: 0,
+  });
+  const [contextMenuInstanceKey, setContextMenuInstanceKey] = useState(0);
 
   const sortedChats = useSortedChats(chats);
   const { displayChats, setChatItemRef } = useAnimatedChatOrder(sortedChats);
   const shouldShowInitialLoading = loading && chats.length === 0;
   const [hasPlayedInitialAnimation, setHasPlayedInitialAnimation] =
     useState(false);
-  const [isInitialAnimationActive, setIsInitialAnimationActive] = useState(false);
+  const [isInitialAnimationActive, setIsInitialAnimationActive] =
+    useState(false);
   const shouldStartInitialAnimation =
     !hasPlayedInitialAnimation && sortedChats.length > 0;
-  const shouldAnimateOnInit = shouldStartInitialAnimation && isInitialAnimationActive;
+  const shouldAnimateOnInit =
+    shouldStartInitialAnimation && isInitialAnimationActive;
   const shouldHideBeforeInitAnimation =
     shouldStartInitialAnimation && !isInitialAnimationActive;
 
@@ -124,6 +138,7 @@ function ChatList() {
     (chatId: number, position: { x: number; y: number }) => {
       setContextMenuChatId(chatId);
       setContextMenuPosition(position);
+      setContextMenuInstanceKey((prev) => prev + 1);
     },
     [],
   );
@@ -160,6 +175,7 @@ function ChatList() {
       )}
       {contextMenuChatId != null && (
         <ContextMenu
+          key={`chat-context-menu-${contextMenuInstanceKey}`}
           items={contextMenuItems}
           position={contextMenuPosition}
           onClose={handleContextMenuClose}

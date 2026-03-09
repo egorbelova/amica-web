@@ -48,6 +48,7 @@ const ChatListItem = forwardRef<HTMLDivElement, ChatListItemProps>(
     const longPressTimerRef = useRef<number | null>(null);
     const touchStartRef = useRef<{ x: number; y: number } | null>(null);
     const suppressNextMouseDownRef = useRef(false);
+    const suppressNextContextMenuRef = useRef(false);
     const longPressTriggeredRef = useRef(false);
 
     useImperativeHandle(ref, () => container.current as HTMLDivElement);
@@ -129,6 +130,7 @@ const ChatListItem = forwardRef<HTMLDivElement, ChatListItemProps>(
       clearLongPressTimer();
       longPressTimerRef.current = window.setTimeout(() => {
         suppressNextMouseDownRef.current = true;
+        suppressNextContextMenuRef.current = true;
         longPressTriggeredRef.current = true;
         onChatContextMenu?.(chatId, {
           x: touch.clientX,
@@ -204,6 +206,10 @@ const ChatListItem = forwardRef<HTMLDivElement, ChatListItemProps>(
         onContextMenu={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          if (suppressNextContextMenuRef.current) {
+            suppressNextContextMenuRef.current = false;
+            return;
+          }
           onChatContextMenu?.(chatId, { x: e.clientX, y: e.clientY });
         }}
         onTouchStart={handleTouchStart}
