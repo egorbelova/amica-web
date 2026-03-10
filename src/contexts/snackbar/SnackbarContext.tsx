@@ -52,9 +52,9 @@ export const SnackbarProvider = ({
     [],
   );
 
-  const handleExited = () => {
+  const handleExited = useCallback(() => {
     setSnackbar(null);
-  };
+  }, []);
 
   const value = useMemo(
     () => ({ showSnackbar, dismissSnackbar }),

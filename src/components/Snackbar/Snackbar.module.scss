@@ -1,7 +1,7 @@
 .snackbar {
   position: fixed;
   left: 50%;
-  bottom: 24px;
+  bottom: calc(var(--sab) + 40px);
   transform: translateX(-50%);
   opacity: 0;
   z-index: 9999;

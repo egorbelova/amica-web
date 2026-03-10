@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import styles from './Snackbar.module.scss';
 
+const EXIT_ANIMATION_MS = 300;
+
 const Snackbar = ({
   message,
   actionLabel,
@@ -18,21 +20,35 @@ const Snackbar = ({
 }) => {
   const ref = useRef<HTMLDivElement | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(Math.ceil(duration / 1000));
+  const exitedRef = useRef(false);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el || open) return;
+    if (open) {
+      exitedRef.current = false;
+      return;
+    }
 
-    const handleEnd = (e: AnimationEvent) => {
-      if (e.target !== el) return;
-      if (e.animationName !== 'snackbar-exit') return;
-      onExited?.();
+    const el = ref.current;
+    if (!el) return;
+
+    const finishExit = () => {
+      if (exitedRef.current) return;
+      exitedRef.current = true;
+      onExited();
     };
 
-    el.addEventListener('animationend', handleEnd);
+    const handleAnimationEnd = (e: AnimationEvent) => {
+      if (e.target !== el) return;
+      if (e.animationName !== 'snackbar-exit') return;
+      finishExit();
+    };
+
+    el.addEventListener('animationend', handleAnimationEnd);
+    const fallbackId = window.setTimeout(finishExit, EXIT_ANIMATION_MS + 50);
 
     return () => {
-      el.removeEventListener('animationend', handleEnd);
+      el.removeEventListener('animationend', handleAnimationEnd);
+      window.clearTimeout(fallbackId);
     };
   }, [open, onExited]);
 
