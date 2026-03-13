@@ -340,6 +340,40 @@ export function useMessages({
     };
   }, [handleMessageDeleted]);
 
+  const handleMessageReaction = useCallback(
+    (data: WebSocketMessage) => {
+      if (
+        data.type === 'message_reaction' &&
+        data.chat_id != null &&
+        data.data != null
+      ) {
+        const chatId = Number(data.chat_id);
+        const serverMessage = data.data as unknown as Message;
+        if (!Number.isFinite(chatId) || !serverMessage?.id) return;
+        updateMessageInChat(chatId, Number(serverMessage.id), serverMessage);
+        setChats((prevChats) => {
+          const chat = prevChats.find((c) => c.id === chatId);
+          if (
+            !chat?.last_message ||
+            Number(chat.last_message.id) !== Number(serverMessage.id)
+          )
+            return prevChats;
+          return prevChats.map((c) =>
+            c.id === chatId ? { ...c, last_message: serverMessage } : c,
+          );
+        });
+      }
+    },
+    [updateMessageInChat, setChats],
+  );
+
+  useEffect(() => {
+    websocketManager.on('message_reaction', handleMessageReaction);
+    return () => {
+      websocketManager.off('message_reaction', handleMessageReaction);
+    };
+  }, [handleMessageReaction]);
+
   const getCachedMessages = useCallback((chatId: number) => {
     return messagesCacheRef.current[chatId] || null;
   }, []);

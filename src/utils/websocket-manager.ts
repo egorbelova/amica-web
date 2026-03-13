@@ -17,6 +17,7 @@ export interface WebSocketMessageData {
   userId?: number;
   days?: number;
   value?: string;
+  reaction_type?: string | null;
   /** Server-set edit timestamp (ISO string) in message_updated payload */
   edit_date?: string | null;
   media?: File;
@@ -359,9 +360,23 @@ class WebSocketManager {
             }
             break;
           }
-          case 'message_reaction':
-            if (data.message_id) this.emit('message_reaction', data);
+          case 'message_reaction': {
+            const payload = data as {
+              chat_id?: number;
+              message_id?: number;
+              data?: { id?: number };
+            };
+            if (
+              payload.chat_id != null &&
+              (payload.message_id != null || payload.data?.id != null)
+            ) {
+              this.emit('message_reaction', {
+                ...data,
+                message_id: payload.message_id ?? payload.data?.id,
+              });
+            }
             break;
+          }
           case 'message_viewed':
             if (data.message_id) this.emit('message_viewed', data);
             break;
@@ -459,11 +474,16 @@ class WebSocketManager {
     });
   }
 
-  public sendMessageReaction(messageId: number, reaction: unknown) {
+  public sendMessageReaction(
+    chatId: number,
+    messageId: number,
+    reactionType: string | null,
+  ) {
     return this.sendMessage({
       type: 'message_reaction',
+      chat_id: chatId,
       message_id: messageId,
-      data: reaction,
+      data: { reaction_type: reactionType },
     });
   }
 

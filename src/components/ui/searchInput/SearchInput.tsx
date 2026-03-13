@@ -1,15 +1,34 @@
 import { useRef } from 'react';
-// import Avatar from '@/components/Avatar/Avatar';
 import { Icon } from '@/components/Icons/AutoIcons';
-// import styles from './UserSearchInput.module.scss';
 import './SearchInput.css';
 import { useSearchContext } from '@/contexts/search/SearchContextCore';
 
 const searchIcon = <Icon name='Search' className='search_icon' />;
 
-const UserSearchInput = ({ placeholder = 'Search' }) => {
+export interface SearchInputProps {
+  placeholder?: string;
+  /** Controlled mode: pass value + onChange (and optional onClear) to use local state instead of search context */
+  value?: string;
+  onChange?: (value: string) => void;
+  onClear?: () => void;
+}
+
+const SearchInput = ({
+  placeholder = 'Search',
+  value: valueProp,
+  onChange: onChangeProp,
+  onClear: onClearProp,
+}: SearchInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { term, onChange, clear } = useSearchContext();
+  const context = useSearchContext();
+  const isControlled =
+    valueProp !== undefined && onChangeProp !== undefined;
+  const value = isControlled ? valueProp : context.term;
+  const onChange = isControlled ? onChangeProp : context.onChange;
+  const clear = isControlled
+    ? (onClearProp ?? (() => onChangeProp?.('')))
+    : context.clear;
+
   return (
     <div className='search_div' id='search'>
       <div className='liquidGlass-effect'></div>
@@ -24,20 +43,17 @@ const UserSearchInput = ({ placeholder = 'Search' }) => {
             className='search_field'
             name='term'
             placeholder=' '
-            value={term}
+            value={value}
             onChange={(e) => onChange(e.target.value)}
             ref={inputRef}
             autoComplete='off'
             type='text'
           />
-          <span className={`search_field_placeholder ${term ? 'input' : ''}`}>
+          <span className={`search_field_placeholder ${value ? 'input' : ''}`}>
             {placeholder}
           </span>
         </div>
       </div>
-      {/* <button className={styles['chat-actions-button']} type='button'>
-        <Icon name='AddPlus' className={styles['chat-actions-icon']} />
-      </button> */}
 
       <div className='search_cross_div' onClick={clear}>
         <svg className='search_cross'>
@@ -48,4 +64,4 @@ const UserSearchInput = ({ placeholder = 'Search' }) => {
   );
 };
 
-export default UserSearchInput;
+export default SearchInput;

@@ -78,6 +78,110 @@
   }
 }
 
+.reaction-panel {
+  position: fixed;
+  z-index: 1001;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: color-mix(in srgb, rgb(24, 24, 24) 76%, transparent);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translateY(4px) scale(0.94);
+  --trans-dur: 0.3s;
+  --trans-timing-function: cubic-bezier(0.18, 0.89, 0.32, 1.08);
+  transition:
+    opacity var(--trans-dur) var(--trans-timing-function),
+    transform var(--trans-dur) var(--trans-timing-function),
+    filter var(--trans-dur) var(--trans-timing-function);
+  filter: blur(5px);
+
+  &--visible {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+
+  &--hiding {
+    opacity: 0;
+    filter: blur(5px);
+  }
+
+  &__item {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    padding: 0;
+    cursor: pointer;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    transition:
+      box-shadow 0.2s,
+      background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+
+    &--selected {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  &__emoji {
+    line-height: 1;
+    transform: translateY(-0.5px);
+  }
+
+  &__icon {
+    width: 26px;
+    height: 26px;
+    object-fit: cover;
+    display: block;
+    transform: scale(1.1);
+  }
+
+  &__thoughts {
+    position: absolute;
+    right: 12px;
+    top: 100%;
+    transform: translateY(2px);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: flex-end;
+    pointer-events: none;
+  }
+
+  &__thought-bubble {
+    width: 11px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background-color: color-mix(in srgb, rgb(24, 24, 24) 76%, transparent);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.24);
+    opacity: 0.86;
+    margin-right: 0;
+
+    &--small {
+      width: 7px;
+      height: 6px;
+      margin-right: 2px;
+      border-radius: 50%;
+      opacity: 0.7;
+      transform: translateX(5px);
+    }
+  }
+}
+
 @keyframes itemPop {
   0% {
     scale: 0;

@@ -8,6 +8,7 @@ import { Icon } from '../Icons/AutoIcons';
 export interface MessageProps {
   message: MessageType;
   reelItems?: MessageType[];
+  onReactionClick?: (message: MessageType, reactionType: string) => void;
   selectionMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: () => void;
@@ -22,6 +23,7 @@ export interface MessageProps {
 const Message: React.FC<MessageProps> = ({
   message,
   reelItems,
+  onReactionClick,
   selectionMode = false,
   isSelected = false,
   onToggleSelect,
@@ -102,6 +104,7 @@ const Message: React.FC<MessageProps> = ({
           reelItems={reelItems}
           isOwn={isOwn}
           hasOnlyMediaFiles={hasOnlyMediaFiles}
+          onReactionClick={(reactionType) => onReactionClick?.(message, reactionType)}
         />
       </div>
     </div>

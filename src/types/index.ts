@@ -1,4 +1,5 @@
 import type { WallpaperSetting } from '@/contexts/settings/types';
+import type { MessageReactionSummaryItem } from '@/constants/messageReactions';
 
 export interface File {
   id?: number;
@@ -31,6 +32,9 @@ export interface Message {
   is_own: boolean;
   is_viewed: boolean;
   is_deleted?: boolean;
+  reactions_summary?: MessageReactionSummaryItem[];
+  user_reactions?: string[];
+  user_reaction?: string | null;
 }
 
 export interface Chat {

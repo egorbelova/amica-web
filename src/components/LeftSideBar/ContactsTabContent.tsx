@@ -1,0 +1,27 @@
+import React, { memo, useState } from 'react';
+import SearchInput from '@/components/ui/searchInput/SearchInput';
+import Contacts from '@/components/Contacts/Contacts';
+import { useContacts } from '@/contexts/contacts/useContacts';
+import styles from './LeftSideBar.module.scss';
+
+const ContactsTabContent: React.FC = () => {
+  const [term, setTerm] = useState('');
+  const { searchContacts } = useContacts();
+  const filtered = searchContacts(term);
+
+  return (
+    <>
+      <SearchInput
+        placeholder='Search contacts'
+        value={term}
+        onChange={setTerm}
+        onClear={() => setTerm('')}
+      />
+      <div className={styles['tab-content']}>
+        <Contacts contactsToShow={filtered} />
+      </div>
+    </>
+  );
+};
+
+export default memo(ContactsTabContent);

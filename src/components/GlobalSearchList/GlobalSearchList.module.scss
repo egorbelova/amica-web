@@ -1,6 +1,26 @@
+.loading,
+.error {
+  padding: 8px 0;
+  font-size: 0.875rem;
+}
+
+.error {
+  color: var(--secondaryColor, #e57373);
+}
+
 .search-list {
   display: flex;
   flex-direction: column;
+
+  .search-section {
+    list-style: none;
+    padding: 6px 0 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--secondaryColor);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
 
   .search-item {
     display: flex;
@@ -14,14 +34,23 @@
       display: flex;
       flex-direction: column;
 
-      .email {
+      .email,
+      .meta {
         color: var(--secondaryColor);
+        font-size: 0.8125rem;
       }
     }
 
     .avatar {
       width: 30px;
       height: 30px;
+    }
+
+    .setting-icon {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      opacity: 0.85;
     }
   }
 }

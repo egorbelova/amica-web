@@ -1,7 +1,7 @@
+import { useMemo } from 'react';
 import { Icon } from '../Icons/AutoIcons';
 import styles from './Profile.module.scss';
 import { useTranslation, availableLanguages } from '@/contexts/languageCore';
-
 import Avatar from '../Avatar/Avatar';
 import { useUser } from '@/contexts/UserContextCore';
 import { useSettings } from '@/contexts/settings/context';
@@ -30,49 +30,46 @@ export default function Profile() {
     isResizingPermitted,
   } = useSettings();
   const { current } = usePageStack();
-
-  const tabs = [
-    {
-      id: 'account' as const,
-      label: user?.username || '',
-      icon: (
-        <Avatar
-          className={styles.avatar}
-          displayName={user?.username || ''}
-          displayMedia={user?.profile?.primary_media || null}
-        />
-      ),
-    },
-    {
-      id: 'language' as const,
-      label:
-        t('profileTabs.language') +
-        ' (' +
-        availableLanguages.find((l) => l.code === locale)?.name +
-        ')',
-      icon: languageIcon,
-    },
-    {
-      id: 'privacy' as const,
-      label: t('profileTabs.privacy'),
-      icon: privacyIcon,
-    },
-    {
-      id: 'appearance' as const,
-      label: t('profileTabs.appearance'),
-      icon: appearanceIcon,
-    },
-    // {
-    //   id: 'notifications' as const,
-    //   label: t('profileTabs.notifications'),
-    //   icon: <Icon name='Notification' />,
-    // },
-    {
-      id: 'active_sessions' as const,
-      label: t('profileTabs.active_sessions'),
-      icon: sessionsIcon,
-    },
-  ];
+  const tabs = useMemo(
+    () => [
+      {
+        id: 'account' as const,
+        label: user?.username || '',
+        icon: (
+          <Avatar
+            className={styles.avatar}
+            displayName={user?.username || ''}
+            displayMedia={user?.profile?.primary_media || null}
+          />
+        ),
+      },
+      {
+        id: 'language' as const,
+        label:
+          t('profileTabs.language') +
+          ' (' +
+          availableLanguages.find((l) => l.code === locale)?.name +
+          ')',
+        icon: languageIcon,
+      },
+      {
+        id: 'privacy' as const,
+        label: t('profileTabs.privacy'),
+        icon: privacyIcon,
+      },
+      {
+        id: 'appearance' as const,
+        label: t('profileTabs.appearance'),
+        icon: appearanceIcon,
+      },
+      {
+        id: 'active_sessions' as const,
+        label: t('profileTabs.active_sessions'),
+        icon: sessionsIcon,
+      },
+    ],
+    [locale, t, user?.profile?.primary_media, user?.username],
+  );
 
   return (
     <div className={styles.container}>
@@ -117,24 +114,32 @@ export default function Profile() {
       </div>
 
       {(!activeProfileTab || settingsFullWindow) && (
-        <nav className={styles.tabs}>
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type='button'
-              onClick={() => setActiveProfileTab(tab.id)}
-              className={`${styles.tab} ${
-                activeProfileTab === tab.id ? styles.active : ''
-              }`}
-            >
-              <div className={styles['tab__content']}>
-                {tab.icon}
-                <span>{tab.label}</span>
-              </div>
-              {arrowNavIcon}
-            </button>
-          ))}
-        </nav>
+        <>
+          {/* <SearchInput
+            placeholder='Search settings'
+            value={profileSearchTerm}
+            onChange={setProfileSearchTerm}
+            onClear={() => setProfileSearchTerm('')}
+          /> */}
+          <nav className={styles.tabs}>
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type='button'
+                onClick={() => setActiveProfileTab(tab.id)}
+                className={`${styles.tab} ${
+                  activeProfileTab === tab.id ? styles.active : ''
+                }`}
+              >
+                <div className={styles['tab__content']}>
+                  {tab.icon}
+                  <span>{tab.label}</span>
+                </div>
+                {arrowNavIcon}
+              </button>
+            ))}
+          </nav>
+        </>
       )}
       {current === 'profile' && !settingsFullWindow && (
         <div className={styles.settingsContainer}>

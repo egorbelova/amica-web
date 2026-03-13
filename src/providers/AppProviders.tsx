@@ -12,7 +12,9 @@ import { ToastProvider } from '@/contexts/toast/ToastContext';
 import { SnackbarProvider } from '@/contexts/snackbar/SnackbarContext';
 
 import { PageStackProvider } from '@/contexts/useStackHistory';
-import { searchGlobal } from './searchGlobal';
+
+/** Dummy search provider so SendArea (and any component outside tab content) has a valid SearchContext. */
+const dummySearchFn = async (): Promise<unknown[]> => [];
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -32,7 +34,11 @@ const composeProviders = (
 
 const GlobalSearchProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
-}) => <SearchProvider searchFn={searchGlobal}>{children}</SearchProvider>;
+}) => (
+  <SearchProvider searchFn={dummySearchFn} minLength={999}>
+    {children}
+  </SearchProvider>
+);
 
 const AppProvidersComponent = composeProviders(
   ToastProvider,

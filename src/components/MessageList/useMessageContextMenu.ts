@@ -5,6 +5,7 @@ import type { Message as MessageType, File } from '@/types';
 import { apiFetch } from '@/utils/apiFetch';
 import { websocketManager } from '@/utils/websocket-manager';
 import { fallbackCopy } from './clipboardUtils';
+import { MESSAGE_REACTION_OPTIONS } from '@/constants/messageReactions';
 
 export interface UseMessageContextMenuParams {
   selectedChat: { id: number } | null;
@@ -19,12 +20,23 @@ export interface UseMessageContextMenuParams {
   onSelectMessage?: (msg: MessageType) => void;
 }
 
+export interface ReactionMenuOption {
+  type: string;
+  emoji: string;
+  iconUrl?: string;
+  videoUrl: string;
+}
+
 export interface UseMessageContextMenuResult {
   menuItems: MenuItem[];
   menuPos: { x: number; y: number } | null;
   menuVisible: boolean;
   isMenuHiding: boolean;
   menuInstanceKey: number;
+  menuMessage: MessageType | null;
+  reactionItems: readonly ReactionMenuOption[];
+  selectedReactionTypes: readonly string[];
+  handleReactionSelect: (reactionType: string) => void;
   handleClose: () => void;
   handleAnimationEnd: () => void;
   handleMessageContextMenu: (
@@ -181,6 +193,19 @@ export function useMessageContextMenu({
     [showToast],
   );
 
+  const handleReactionSelect = useCallback(
+    (reactionType: string) => {
+      if (!menuMessage || !selectedChat?.id) return;
+      websocketManager.sendMessageReaction(
+        selectedChat.id,
+        menuMessage.id,
+        reactionType,
+      );
+      setIsMenuHiding(true);
+    },
+    [menuMessage, selectedChat?.id],
+  );
+
   const menuItems = useMemo<MenuItem[]>(
     () => [
       // {
@@ -324,6 +349,12 @@ export function useMessageContextMenu({
     menuVisible,
     isMenuHiding,
     menuInstanceKey,
+    menuMessage,
+    reactionItems: MESSAGE_REACTION_OPTIONS,
+    selectedReactionTypes:
+      menuMessage?.user_reactions ??
+      (menuMessage?.user_reaction ? [menuMessage.user_reaction] : []),
+    handleReactionSelect,
     handleClose,
     handleAnimationEnd,
     handleMessageContextMenu,

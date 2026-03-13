@@ -1,9 +1,9 @@
 import { TabsProvider } from '../Tabs/TabsContext';
 import { Tabs } from '../Tabs/Tabs';
 import { Tab } from '../Tabs/Tab';
-import Contacts from '@/components/Contacts/Contacts';
 import Profile from '@/components/Profile/Profile';
 import ChatsTabView from './ChatsTabView';
+import ContactsTabContent from './ContactsTabContent';
 import styles from './LeftSideBar.module.scss';
 import { useSettings } from '@/contexts/settings/context';
 
@@ -28,7 +28,7 @@ const LeftSideBar: React.FC<ChooseListProps> = () => {
             <div
               className={`${styles['tab-content']} ${styles['tab-content--contacts']}`}
             >
-              <Contacts />
+              <ContactsTabContent />
             </div>
           </Tab>
           <Tab id='chats'>

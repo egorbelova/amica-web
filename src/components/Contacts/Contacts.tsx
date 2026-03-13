@@ -4,11 +4,17 @@ import styles from './Contacts.module.scss';
 import { useChatMeta } from '@/contexts/ChatContextCore';
 import { useContacts } from '@/contexts/contacts/useContacts';
 import { formatLastSeen } from '@/utils/activityFormatter';
+import type { Contact } from '@/types';
 
-const Contacts = () => {
+const Contacts = ({
+  contactsToShow,
+}: {
+  contactsToShow?: Contact[];
+} = {}) => {
   const { t } = useTranslation();
   const { handleChatClick } = useChatMeta();
-  const { contacts, loading, error } = useContacts();
+  const { contacts: contactsFromHook, loading, error } = useContacts();
+  const contacts = contactsToShow ?? contactsFromHook;
 
   if (loading) return <div>{t('contacts.loading') ?? 'Loading...'}</div>;
   if (error) return <div>{t('contacts.error') ?? `Error: ${error}`}</div>;

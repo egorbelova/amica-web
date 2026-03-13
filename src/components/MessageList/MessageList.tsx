@@ -17,6 +17,7 @@ import { useToast } from '@/contexts/toast/ToastContextCore';
 import type { Message as MessageType, User } from '@/types';
 import ViewersList from './ViewersList';
 import { useMessageContextMenu } from './useMessageContextMenu';
+import { websocketManager } from '@/utils/websocket-manager';
 
 const VISIBLE_BUFFER = 7;
 const PAGINATION_THRESHOLD_PX = 300;
@@ -65,6 +66,18 @@ const MessageList: React.FC<MessageListProps> = ({
   }, []);
 
   const handleViewersClose = useCallback(() => setViewersVisible(false), []);
+  const selectedChatIdForReaction = selectedChat?.id;
+  const handleMessageReactionClick = useCallback(
+    (message: MessageType, reactionType: string) => {
+      if (!selectedChatIdForReaction) return;
+      websocketManager.sendMessageReaction(
+        selectedChatIdForReaction,
+        message.id,
+        reactionType,
+      );
+    },
+    [selectedChatIdForReaction],
+  );
 
   const {
     menuItems,
@@ -72,6 +85,9 @@ const MessageList: React.FC<MessageListProps> = ({
     menuVisible,
     isMenuHiding,
     menuInstanceKey,
+    reactionItems,
+    selectedReactionTypes,
+    handleReactionSelect,
     handleClose,
     handleAnimationEnd,
     handleMessageContextMenu,
@@ -823,6 +839,9 @@ const MessageList: React.FC<MessageListProps> = ({
         <ContextMenu
           key={`message-context-menu-${menuInstanceKey}`}
           items={menuItems}
+          reactions={reactionItems}
+          selectedReactionTypes={selectedReactionTypes}
+          onReactionSelect={handleReactionSelect}
           position={menuPos || { x: 0, y: 0 }}
           onClose={handleClose}
           onAnimationEnd={handleAnimationEnd}
@@ -851,6 +870,7 @@ const MessageList: React.FC<MessageListProps> = ({
             key={message.id}
             message={message}
             reelItems={reelItems}
+            onReactionClick={handleMessageReactionClick}
             selectionMode={isSelectionMode}
             isSelected={selectedMessageIds.has(message.id)}
             onToggleSelect={() => onToggleMessageSelection(message.id)}
