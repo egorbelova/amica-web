@@ -13,9 +13,15 @@
 
 .contacts {
   height: 100%;
+  padding-top: var(--sat);
   padding-bottom: (var(--main-navigation-height));
   overflow-y: scroll;
   overscroll-behavior: contain;
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 1) var(--sat)
+  );
 }
 
 .avatar {

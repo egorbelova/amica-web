@@ -8,6 +8,8 @@
   height: 50px;
   max-height: 50px;
   padding: 0 10px;
+  margin-top: var(--sat);
+
   transition:
     background 1s,
     bottom 400ms cubic-bezier(0.075, 0.82, 0.165, 1);

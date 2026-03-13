@@ -99,7 +99,6 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         ${visible ? styles['context-menu--visible'] : ''} 
         ${isHiding ? styles['context-menu--hiding'] : ''}`}
       style={{
-        position: 'fixed',
         left: position.x,
         top: position.y,
       }}

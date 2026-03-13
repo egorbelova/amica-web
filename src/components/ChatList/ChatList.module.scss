@@ -46,7 +46,7 @@
   position: absolute;
 
   padding-bottom: calc(var(--sab) + var(--main-navigation-height));
-  padding-top: 50px;
+  padding-top: calc(50px + var(--sat));
   transition-duration: var(--appear-duration);
   transition-timing-function: ease;
   transition-property: opacity, transform;
@@ -61,12 +61,5 @@
     opacity: 1;
     transform: scale(1);
     pointer-events: auto;
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .chat-list-view {
-    width: 100%;
-    order: 2;
   }
 }

@@ -17,9 +17,7 @@ const UserSearchInput = ({ placeholder = 'Search' }) => {
       <div className='liquidGlass-shine'></div>
 
       <div className='search_field_div'>
-        <div className='search_icon_div'>
-          {searchIcon}
-        </div>
+        <div className='search_icon_div'>{searchIcon}</div>
         <div className='search_field_input'>
           <input
             aria-label='Search'
