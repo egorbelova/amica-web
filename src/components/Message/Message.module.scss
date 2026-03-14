@@ -152,6 +152,22 @@
     margin-left: auto;
   }
 
+  &.groupedWithNewer {
+    margin-bottom: 1px;
+    border-bottom-left-radius: 6px;
+    &.right {
+      border-bottom-right-radius: 6px;
+    }
+  }
+
+  &.groupedWithOlder {
+    margin-top: 1px;
+    border-top-left-radius: 6px;
+    &.right {
+      border-top-right-radius: 6px;
+    }
+  }
+
   background-color: rgb(from var(--message_color) r g b / 50%);
   backdrop-filter: blur(7px);
   outline: 1px solid rgba(127, 127, 127, 0.3);
@@ -368,7 +384,7 @@
   background: transparent;
   pointer-events: none;
   z-index: 2000;
-  mix-blend-mode: screen;
+  // mix-blend-mode: screen;
   transform: translate(-50%, -50%) scale(1);
   // animation: reaction_burst_pop 0.85s ease-out forwards;
 }

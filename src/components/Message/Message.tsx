@@ -18,6 +18,10 @@ export interface MessageProps {
     clientX: number,
     clientY: number,
   ) => void;
+  /** In a same-sender group: false when there is a newer message from same sender (below in list) */
+  isFirstInGroup?: boolean;
+  /** In a same-sender group: false when there is an older message from same sender (above in list) */
+  isLastInGroup?: boolean;
 }
 
 const Message: React.FC<MessageProps> = ({
@@ -29,6 +33,8 @@ const Message: React.FC<MessageProps> = ({
   onToggleSelect,
   onPointerSelectStart,
   onSelectionGestureCandidateStart,
+  isFirstInGroup = true,
+  isLastInGroup = true,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const suppressSelectionClickRef = useRef(false);
@@ -127,7 +133,7 @@ const Message: React.FC<MessageProps> = ({
       )}
       <div
         ref={containerRef}
-        className={`${styles.message_div} ${isOwn ? `${styles.darker} ${styles.right}` : ''} ${selectionMode ? styles.selected_prepare : ''}`}
+        className={`${styles.message_div} ${isOwn ? `${styles.darker} ${styles.right}` : ''} ${selectionMode ? styles.selected_prepare : ''} ${!isFirstInGroup ? styles.groupedWithNewer : ''} ${!isLastInGroup ? styles.groupedWithOlder : ''}`}
       >
         <MessageContent
           message={message}

@@ -19,12 +19,38 @@ import ViewersList from './ViewersList';
 import { useMessageContextMenu } from './useMessageContextMenu';
 import { websocketManager } from '@/utils/websocket-manager';
 import { buildOptimisticReactionUpdate } from './reactionOptimistic';
+import DateSeparator from './DateSeparator';
+import DatePickerModal from './DatePickerModal';
+import type { DateKey } from './DateSeparator';
 
 const VISIBLE_BUFFER = 7;
 const PAGINATION_THRESHOLD_PX = 300;
 const MIN_MESSAGES_TO_TRIM = 40;
 const TRIM_DEBOUNCE_MS = 1000;
 const SELECTION_DRAG_THRESHOLD_PX = 8;
+
+function getDateKey(msg: MessageType): DateKey {
+  const d = msg.date ?? '';
+  return d.slice(0, 10) || new Date().toISOString().slice(0, 10);
+}
+
+function formatDateSeparatorLabel(dateKey: DateKey): string {
+  const d = new Date(dateKey + 'T12:00:00');
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const todayKey = today.toISOString().slice(0, 10);
+  const yesterdayKey = yesterday.toISOString().slice(0, 10);
+  if (dateKey === todayKey) return 'Today';
+  if (dateKey === yesterdayKey) return 'Yesterday';
+  return d.toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: d.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+  });
+}
+
 interface MessageListProps {
   isSelectionMode: boolean;
   selectedMessageIds: Set<number>;
@@ -61,6 +87,9 @@ const MessageList: React.FC<MessageListProps> = ({
 
   const [viewersVisible, setViewersVisible] = useState(false);
   const [currentViewers, setCurrentViewers] = useState<User[]>([]);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [datePickerInitialDate, setDatePickerInitialDate] =
+    useState<DateKey | null>(null);
 
   const handleShowViewers = useCallback((msg: MessageType) => {
     setCurrentViewers(msg.viewers || []);
@@ -424,7 +453,6 @@ const MessageList: React.FC<MessageListProps> = ({
 
     const scrollingDown = lastScrollDirectionRef.current === 'down';
     if (scrollingDown) {
-      // Скроллим к новым — убираем только старые (с начала массива)
       const start = Math.max(0, topmostVisibleIndex - VISIBLE_BUFFER);
       if (start > 0) {
         if (topmostMessageId)
@@ -435,7 +463,6 @@ const MessageList: React.FC<MessageListProps> = ({
         trimMessagesToRange(chatId, start, n - 1);
       }
     } else {
-      // Скроллим к старым или стоим — убираем только новые (с конца массива)
       const end = Math.min(n - 1, bottommostVisibleIndex + VISIBLE_BUFFER);
       if (end < n - 1) {
         if (topmostMessageId)
@@ -820,6 +847,100 @@ const MessageList: React.FC<MessageListProps> = ({
     [messages],
   );
 
+  type DateGroupedMessage = {
+    message: MessageType;
+    isFirstInGroup: boolean;
+    isLastInGroup: boolean;
+  };
+  type DateGroup = {
+    dateKey: DateKey;
+    messages: DateGroupedMessage[];
+  };
+
+  const dateGroups = useMemo((): DateGroup[] => {
+    const groups: DateGroup[] = [];
+    const n = reversedMessages.length;
+    const visible = (m: MessageType) =>
+      !m.is_deleted && (!!m.value || (m.files?.length ?? 0) > 0);
+    const findNextVisible = (from: number) => {
+      for (let j = from + 1; j < n; j++) {
+        if (visible(reversedMessages[j])) return j;
+      }
+      return -1;
+    };
+    const findPrevVisible = (from: number) => {
+      for (let j = from - 1; j >= 0; j--) {
+        if (visible(reversedMessages[j])) return j;
+      }
+      return -1;
+    };
+    for (let i = 0; i < n; i++) {
+      const message = reversedMessages[i];
+      if (!visible(message)) continue;
+      const dateKey = getDateKey(message);
+      const nextVisible = findNextVisible(i);
+      const prevVisible = findPrevVisible(i);
+      const isFirstInGroup =
+        nextVisible === -1 ||
+        reversedMessages[nextVisible].user !== message.user ||
+        getDateKey(reversedMessages[nextVisible]) !== dateKey;
+      const isLastInGroup =
+        prevVisible === -1 ||
+        reversedMessages[prevVisible].user !== message.user ||
+        getDateKey(reversedMessages[prevVisible]) !== dateKey;
+
+      const lastGroup = groups[groups.length - 1];
+      if (!lastGroup || lastGroup.dateKey !== dateKey) {
+        groups.push({
+          dateKey,
+          messages: [],
+        });
+      }
+      groups[groups.length - 1].messages.push({
+        message,
+        isFirstInGroup,
+        isLastInGroup,
+      });
+    }
+    return groups;
+  }, [reversedMessages]);
+
+  const availableDates = useMemo(
+    () => Array.from(new Set(messages.map(getDateKey))),
+    [messages],
+  );
+  const scrollToDate = useCallback(
+    (dateKey: DateKey) => {
+      const listEl = containerRef.current;
+      if (!listEl) return;
+      const firstMessageOfDay = reversedMessages.find(
+        (m) => getDateKey(m) === dateKey,
+      );
+      if (!firstMessageOfDay) return;
+      const el = listEl.querySelector(
+        `[data-message-id="${CSS.escape(String(firstMessageOfDay.id))}"]`,
+      ) as HTMLElement | null;
+      if (el) {
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    },
+    [reversedMessages],
+  );
+
+  const handleDateSeparatorClick = useCallback((dateKey: DateKey) => {
+    setDatePickerInitialDate(dateKey);
+    setDatePickerOpen(true);
+  }, []);
+
+  const handleDatePickerSelect = useCallback(
+    (dateKey: DateKey) => {
+      setDatePickerOpen(false);
+      setDatePickerInitialDate(null);
+      scrollToDate(dateKey);
+    },
+    [scrollToDate],
+  );
+
   return (
     <div
       className='room_div'
@@ -861,6 +982,17 @@ const MessageList: React.FC<MessageListProps> = ({
         <ViewersList viewers={currentViewers} onClose={handleViewersClose} />
       )}
 
+      <DatePickerModal
+        isOpen={datePickerOpen}
+        onClose={() => {
+          setDatePickerOpen(false);
+          setDatePickerInitialDate(null);
+        }}
+        availableDates={availableDates}
+        initialDateKey={datePickerInitialDate}
+        onSelectDate={handleDatePickerSelect}
+      />
+
       {/* {messagesLoading && (
         <div className={styles['messages-loading']}>Loading</div>
       )} */}
@@ -873,35 +1005,44 @@ const MessageList: React.FC<MessageListProps> = ({
       {messages.length === 0 && !messagesLoading && (
         <div className={styles['no-messages']}>No messages yet</div>
       )}
-      {reversedMessages.map((message) =>
-        !message.is_deleted && (message.value || message.files?.length) ? (
-          <Message
-            key={message.id}
-            message={message}
-            reelItems={reelItems}
-            onReactionClick={handleMessageReactionClick}
-            selectionMode={isSelectionMode}
-            isSelected={selectedMessageIds.has(message.id)}
-            onToggleSelect={() => onToggleMessageSelection(message.id)}
-            onPointerSelectStart={(pointerId) =>
-              handlePointerSelectionStart(
-                message.id,
-                selectedMessageIds.has(message.id),
-                pointerId,
-              )
-            }
-            onSelectionGestureCandidateStart={(pointerId, clientX, clientY) =>
-              beginSelectionGestureCandidate(
-                message.id,
-                selectedMessageIds.has(message.id),
-                pointerId,
-                clientX,
-                clientY,
-              )
-            }
+      {dateGroups.map((group) => (
+        <div key={`date-group-${group.dateKey}`} className={styles.dateGroup}>
+          <DateSeparator
+            dateKey={group.dateKey}
+            label={formatDateSeparatorLabel(group.dateKey)}
+            onClick={() => handleDateSeparatorClick(group.dateKey)}
           />
-        ) : null,
-      )}
+          {group.messages.map(({ message, isFirstInGroup, isLastInGroup }) => (
+            <Message
+              key={message.id}
+              message={message}
+              reelItems={reelItems}
+              onReactionClick={handleMessageReactionClick}
+              selectionMode={isSelectionMode}
+              isSelected={selectedMessageIds.has(message.id)}
+              onToggleSelect={() => onToggleMessageSelection(message.id)}
+              onPointerSelectStart={(pointerId) =>
+                handlePointerSelectionStart(
+                  message.id,
+                  selectedMessageIds.has(message.id),
+                  pointerId,
+                )
+              }
+              onSelectionGestureCandidateStart={(pointerId, clientX, clientY) =>
+                beginSelectionGestureCandidate(
+                  message.id,
+                  selectedMessageIds.has(message.id),
+                  pointerId,
+                  clientX,
+                  clientY,
+                )
+              }
+              isFirstInGroup={isFirstInGroup}
+              isLastInGroup={isLastInGroup}
+            />
+          ))}
+        </div>
+      ))}
     </div>
   );
 };
