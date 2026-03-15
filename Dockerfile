@@ -14,7 +14,7 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm fetch --frozen-lockfile --prefer-offline
 
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm install --frozen-lockfile --unsafe-perm --prefer-offline --offline
+    pnpm install --frozen-lockfile --unsafe-perm --prefer-offline
 
 COPY . .
 
