@@ -3,8 +3,8 @@ FROM node:25-alpine AS build
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-# Use Corepack bundled with Node to avoid global npm install.
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Corepack is unavailable in this base image; install pnpm directly.
+RUN npm install -g pnpm@latest
 
 WORKDIR /app
 
