@@ -691,7 +691,7 @@ const MessageContent = memo(
                 onEnded={() => setReactionBurst(null)}
               >
                 <source src={reactionBurst.movUrl} type='video/quicktime' />
-                <source src={reactionBurst.webmUrl} type='video/webm' />
+                {/* <source src={reactionBurst.webmUrl} type='video/webm' /> */}
               </video>,
               document.body,
             )}

@@ -15,18 +15,18 @@ const DateSeparator: React.FC<DateSeparatorProps> = ({
   onClick,
 }) => {
   return (
-    <button
-      type='button'
-      className={styles.separator}
-      data-date-separator={dateKey}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onClick();
-      }}
-    >
-      <span className={styles.label}>{label}</span>
-    </button>
+    <div className={styles.separator} data-date-separator={dateKey}>
+      <span
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClick();
+        }}
+        className={styles.label}
+      >
+        {label}
+      </span>
+    </div>
   );
 };
 

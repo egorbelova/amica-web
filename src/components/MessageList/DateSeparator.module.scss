@@ -8,16 +8,11 @@
   margin: 8px 0;
   border: none;
   background: transparent;
-  cursor: pointer;
   text-align: center;
   transition: opacity 0.2s;
   color: var(--secondaryColor, rgba(255, 255, 255, 0.7));
   font-size: 0.8125rem;
   font-weight: 500;
-
-  &:active {
-    opacity: 0.9;
-  }
 }
 
 .label {
@@ -26,4 +21,5 @@
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(7px);
+  cursor: pointer;
 }
