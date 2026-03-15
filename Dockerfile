@@ -3,14 +3,18 @@ FROM node:25-alpine AS build
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-RUN npm install -g pnpm
+# Use Corepack bundled with Node to avoid global npm install.
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
 
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm install --frozen-lockfile --unsafe-perm --prefer-offline
+    pnpm fetch --frozen-lockfile --prefer-offline
+
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm install --frozen-lockfile --unsafe-perm --prefer-offline --offline
 
 COPY . .
 
