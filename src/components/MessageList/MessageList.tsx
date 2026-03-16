@@ -1010,7 +1010,10 @@ const MessageList: React.FC<MessageListProps> = ({
             label={formatDateSeparatorLabel(group.dateKey)}
             onClick={() => handleDateSeparatorClick(group.dateKey)}
           />
-          {group.messages.map(({ message, isFirstInGroup, isLastInGroup }) => (
+          {group.messages
+            .slice()
+            .reverse()
+            .map(({ message, isFirstInGroup, isLastInGroup }) => (
             <Message
               key={message.id}
               message={message}

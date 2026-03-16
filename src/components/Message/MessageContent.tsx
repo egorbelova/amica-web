@@ -609,7 +609,7 @@ const MessageContent = memo(
 
           <div
             className={`${styles.message_div_temp_separator} ${
-              !message.value ? styles.textEmpty : ''
+              !message.value && hasOnlyMediaFiles ? styles.textEmpty : ''
             } ${!message.value && hasOnlyMediaFiles ? styles.hasOnlyMediaFiles : ''}`}
           >
             {message.value && (
