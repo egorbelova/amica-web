@@ -356,8 +356,16 @@ const MessageContent = memo(
             );
           }
           const initRafId = requestAnimationFrame(() => {
+            const recencyMapSnapshot = new Map(reactionRecencyRef.current);
+            const sortedInitial = [...summarySnapshot].sort((a, b) => {
+              if (b.count !== a.count) return b.count - a.count;
+              const aRecency = recencyMapSnapshot.get(a.type) ?? 0;
+              const bRecency = recencyMapSnapshot.get(b.type) ?? 0;
+              if (aRecency !== bRecency) return bRecency - aRecency;
+              return a.type.localeCompare(b.type);
+            });
             setRenderedReactions(
-              summarySnapshot.map((reaction) => ({
+              sortedInitial.map((reaction) => ({
                 type: reaction.type,
                 count: reaction.count,
                 emoji: reaction.emoji,

@@ -224,11 +224,10 @@
   }
 }
 
-.message_div.initialAppear {
+:global(.temp_full.initialAppear) {
   opacity: 0;
   animation: message_initial_appear 0.3s ease-out forwards;
   animation-delay: var(--message-appear-delay, 0s);
-  transition: none;
 }
 
 @keyframes message_initial_appear {

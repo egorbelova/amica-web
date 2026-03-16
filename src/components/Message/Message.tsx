@@ -67,8 +67,9 @@ const Message: React.FC<MessageProps> = ({
 
   return (
     <div
-      className={`temp_full ${isOwn ? 'own-message' : 'other-message'} ${selectionMode && isSelected ? 'selected' : ''} ${selectionMode ? 'selection-mode' : ''}`}
+      className={`temp_full ${isOwn ? 'own-message' : 'other-message'} ${selectionMode && isSelected ? 'selected' : ''} ${selectionMode ? 'selection-mode' : ''} ${typeof appearDelayMs === 'number' ? 'initialAppear' : ''}`}
       data-message-id={message.id}
+      style={messageDivStyle}
       onPointerDown={(e) => {
         if (!selectionMode && e.button === 0) {
           const target = e.target as HTMLElement | null;
@@ -141,8 +142,7 @@ const Message: React.FC<MessageProps> = ({
       )}
       <div
         ref={containerRef}
-        className={`${styles.message_div} ${isOwn ? `${styles.darker} ${styles.right}` : ''} ${selectionMode ? styles.selected_prepare : ''} ${!isFirstInGroup ? styles.groupedWithNewer : ''} ${!isLastInGroup ? styles.groupedWithOlder : ''} ${typeof appearDelayMs === 'number' ? styles.initialAppear : ''}`}
-        style={messageDivStyle}
+        className={`${styles.message_div} ${isOwn ? `${styles.darker} ${styles.right}` : ''} ${selectionMode ? styles.selected_prepare : ''} ${!isFirstInGroup ? styles.groupedWithNewer : ''} ${!isLastInGroup ? styles.groupedWithOlder : ''}`}
       >
         <MessageContent
           message={message}
