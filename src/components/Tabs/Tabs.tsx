@@ -13,7 +13,6 @@ import chatsLottie from '@/icons/animated/Chats.json';
 
 const NEW_WALLPAPER_HEIGHT = '50px';
 
-const contactHeartIcon = <Icon name='ContactHeart' />;
 const wallpaperIcon = (
   <Icon name='Wallpaper' className={styles['new-wallpaper__icon']} />
 );
@@ -194,9 +193,10 @@ export function Tabs() {
   const [tabLayout, setTabLayout] = useState<
     Partial<Record<TabValue, { left: number; width: number }>>
   >({});
-  const [indicatorSize, setIndicatorSize] = useState<{ width: number; height: number }>(
-    { width: 0, height: 0 },
-  );
+  const [indicatorSize, setIndicatorSize] = useState<{
+    width: number;
+    height: number;
+  }>({ width: 0, height: 0 });
 
   const tabOrder = useMemo<TabValue[]>(
     () => ['contacts', 'chats', 'profile'],
@@ -474,7 +474,9 @@ export function Tabs() {
       )}
       <div
         className={`${styles['main-navigation-wrapper']} ${
-          isDraggingIndicator || isSnapping ? styles['main-navigation--moving'] : ''
+          isDraggingIndicator || isSnapping
+            ? styles['main-navigation--moving']
+            : ''
         }`}
         ref={mainNavRef}
       >
@@ -503,8 +505,7 @@ export function Tabs() {
             const isActive = activeTab === tab.id;
             const layout = tabLayout[tab.id];
 
-            const localCenterX =
-              layout ? indicatorX - layout.left : 0;
+            const localCenterX = layout ? indicatorX - layout.left : 0;
             const maskLeft =
               layout && indicatorSize.width
                 ? clamp(localCenterX - indicatorSize.width / 2, 0, layout.width)
