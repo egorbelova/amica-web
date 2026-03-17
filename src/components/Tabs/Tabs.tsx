@@ -29,6 +29,22 @@ function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
 }
 
+function getDevicePixelRatio() {
+  if (typeof window === 'undefined' || !window.devicePixelRatio) return 1;
+  return Math.max(1, window.devicePixelRatio);
+}
+
+function snapToDevicePixel(
+  value: number,
+  mode: 'round' | 'floor' | 'ceil' = 'round',
+) {
+  const dpr = getDevicePixelRatio();
+  const scaled = value * dpr;
+  if (mode === 'floor') return Math.floor(scaled) / dpr;
+  if (mode === 'ceil') return Math.ceil(scaled) / dpr;
+  return Math.round(scaled) / dpr;
+}
+
 export function Tabs() {
   const { activeTab, setActiveTab } = useTabs();
   const { user } = useUser();
@@ -195,7 +211,7 @@ export function Tabs() {
     const c = container.getBoundingClientRect();
     const b = btn.getBoundingClientRect();
     const centerX = b.left + b.width / 2;
-    const x = clampIndicatorXToBounds(centerX - c.left);
+    const x = clampIndicatorXToBounds(snapToDevicePixel(centerX - c.left));
 
     pendingSettledTabRef.current = tabId;
 
@@ -628,22 +644,37 @@ export function Tabs() {
             const localCenterX = layout ? visualIndicatorX - layout.left : 0;
             const localCenterXInInner = localCenterX - TAB_INNER_INSET_PX;
 
+            const maskScale =
+              isDraggingIndicator || isSnapping || isArmedMove ? 1.1 : 1;
+            const maskWidth = indicatorSize.width * maskScale;
+            const maskBleed = 0.5 / getDevicePixelRatio();
+
             const maskLeft =
-              layout && indicatorSize.width
+              layout && maskWidth
                 ? clamp(
-                    localCenterXInInner - indicatorSize.width / 2,
+                    snapToDevicePixel(
+                      localCenterXInInner - maskWidth / 2 - maskBleed,
+                      'floor',
+                    ),
                     0,
                     innerWidth,
                   )
                 : 0;
             const maskRight =
-              layout && indicatorSize.width
+              layout && maskWidth
                 ? clamp(
-                    localCenterXInInner + indicatorSize.width / 2,
+                    snapToDevicePixel(
+                      localCenterXInInner + maskWidth / 2 + maskBleed,
+                      'ceil',
+                    ),
                     0,
                     innerWidth,
                   )
                 : 0;
+            const maskInsetRight = Math.max(
+              0,
+              snapToDevicePixel(innerWidth - maskRight, 'floor'),
+            );
             const maskOpacity = layout && maskRight - maskLeft > 0 ? 1 : 0;
 
             return (
@@ -660,6 +691,7 @@ export function Tabs() {
                     ? ({
                         ['--mask-left' as never]: `${maskLeft}px`,
                         ['--mask-right' as never]: `${maskRight}px`,
+                        ['--mask-inset-right' as never]: `${maskInsetRight}px`,
                         ['--mask-opacity' as never]: String(maskOpacity),
                       } as React.CSSProperties)
                     : undefined
@@ -667,7 +699,11 @@ export function Tabs() {
                 type='button'
               >
                 <div className={styles['tab-inner']}>
-                  <div className={styles['tab-layer']}>
+                  <div
+                    className={`${styles['tab-layer']} ${
+                      maskOpacity > 0 ? styles['tab-layer--base-cutout'] : ''
+                    }`}
+                  >
                     {tab.icon && !tab.avatar && (
                       <div className={styles.icon}>
                         {tab.icon(isTabLogicallyActive)}

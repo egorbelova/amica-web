@@ -24,30 +24,31 @@ const LeftSideBar: React.FC<ChooseListProps> = () => {
     <div className='choose_list'>
       <TabsProvider>
         <div className='left-menu'>
-          <Tab id='contacts'>
-            <div
-              className={`${styles['tab-content']} ${styles['tab-content--contacts']}`}
-            >
-              <ContactsTabContent />
-            </div>
-          </Tab>
-          <Tab id='chats'>
-            {/* <div className='chat-list-title'>Messages</div> */}
-            <ChatsTabView />
-          </Tab>
-          <Tab id='profile'>
-            <div
-              className={`${styles['tab-content']} ${styles['tab-content--profile']}`}
-              style={
-                {
-                  '--offset-bottom':
-                    activeProfileTab === 'appearance' ? '120px' : '70px',
-                } as React.CSSProperties
-              }
-            >
-              <Profile />
-            </div>
-          </Tab>
+          <div className={styles['tab-panels']}>
+            <Tab id='contacts'>
+              <div
+                className={`${styles['tab-content']} ${styles['tab-content--contacts']}`}
+              >
+                <ContactsTabContent />
+              </div>
+            </Tab>
+            <Tab id='chats'>
+              <ChatsTabView />
+            </Tab>
+            <Tab id='profile'>
+              <div
+                className={`${styles['tab-content']} ${styles['tab-content--profile']}`}
+                style={
+                  {
+                    '--offset-bottom':
+                      activeProfileTab === 'appearance' ? '120px' : '70px',
+                  } as React.CSSProperties
+                }
+              >
+                <Profile />
+              </div>
+            </Tab>
+          </div>
         </div>
         <Tabs />
       </TabsProvider>

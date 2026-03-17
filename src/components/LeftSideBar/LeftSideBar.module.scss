@@ -30,6 +30,14 @@
   overflow: hidden;
 }
 
+.tab-panels {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
 :global(.left-menu)::before {
   content: '';
   position: fixed;

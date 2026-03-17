@@ -10,11 +10,15 @@ interface TabProps {
 export function Tab({ id, children }: TabProps) {
   const { activeTab } = useTabs();
 
+  const isActive = activeTab === id;
+
   return (
     <div
       className={`${styles['tab-view']} ${
-        activeTab === id ? styles['tab-view--active'] : ''
+        isActive ? styles['tab-view--active'] : ''
       }`}
+      aria-hidden={!isActive}
+      inert={!isActive ? true : undefined}
     >
       {children}
     </div>
