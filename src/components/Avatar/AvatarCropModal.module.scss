@@ -78,7 +78,9 @@ canvas {
   background-color: rgb(255, 66, 66);
 
   opacity: 0;
-  transition: opacity 0.2s ease, scale 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    scale 0.2s ease;
 }
 
 @keyframes spin {
@@ -98,6 +100,7 @@ canvas {
   height: 33%;
   scale: 1;
   transition: scale 0.2s ease;
+  color: #fff;
 }
 
 .avatar {

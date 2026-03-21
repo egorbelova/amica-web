@@ -11,6 +11,43 @@
   justify-content: center;
 }
 
+$menu-toggle-ease: cubic-bezier(0.32, 0.72, 0, 1);
+$menu-toggle-duration: 0.32s;
+
+.menuLayer {
+  position: relative;
+  width: 360px;
+  min-height: 340px;
+  flex-shrink: 0;
+}
+
+.noChatHintWrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.96);
+  pointer-events: none;
+  visibility: hidden;
+  transition:
+    opacity $menu-toggle-duration $menu-toggle-ease,
+    transform $menu-toggle-duration $menu-toggle-ease,
+    visibility 0s linear $menu-toggle-duration;
+}
+
+.noChatHintWrapVisible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  visibility: visible;
+  transition:
+    opacity $menu-toggle-duration $menu-toggle-ease,
+    transform $menu-toggle-duration $menu-toggle-ease,
+    visibility 0s linear 0s;
+}
+
 .noChatText {
   border-radius: 99rem;
   padding: 3px 20px;
@@ -41,10 +78,19 @@
 }
 
 .tipsMenu {
-  width: 300px;
+  position: absolute;
+  inset: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   min-height: 340px;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  visibility: visible;
+  transition:
+    opacity $menu-toggle-duration $menu-toggle-ease,
+    transform $menu-toggle-duration $menu-toggle-ease,
+    visibility 0s linear 0s;
 
   .mainContentWrapper {
     position: relative;
@@ -67,7 +113,7 @@
     transform: translateX(0);
   }
   .mainContent {
-    border-radius: 24px;
+    border-radius: 32px;
     width: 100%;
     height: 100%;
     background: var(--surface-bg);
@@ -83,12 +129,12 @@
   }
   .header {
     margin: 0 auto;
-    padding: 15px;
+    padding: 16px 0 24px 0;
     font-size: 1rem;
     font-weight: 500;
   }
   .themeSection {
-    margin-bottom: 12px;
+    // margin-bottom: 12px;
   }
   .themeLabel {
     margin-bottom: 16px;
@@ -113,6 +159,35 @@
       background: var(--button-hover) !important;
       background-color: var(--button-hover) !important;
     }
+  }
+  .themeButtonContent {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 0 4px;
+  }
+  .themeLottie {
+    width: 24px !important;
+    height: 24px !important;
+    flex-shrink: 0;
+    display: block;
+
+    :global(svg path),
+    :global(svg circle),
+    :global(svg rect),
+    :global(svg ellipse),
+    :global(svg polyline),
+    :global(svg polygon) {
+      stroke: var(--surface-button-text) !important;
+      fill: none !important;
+    }
+  }
+  .themeSystemIcon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
   }
   .themeButtonActive {
     background: var(--surface-button-bg-active) !important;
@@ -190,13 +265,24 @@
   }
 }
 
+.tipsMenuHidden {
+  opacity: 0;
+  transform: translateY(14px) scale(0.96);
+  pointer-events: none;
+  visibility: hidden;
+  transition:
+    opacity $menu-toggle-duration $menu-toggle-ease,
+    transform $menu-toggle-duration $menu-toggle-ease,
+    visibility 0s linear $menu-toggle-duration;
+}
+
 .arrowIcon {
   height: 16px;
   width: auto;
 }
 
 .themePreview {
-  margin-top: 16px;
+  margin-top: 24px;
   display: flex;
   justify-content: center;
   align-items: center;

@@ -70,6 +70,7 @@
   --reaction-count-text: #fff;
   --color-text-tertiary: #ccc;
   --chat-list-item-unread-text: #d5eaff;
+  --time-left-text: #d5eaff;
 
   @media screen and (max-width: 768px) {
     --bodyBackground: #000;
@@ -120,6 +121,7 @@
     --chat-list-item-color: #fff;
     --sidebar-mask-bg: #fff;
     --color-text-tertiary: #000;
+    --time-left-text: #1c1c1e;
   }
 
   &[data-theme='dark'] {
@@ -279,6 +281,7 @@ body {
   background: var(--bodyBackground);
   max-height: calc(100%);
   border-radius: var(--device-corner-radius);
+  transition: background 0.2s;
 }
 
 svg {

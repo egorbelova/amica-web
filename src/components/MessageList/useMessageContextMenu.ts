@@ -1,5 +1,8 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
-import type { MenuItem } from '../ContextMenu/ContextMenu';
+import type {
+  ContextMenuAnimatedIcon,
+  MenuItem,
+} from '../ContextMenu/ContextMenu';
 import type { IconName } from '../Icons/AutoIcons';
 import type { Message as MessageType, File } from '@/types';
 import { apiFetch } from '@/utils/apiFetch';
@@ -247,7 +250,7 @@ export function useMessageContextMenu({
         ? [
             {
               label: t('messageContextMenu.copyMedia'),
-              icon: 'Photo' as IconName,
+              animatedIcon: 'photo' as ContextMenuAnimatedIcon,
               onClick: () => handleCopyMedia(menuMessage),
             },
           ]
@@ -266,7 +269,7 @@ export function useMessageContextMenu({
         ? [
             {
               label: t('messageContextMenu.edit'),
-              icon: 'Edit' as IconName,
+              animatedIcon: 'edit' as ContextMenuAnimatedIcon,
               onClick: () => handleEditMessage(menuMessage),
             },
           ]
@@ -289,7 +292,7 @@ export function useMessageContextMenu({
             { separator: true, label: '', onClick: () => {} },
             {
               label: t('messageContextMenu.delete'),
-              icon: 'Delete' as IconName,
+              animatedIcon: 'delete' as ContextMenuAnimatedIcon,
               onClick: () => menuMessage && handleDeleteMessage(menuMessage),
               danger: true,
             },

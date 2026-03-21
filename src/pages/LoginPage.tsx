@@ -74,11 +74,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
     <div className={styles['login-wrapper']}>
       <div className={styles['login-top-fill']} />
       <form className={styles['login-form']} onSubmit={handleSubmit} noValidate>
-        <img
+        {/* <img
           src='Images/512-transparent.png'
           alt='Amica'
           className={styles['login-logo']}
-        />
+        /> */}
         <h4 className={styles['login-title']}>{t('login.signIn')}</h4>
 
         <fieldset className={styles['form']}>

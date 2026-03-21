@@ -329,11 +329,13 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   position: relative;
+  overflow: hidden;
 }
 
 .settingsContainer {
   height: 100%;
   overflow: auto;
+  overscroll-behavior: none;
 }
 
 .close {

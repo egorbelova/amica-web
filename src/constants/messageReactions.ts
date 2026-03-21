@@ -1,5 +1,5 @@
 const reactionIconUrl = (name: string) =>
-  new URL(`../assets/reactions/icons/${name}.png`, import.meta.url).href;
+  new URL(`../assets/reactions/icons/webp/${name}.webp`, import.meta.url).href;
 
 export const MESSAGE_REACTION_OPTIONS = [
   {

@@ -1,13 +1,26 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  startTransition,
+} from 'react';
 import styles from './ContextMenu.module.scss';
 import { createPortal } from 'react-dom';
 import { Icon } from '../Icons/AutoIcons';
 import type { IconName } from '../Icons/AutoIcons';
 import { useTranslation } from '@/contexts/languageCore';
+import {
+  ContextMenuItemLottie,
+  type ContextMenuAnimatedIcon,
+} from './ContextMenuItemLottie';
+
+export type { ContextMenuAnimatedIcon };
 
 export interface MenuItem {
   label: string;
   icon?: IconName;
+  animatedIcon?: ContextMenuAnimatedIcon;
   onClick: () => void;
   danger?: boolean;
   separator?: boolean;
@@ -46,6 +59,13 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const reactionsRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const [hoveredItemIndex, setHoveredItemIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    startTransition(() => {
+      setHoveredItemIndex(null);
+    });
+  }, [items]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -152,29 +172,29 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
             {reactions.map((reaction, index) => (
               <button
                 key={reaction.type}
-              type='button'
-              className={`${styles['reaction-panel__item']} ${
-                selectedReactionTypes.includes(reaction.type)
-                  ? styles['reaction-panel__item--selected']
-                  : ''
-              }`}
-              style={{ animationDelay: `${index * 55}ms` }}
-              onClick={() => onReactionSelect?.(reaction.type)}
-              aria-label={`${t('aria.reactWith')} ${reaction.emoji}`}
-            >
-              {reaction.iconUrl ? (
-                <img
-                  src={reaction.iconUrl}
-                  alt=''
-                  className={styles['reaction-panel__icon']}
-                />
-              ) : (
-                <span className={styles['reaction-panel__emoji']}>
-                  {reaction.emoji}
-                </span>
-              )}
-            </button>
-          ))}
+                type='button'
+                className={`${styles['reaction-panel__item']} ${
+                  selectedReactionTypes.includes(reaction.type)
+                    ? styles['reaction-panel__item--selected']
+                    : ''
+                }`}
+                style={{ animationDelay: `${index * 55}ms` }}
+                onClick={() => onReactionSelect?.(reaction.type)}
+                aria-label={`${t('aria.reactWith')} ${reaction.emoji}`}
+              >
+                {reaction.iconUrl ? (
+                  <img
+                    src={reaction.iconUrl}
+                    alt=''
+                    className={styles['reaction-panel__icon']}
+                  />
+                ) : (
+                  <span className={styles['reaction-panel__emoji']}>
+                    {reaction.emoji}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
           <div
             className={styles['reaction-panel__thoughts']}
@@ -208,16 +228,25 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
                 item.danger ? styles['context-menu__item--danger'] : ''
               }`}
               style={{ animationDelay: `${idx * 15}ms` }}
+              onMouseEnter={() => setHoveredItemIndex(idx)}
+              onMouseLeave={() => setHoveredItemIndex(null)}
               onClick={() => {
                 item.onClick();
                 onClose();
               }}
             >
-              {item.icon && (
-                <Icon
-                  name={item.icon}
-                  className={styles['context-menu__item--icon']}
+              {item.animatedIcon ? (
+                <ContextMenuItemLottie
+                  variant={item.animatedIcon}
+                  isHovered={hoveredItemIndex === idx}
                 />
+              ) : (
+                item.icon && (
+                  <Icon
+                    name={item.icon}
+                    className={styles['context-menu__item--icon']}
+                  />
+                )
               )}
               <span>{item.label}</span>
             </div>

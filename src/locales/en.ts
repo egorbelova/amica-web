@@ -12,7 +12,7 @@ export default {
     appearance: 'Appearance',
     chats: 'Chats',
     previousTip: 'Previous Tip',
-    nextTip: 'Next Tips',
+    nextTip: 'Next Tip',
     theme: 'Theme',
     themeLight: 'Light',
     themeDark: 'Dark',
@@ -64,7 +64,8 @@ export default {
     settings: 'Settings',
     signOut: 'Sign Out',
     languageDescription: 'Select your preferred language.',
-    privacyDescription: 'Manage your privacy settings and security such as passkeys.',
+    privacyDescription:
+      'Manage your privacy settings and security such as passkeys.',
     appearance: 'Appearance',
     appearanceDescription: 'Customize your appearance and settings.',
     autoplayVideos: 'Autoplay Videos',
@@ -141,7 +142,7 @@ export default {
     logIn: 'Log in',
   },
   chat: {
-    selectToStart: 'Select a chat to start messaging',
+    selectToStart: 'Start messaging by selecting a chat',
     chat: 'Chat',
     chatDeleted: 'Chat deleted',
   },

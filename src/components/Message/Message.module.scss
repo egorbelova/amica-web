@@ -513,7 +513,6 @@
 
 :global(.time-left) {
   font-size: 0.625rem;
-  color: var(--secondaryColor);
   user-select: none;
   white-space: nowrap;
 }
@@ -537,7 +536,7 @@
 }
 
 :global(.temp_full.other-message) :global(.message_div_temp_time_view) {
-  color: #333;
+  color: var(--time-left-text);
 }
 
 @keyframes message_div_recieve {
