@@ -145,9 +145,9 @@ function ChatList() {
 
   if (shouldShowInitialLoading) return <ChatListLoading />;
   if (error) return <ChatListError message={error} onRetry={fetchChats} />;
-  if (sortedChats.length === 0 && isEmpty) {
-    return <ChatListEmpty text='No chats' />;
-  }
+  // if (sortedChats.length === 0 && isEmpty) {
+  //   return <ChatListEmpty text='No chats' />;
+  // }
 
   return (
     <div

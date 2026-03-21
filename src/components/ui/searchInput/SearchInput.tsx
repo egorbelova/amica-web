@@ -1,13 +1,12 @@
 import { useRef } from 'react';
 import { Icon } from '@/components/Icons/AutoIcons';
-import './SearchInput.css';
 import { useSearchContext } from '@/contexts/search/SearchContextCore';
+import styles from './SearchInput.module.scss';
 
-const searchIcon = <Icon name='Search' className='search_icon' />;
+const searchIcon = <Icon name='Search' className={styles['search_icon']} />;
 
 export interface SearchInputProps {
   placeholder?: string;
-  /** Controlled mode: pass value + onChange (and optional onClear) to use local state instead of search context */
   value?: string;
   onChange?: (value: string) => void;
   onClear?: () => void;
@@ -21,8 +20,7 @@ const SearchInput = ({
 }: SearchInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const context = useSearchContext();
-  const isControlled =
-    valueProp !== undefined && onChangeProp !== undefined;
+  const isControlled = valueProp !== undefined && onChangeProp !== undefined;
   const value = isControlled ? valueProp : context.term;
   const onChange = isControlled ? onChangeProp : context.onChange;
   const clear = isControlled
@@ -30,17 +28,16 @@ const SearchInput = ({
     : context.clear;
 
   return (
-    <div className='search_div' id='search'>
-      <div className='liquidGlass-effect'></div>
-      <div className='liquidGlass-tint'></div>
-      <div className='liquidGlass-shine'></div>
+    <div className={styles['input-search']}>
+      <div className={styles['liquidGlass-tint']}></div>
+      <div className={styles['liquidGlass-shine']}></div>
 
-      <div className='search_field_div'>
-        <div className='search_icon_div'>{searchIcon}</div>
-        <div className='search_field_input'>
+      <div className={styles['input-search__inner']}>
+        <div className={styles['input-search__icon']}>{searchIcon}</div>
+        <div className={styles['input-search__input']}>
           <input
             aria-label='Search'
-            className='search_field'
+            className={styles['input-search__field']}
             name='term'
             placeholder=' '
             value={value}
@@ -49,17 +46,18 @@ const SearchInput = ({
             autoComplete='off'
             type='text'
           />
-          <span className={`search_field_placeholder ${value ? 'input' : ''}`}>
+          <span
+            className={`${styles['input-search__placeholder']} ${value ? styles['input-search__placeholder--filled'] : ''}`}
+          >
             {placeholder}
           </span>
         </div>
       </div>
-
-      <div className='search_cross_div' onClick={clear}>
-        <svg className='search_cross'>
-          <use href='#cross-icon'></use>
-        </svg>
-      </div>
+      {value && (
+        <div className={styles['input-search__clear']} onClick={clear}>
+          <Icon name='Cross' className={styles['input-search__clear-icon']} />
+        </div>
+      )}
     </div>
   );
 };
