@@ -16,7 +16,7 @@
   padding-top: calc(var(--sat) + 50px);
   padding-bottom: (var(--main-navigation-height));
   overflow-y: scroll;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
   mask-image: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0) 0px,

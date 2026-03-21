@@ -84,7 +84,7 @@
   }
 
   overflow-y: scroll;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
   overflow-anchor: none;
 }
 
@@ -162,7 +162,7 @@
   background: var(--surface-bg);
   margin: 10px 10px 10px 0;
   height: calc(100% - 20px);
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
 
   position: relative;
   width: calc(var(--main-chat-window-width) - var(--global-gap));

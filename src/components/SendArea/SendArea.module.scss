@@ -83,7 +83,7 @@
 }
 
 .files-preview-list {
-  overscroll-behavior: contain;
+  overscroll-behavior-x: contain;
   display: flex;
   flex-direction: row;
   gap: 8px;

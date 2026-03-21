@@ -8,9 +8,14 @@
   --room_BG_color_hex: #4d8ddb;
   --myColor1: #4d8ddb;
   --myColor2: #4d8ddb99;
-  --myColor3: #4d8ddb33;
+  --myColor3: #33333380;
   --darker_: #1972de;
   --message_color: #1c1c1c80;
+  --message-reaction-bg: rgba(255, 255, 255, 0.15);
+  --message-reaction-hover-bg: rgba(255, 255, 255, 0.16);
+  --message-reaction-own-bg: rgba(255, 255, 255, 0.15);
+  --message-reaction-own-border: rgba(255, 255, 255, 0.45);
+  --message-reaction-text: var(--messageMainColor);
 
   --sat: env(safe-area-inset-top);
   --sar: env(safe-area-inset-right);
@@ -28,7 +33,7 @@
   --keyboard-height: 0px;
 
   --secondaryColor: #d5eaff;
-  --chat-list-message-color: #fff;
+  --chat-list-message-color: #a4a4a4;
   --chat-list-name-color: #fff;
   --tab-inner-overlay-bg: rgba(90, 90, 90, 0.5);
   --dropdown-bg: #33333333;
@@ -100,7 +105,7 @@
     --messageMainColor: #1c1c1e;
     --message-other-text: #1c1c1e;
     --secondaryColor: #3a3a3c;
-    --chat-list-message-color: #1c1c1e;
+    --chat-list-message-color: #6e6e6e;
     --chat-list-name-color: #000;
     --tab-inner-overlay-bg: rgba(255, 255, 255, 0.5);
     --dropdown-bg: rgba(255, 255, 255, 0.5);
@@ -118,10 +123,15 @@
     --separator-label-text: #1c1c1e;
     --stroke-gradient-start: #555;
     --stroke-gradient-end: #333;
-    --chat-list-item-color: #fff;
+    --chat-list-item-color: #333;
     --sidebar-mask-bg: #fff;
     --color-text-tertiary: #000;
     --time-left-text: #1c1c1e;
+    --chat-list-item-unread-text: #fff;
+    // --message-reaction-bg: rgba(127, 127, 127, 0.15);
+    // --message-reaction-hover-bg: rgba(127, 127, 127, 0.16);
+    // --message-reaction-own-bg: rgba(127, 127, 127, 0.15);
+    // --message-reaction-own-border: rgba(127, 127, 127, 0.45);
   }
 
   &[data-theme='dark'] {
@@ -141,7 +151,7 @@
     --color-danger: #ff6b6b;
     --color-danger-text: #ff6b6b;
     --secondaryColor: #d5eaff;
-    --chat-list-message-color: #fff;
+    --chat-list-message-color: #a4a4a4;
     --chat-list-name-color: #fff;
     --tab-inner-overlay-bg: rgba(90, 90, 90, 0.5);
     --search-field-bg: rgba(30, 30, 30, 0.7);
@@ -157,6 +167,7 @@
     --chat-list-item-color: #959595;
     --sidebar-mask-bg: rgba(0, 0, 0, 1);
     --color-text-tertiary: #ccc;
+    --chat-list-item-unread-text: #d5eaff;
 
     @media screen and (max-width: 768px) {
       --bodyBackground: #000;
@@ -255,7 +266,7 @@ body {
   max-height: calc(var(--sat) + 100%);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
 }
 
 @supports (-webkit-touch-callout: none) {

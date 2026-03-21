@@ -292,7 +292,7 @@
 }
 
 .message_reactions {
-  margin-top: 4px;
+  // margin-top: 4px;
   display: inline-flex;
   flex-wrap: wrap;
   gap: 4px;
@@ -341,9 +341,9 @@
   font-size: 0.875rem;
   line-height: 1;
   width: fit-content;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--message-reaction-bg);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  color: var(--messageMainColor);
+  color: var(--message-reaction-text);
   cursor: pointer;
   user-select: none;
   transition:
@@ -353,13 +353,13 @@
   transform-origin: center;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.16);
+    background: var(--message-reaction-hover-bg);
   }
 }
 
 .message_reaction__own {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.45);
+  background: var(--message-reaction-own-bg);
+  border-color: var(--message-reaction-own-border);
 }
 
 .message_reaction__icon {

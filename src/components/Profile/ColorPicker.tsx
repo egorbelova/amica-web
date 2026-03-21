@@ -9,6 +9,7 @@ import Button from '../ui/button/Button';
 
 const suggestedColors = [
   '#007AFF',
+  '#0091ff',
   '#2c77d1',
   '#5AC8FA',
   '#5856D6',
@@ -413,7 +414,9 @@ const ColorPicker = () => {
             />
           ))}
         </div>
-        <div className={styles.suggestedColorsSubtitle}>{t('colorPicker.messageBackground')}</div>
+        <div className={styles.suggestedColorsSubtitle}>
+          {t('colorPicker.messageBackground')}
+        </div>
 
         <div className={styles.suggestedColorsContainer}>
           {suggestedGradients.map((g) => (
@@ -457,7 +460,9 @@ const ColorPicker = () => {
             aria-label={t('colorPicker.useCustomGradientAria')}
           />
           <div className={styles.customGradientPreviewInfo}>
-            <div>{customGradientColors.length} {t('colorPicker.colorCount')}</div>
+            <div>
+              {customGradientColors.length} {t('colorPicker.colorCount')}
+            </div>
             <div>{customGradientDegree}deg</div>
           </div>
         </div>

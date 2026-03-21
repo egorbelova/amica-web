@@ -154,7 +154,7 @@
   &__unread {
     font-size: 1rem;
     border-radius: 1rem;
-    background-color: var(--myColor3);
+    background-color: var(--mainColor);
     padding: 1px 4px;
     display: flex;
     align-items: center;
@@ -167,20 +167,6 @@
     justify-self: end;
     color: var(--chat-list-item-unread-text);
     float: right;
-
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-      inset 0 0 4px rgba(0, 0, 0, 0.45),
-      inset 0 0 0 4px rgba(255, 255, 255, 0.04);
-    text-shadow:
-      0 0 2px rgba(255, 255, 255, 0.55),
-      0 0 6px rgba(255, 255, 255, 0.35),
-      0 1px 2px rgba(0, 0, 0, 0.7);
-    background-image: radial-gradient(
-      circle at 50% 45%,
-      rgba(255, 255, 255, 0.1),
-      transparent 40%
-    );
   }
 
   &__avatar {
@@ -242,6 +228,14 @@
 
     .chat-list-item__read {
       fill: #d5eaff;
+    }
+
+    .chat-list-item__message-text {
+      color: #d5eaff;
+    }
+
+    .chat-list-item__name {
+      color: #fff;
     }
   }
 }

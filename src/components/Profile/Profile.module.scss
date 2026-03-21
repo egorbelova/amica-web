@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: scroll;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
   height: 100%;
   min-height: 100%;
   // padding-top: var(--sat);
@@ -319,6 +319,7 @@
   width: 100%;
   height: 100%;
   transition: transform 0.2s ease-out;
+  touch-action: pan-y;
 }
 
 .page {
@@ -327,15 +328,17 @@
   min-width: 100%;
   min-height: 100%;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
   position: relative;
   overflow: hidden;
+  touch-action: pan-y;
 }
 
 .settingsContainer {
   height: 100%;
   overflow: auto;
-  overscroll-behavior: none;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
 }
 
 .close {
@@ -378,6 +381,7 @@
   width: 100%;
   top: var(--sat);
   z-index: 99;
+  touch-action: pan-y;
 }
 
 .pageHeaderTitle {
