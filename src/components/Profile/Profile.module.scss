@@ -1,3 +1,5 @@
+@use '@/scss/variables' as *;
+
 .container {
   display: flex;
   flex-direction: column;
@@ -5,13 +7,6 @@
   overscroll-behavior-y: contain;
   height: 100%;
   min-height: 100%;
-  // padding-top: var(--sat);
-  // mask-image: linear-gradient(
-  //   to bottom,
-  //   rgba(0, 0, 0, 0) 0px,
-  //   rgba(0, 0, 0, 1) calc(40px + var(--sat))
-  // );
-  // gap: 20px;
 }
 
 .tabs {
@@ -428,9 +423,7 @@
   padding: 14px;
   border-radius: 32px;
   background-color: rgba(0, 0, 0, 0.1);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.1),
-    0 2px 4px rgba(106, 111, 117, 0.08);
+  box-shadow: $glass-shadow;
 
   &__icon {
     color: #fff;
@@ -443,9 +436,7 @@
       var(--background-color),
       color-mix(in srgb, var(--background-color) 50%, #fff)
     );
-    box-shadow:
-      inset 0 1px 1px rgba(255, 255, 255, 0.1),
-      0 2px 4px rgba(106, 111, 117, 0.08);
+    box-shadow: $glass-shadow;
   }
 
   &__title {
@@ -649,9 +640,7 @@ $suggestedColorPreviewSize: 40px;
   border: none;
   border-radius: 20px;
   cursor: pointer;
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.15),
-    0 6px 18px rgba(0, 0, 0, 0.2);
+  box-shadow: $glass-shadow;
 }
 
 .customGradientPreviewInfo {

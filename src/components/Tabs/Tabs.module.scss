@@ -1,3 +1,5 @@
+@use '@/scss/variables' as *;
+
 @property --new-wallpaper-height {
   syntax: '<length>';
   initial-value: 0px;
@@ -22,6 +24,11 @@
   backdrop-filter: blur(4px);
   background: var(--surface-bg-muted);
   padding-bottom: var(--sab);
+  scale: 1;
+  transition: scale 0.3s ease;
+  &:active {
+    scale: 1.03;
+  }
 }
 
 .new-wallpaper {
@@ -72,11 +79,8 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
-  // gap: 4px;
   height: var(--main-navigation-height);
   position: relative;
-  // overflow: hidden;
-  // margin-bottom: 10px;
 }
 
 .main-navigation--moving {
@@ -139,9 +143,7 @@
 .drag-indicator--dragging,
 .drag-indicator--moving {
   // border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.4),
-    0 2px 4px rgba(39, 53, 71, 0.2);
+  box-shadow: $glass-shadow;
 }
 
 .drag-indicator--active {

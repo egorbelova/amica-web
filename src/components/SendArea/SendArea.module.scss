@@ -1,3 +1,5 @@
+@use '@/scss/variables' as *;
+
 .files-preview {
   display: flex;
   flex-direction: column;
@@ -303,6 +305,7 @@
   background: var(--send-area-bg);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(2px);
+  box-shadow: $glass-shadow;
   border-radius: 20px;
   transition:
     background 1s,

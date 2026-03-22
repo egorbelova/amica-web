@@ -18,11 +18,8 @@ export interface MessageProps {
     clientX: number,
     clientY: number,
   ) => void;
-  /** In a same-sender group: false when there is a newer message from same sender (below in list) */
   isFirstInGroup?: boolean;
-  /** In a same-sender group: false when there is an older message from same sender (above in list) */
   isLastInGroup?: boolean;
-  /** Delay for initial appear animation (ms) */
   appearDelayMs?: number;
 }
 
@@ -67,7 +64,7 @@ const Message: React.FC<MessageProps> = ({
 
   return (
     <div
-      className={`temp_full ${isOwn ? 'own-message' : 'other-message'} ${selectionMode && isSelected ? 'selected' : ''} ${selectionMode ? 'selection-mode' : ''} ${typeof appearDelayMs === 'number' ? 'initialAppear' : ''}`}
+      className={`temp_full ${isOwn ? 'own-message' : 'other-message'} ${selectionMode && isSelected ? 'selected' : ''} ${selectionMode ? 'selection-mode' : ''}`}
       data-message-id={message.id}
       style={messageDivStyle}
       onPointerDown={(e) => {
@@ -142,7 +139,7 @@ const Message: React.FC<MessageProps> = ({
       )}
       <div
         ref={containerRef}
-        className={`${styles.message_div} ${isOwn ? `${styles.darker} ${styles.right}` : ''} ${selectionMode ? styles.selected_prepare : ''} ${!isFirstInGroup ? styles.groupedWithNewer : ''} ${!isLastInGroup ? styles.groupedWithOlder : ''}`}
+        className={`${styles.message_div} ${isOwn ? `${styles.darker} ${styles.right}` : ''} ${selectionMode ? styles.selected_prepare : ''} ${!isFirstInGroup ? styles.groupedWithNewer : ''} ${!isLastInGroup ? styles.groupedWithOlder : ''} ${typeof appearDelayMs === 'number' ? styles.initialAppear : ''}`}
       >
         <MessageContent
           message={message}
