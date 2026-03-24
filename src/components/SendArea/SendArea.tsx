@@ -504,6 +504,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
       <DropZone onFiles={handleFiles} />
       <div className='send_area'>
         <JumpToBottom />
+        {/* <Button className={styles['send_area_button']}> */}
         <div className={styles['send_div_container']}>
           {isSelectionMode ? (
             <div className={styles['selection-bar']}>
@@ -602,6 +603,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
             </>
           )}
         </div>
+        {/* </Button> */}
       </div>
     </>
   );

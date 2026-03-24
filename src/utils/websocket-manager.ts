@@ -24,6 +24,8 @@ export interface WebSocketMessageData {
   reaction?: { reaction_type: string };
   object_id?: number;
   first_message?: string;
+  /** create_group */
+  name?: string;
   session?: Session;
   url?: string;
 }
@@ -96,6 +98,14 @@ interface WebSocketEventMap {
       media?: unknown;
       members?: unknown;
       messages?: unknown[];
+    },
+  ) => void;
+  group_members_updated: (
+    data: WebSocketMessage & {
+      chat_id?: number;
+      members?: unknown;
+      users_count?: number;
+      chat?: unknown;
     },
   ) => void;
 }
@@ -395,6 +405,11 @@ class WebSocketManager {
           case 'chat':
             this.emit('chat', data);
             break;
+          case 'group_members_updated':
+            if (data.chat_id !== undefined) {
+              this.emit('group_members_updated', data);
+            }
+            break;
         }
       };
       if (
@@ -471,6 +486,29 @@ class WebSocketManager {
     return this.sendMessage({
       type: 'delete_chat',
       chat_id: chatId,
+    });
+  }
+
+  public sendAddGroupMember(chatId: number, userId: number) {
+    return this.sendMessage({
+      type: 'add_group_member',
+      chat_id: chatId,
+      data: { user_id: userId },
+    });
+  }
+
+  public sendRemoveGroupMember(chatId: number, userId: number) {
+    return this.sendMessage({
+      type: 'remove_group_member',
+      chat_id: chatId,
+      data: { user_id: userId },
+    });
+  }
+
+  public sendCreateGroup(name: string) {
+    return this.sendMessage({
+      type: 'create_group',
+      data: { name },
     });
   }
 

@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, type Dispatch, type SetStateAction } from 'react';
 import type { Message, Chat, User } from '@/types';
 import type { WebSocketMessage } from '@/utils/websocket-manager';
 
@@ -15,7 +15,7 @@ export interface ChatMetaContextType {
   addContact: (userId: number) => void;
   deleteContact: (contactId: number) => void;
   saveContact: (contactId: number, name: string) => void;
-  setChats: (chats: Chat[]) => void;
+  setChats: Dispatch<SetStateAction<Chat[]>>;
   setLoading: (loading: boolean) => void;
 }
 

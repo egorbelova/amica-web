@@ -144,6 +144,7 @@ export default {
     selectToStart: 'Selecione uma conversa para começar',
     chat: 'Conversa',
     chatDeleted: 'Conversa excluída',
+    leftGroup: 'Você saiu do grupo',
   },
   sendArea: {
     cancelSelection: 'Cancelar seleção',
@@ -198,6 +199,9 @@ export default {
     fileDownloaded: 'Arquivo baixado',
     emailCopied: 'E-mail copiado',
     fileDownloadFailed: 'Falha ao baixar arquivo',
+    wsSendFailed: 'Não foi possível enviar. Verifique a conexão.',
+    joinGroupFailed: 'Não foi possível entrar no grupo.',
+    createGroupTimeout: 'Não foi possível criar o grupo. Tente novamente.',
   },
   sidebar: {
     members: 'Membros',
@@ -212,6 +216,14 @@ export default {
     filterAll: 'Tudo',
     filterVideos: 'Vídeos',
     filterPhotos: 'Fotos',
+    addMember: 'Adicionar membro',
+    addMemberTitle: 'Ao grupo',
+    addMemberNoContacts: 'Nenhum contato para adicionar',
+    removeMember: 'Remover membro',
+    leaveGroup: 'Sair do grupo',
+    newGroupTitle: 'Novo grupo',
+    newGroupNamePlaceholder: 'Nome do grupo',
+    createGroupButton: 'Criar',
     membersCount: 'membros',
   },
   aria: {

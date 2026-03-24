@@ -278,7 +278,10 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
 
               <div className={styles.content} ref={gridRef}>
                 {activeTab === 'members' && selectedChat.type === 'G' && (
-                  <MembersList members={selectedChat.members ?? []} />
+                  <MembersList
+                    chatId={selectedChat.id}
+                    members={selectedChat.members ?? []}
+                  />
                 )}
                 {activeTab === 'media' && mediaFiles.length > 0 && (
                   <MediaGrid files={filteredMediaFiles} rowScale={rowScale} />

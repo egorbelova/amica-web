@@ -144,6 +144,7 @@ export default {
     selectToStart: 'チャットを選択して開始',
     chat: 'チャット',
     chatDeleted: 'チャットが削除されました',
+    leftGroup: 'グループを退出しました',
   },
   sendArea: {
     cancelSelection: '選択をキャンセル',
@@ -198,6 +199,10 @@ export default {
     fileDownloaded: 'ファイルをダウンロードしました',
     emailCopied: 'メールをコピーしました',
     fileDownloadFailed: 'ダウンロードに失敗しました',
+    wsSendFailed: '送信できませんでした。接続を確認してください。',
+    joinGroupFailed: 'グループに参加できませんでした。',
+    createGroupTimeout:
+      'グループを作成できませんでした。もう一度お試しください。',
   },
   sidebar: {
     members: 'メンバー',
@@ -212,6 +217,14 @@ export default {
     filterAll: 'すべて',
     filterVideos: '動画',
     filterPhotos: '写真',
+    addMember: 'メンバーを追加',
+    addMemberTitle: 'グループに追加',
+    addMemberNoContacts: '追加できる連絡先がありません',
+    removeMember: 'メンバーを削除',
+    leaveGroup: 'グループを退出',
+    newGroupTitle: '新しいグループ',
+    newGroupNamePlaceholder: 'グループ名',
+    createGroupButton: '作成',
     membersCount: 'メンバー',
   },
   aria: {

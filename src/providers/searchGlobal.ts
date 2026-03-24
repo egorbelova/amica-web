@@ -1,5 +1,5 @@
 import { apiFetch } from '@/utils/apiFetch';
-import type { User } from '@/types';
+import type { User, Chat, Message } from '@/types';
 import type { GlobalSearchItem } from '@/contexts/search/globalSearchTypes';
 
 export const searchGlobal = async (query: string): Promise<User[]> => {
@@ -10,10 +10,73 @@ export const searchGlobal = async (query: string): Promise<User[]> => {
   return res.json();
 };
 
-/** For Chats tab: search users only, return as GlobalSearchItem[] */
+type GroupSearchRow = {
+  id: number;
+  name?: string | null;
+  type?: string;
+  primary_media?: Chat['primary_media'] | null;
+  last_message?: Message | null;
+  unread_count?: number;
+  info?: string | number | null;
+};
+
+export function groupSearchRowToChat(row: GroupSearchRow): Chat {
+  return {
+    id: row.id,
+    name: row.name ?? null,
+    type: 'G',
+    members: [],
+    primary_media: row.primary_media,
+    last_message: row.last_message ?? null,
+    unread_count: row.unread_count ?? 0,
+    info: row.info != null ? String(row.info) : '',
+    media: [],
+  };
+}
+
+export async function searchGlobalGroups(
+  query: string,
+): Promise<GroupSearchRow[]> {
+  const q = query.trim();
+  if (!q) return [];
+  const res = await apiFetch(`/api/groups/search/?q=${encodeURIComponent(q)}`);
+  if (!res.ok) {
+    if (res.status === 400) return [];
+    throw new Error('Group search failed');
+  }
+  return res.json() as Promise<GroupSearchRow[]>;
+}
+
+export async function joinGroup(chatId: number): Promise<boolean> {
+  const res = await apiFetch(`/api/groups/${chatId}/join/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  return res.ok;
+}
+
+/** Global groups by name + user search (users need query length ≥ 4 on API). */
 export const searchChatsTab = async (
   query: string,
 ): Promise<GlobalSearchItem[]> => {
-  const users = await searchGlobal(query);
-  return users.map((user): GlobalSearchItem => ({ type: 'user', data: user }));
+  const trimmed = query.trim();
+  const groupPromise = searchGlobalGroups(trimmed).catch(
+    () => [] as GroupSearchRow[],
+  );
+  const userPromise =
+    trimmed.length >= 4
+      ? searchGlobal(trimmed).catch(() => [] as User[])
+      : Promise.resolve([] as User[]);
+  const [groupRows, users] = await Promise.all([groupPromise, userPromise]);
+  const groupItems = groupRows.map(
+    (row): GlobalSearchItem => ({
+      type: 'group',
+      data: groupSearchRowToChat(row),
+    }),
+  );
+  const userItems = users.map(
+    (user): GlobalSearchItem => ({ type: 'user', data: user }),
+  );
+  return [...groupItems, ...userItems];
 };

@@ -103,6 +103,8 @@ export interface User {
 
 export interface Contact {
   id: number;
+  /** Underlying user id (for invites, etc.) */
+  user_id?: number;
   username: string;
   profile: UserProfile;
   primary_media: DisplayMedia | null;

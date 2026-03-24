@@ -144,6 +144,7 @@ export default {
     selectToStart: '选择一个聊天开始',
     chat: '聊天',
     chatDeleted: '聊天已删除',
+    leftGroup: '你已退出群组',
   },
   sendArea: {
     cancelSelection: '取消选择',
@@ -198,6 +199,9 @@ export default {
     fileDownloaded: '文件已下载',
     emailCopied: '邮箱已复制',
     fileDownloadFailed: '下载失败',
+    wsSendFailed: '无法发送，请检查网络连接。',
+    joinGroupFailed: '无法加入群组。',
+    createGroupTimeout: '无法创建群组，请重试。',
   },
   sidebar: {
     members: '成员',
@@ -212,6 +216,14 @@ export default {
     filterAll: '全部',
     filterVideos: '视频',
     filterPhotos: '照片',
+    addMember: '添加成员',
+    addMemberTitle: '加入群组',
+    addMemberNoContacts: '没有可添加的联系人',
+    removeMember: '移除成员',
+    leaveGroup: '退出群组',
+    newGroupTitle: '新建群组',
+    newGroupNamePlaceholder: '群组名称',
+    createGroupButton: '创建',
     membersCount: '位成员',
   },
   aria: {

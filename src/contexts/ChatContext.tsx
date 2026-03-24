@@ -220,9 +220,14 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     dismissSnackbar();
 
     setChats((prevChats) => {
-      if (prevChats.some((chat) => chat.id === pending.chat.id)) return prevChats;
+      if (prevChats.some((chat) => chat.id === pending.chat.id))
+        return prevChats;
       const nextChats = [...prevChats];
-      nextChats.splice(Math.min(pending.index, nextChats.length), 0, pending.chat);
+      nextChats.splice(
+        Math.min(pending.index, nextChats.length),
+        0,
+        pending.chat,
+      );
       return nextChats;
     });
 
@@ -713,6 +718,46 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       websocketManager.off('chat_deleted', handleChatDeleted);
     };
   }, [dismissSnackbar, removeMessagesForChat]);
+
+  useEffect(() => {
+    const handleGroupMembersUpdated = (
+      payload: WebSocketMessage & {
+        chat_id?: number;
+        members?: unknown;
+        users_count?: number;
+        chat?: unknown;
+      },
+    ) => {
+      const chatId = payload.chat_id;
+      if (chatId == null) return;
+      const members = payload.members as User[] | undefined;
+      const usersCount = payload.users_count;
+      const listRow = payload.chat as Chat | undefined;
+
+      setChats((prev) => {
+        const exists = prev.some((c) => c.id === chatId);
+        if (listRow && !exists) {
+          return [listRow, ...prev.filter((c) => c.id !== chatId)];
+        }
+        if (!members) return prev;
+        return prev.map((c) =>
+          c.id === chatId
+            ? {
+                ...c,
+                members,
+                info:
+                  usersCount != null ? String(usersCount) : c.info,
+              }
+            : c,
+        );
+      });
+    };
+
+    websocketManager.on('group_members_updated', handleGroupMembersUpdated);
+    return () => {
+      websocketManager.off('group_members_updated', handleGroupMembersUpdated);
+    };
+  }, []);
 
   useEffect(() => {
     if (!user?.id || chats.length === 0) return;

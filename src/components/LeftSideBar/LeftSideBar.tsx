@@ -22,33 +22,33 @@ const LeftSideBar: React.FC<ChooseListProps> = () => {
   return (
     <div className='choose_list'>
       <div className='left-menu'>
-          <div className={styles['tab-panels']}>
-            <Tab id='contacts'>
-              <div
-                className={`${styles['tab-content']} ${styles['tab-content--contacts']}`}
-              >
-                <ContactsTabContent />
-              </div>
-            </Tab>
-            <Tab id='chats'>
-              <ChatsTabView />
-            </Tab>
-            <Tab id='profile'>
-              <div
-                className={`${styles['tab-content']} ${styles['tab-content--profile']}`}
-                style={
-                  {
-                    '--offset-bottom':
-                      activeProfileTab === 'appearance' ? '120px' : '70px',
-                  } as React.CSSProperties
-                }
-              >
-                <Profile />
-              </div>
-            </Tab>
-          </div>
+        <div className={styles['tab-panels']}>
+          <Tab id='contacts'>
+            <div
+              className={`${styles['tab-content']} ${styles['tab-content--contacts']}`}
+            >
+              <ContactsTabContent />
+            </div>
+          </Tab>
+          <Tab id='chats'>
+            <ChatsTabView />
+          </Tab>
+          <Tab id='profile'>
+            <div
+              className={`${styles['tab-content']} ${styles['tab-content--profile']}`}
+              style={
+                {
+                  '--offset-bottom':
+                    activeProfileTab === 'appearance' ? '120px' : '70px',
+                } as React.CSSProperties
+              }
+            >
+              <Profile />
+            </div>
+          </Tab>
         </div>
-        <Tabs />
+      </div>
+      <Tabs />
     </div>
   );
 };

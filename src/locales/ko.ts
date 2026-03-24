@@ -144,6 +144,7 @@ export default {
     selectToStart: '채팅을 선택하여 시작',
     chat: '채팅',
     chatDeleted: '채팅이 삭제되었습니다',
+    leftGroup: '그룹에서 나갔습니다',
   },
   sendArea: {
     cancelSelection: '선택 취소',
@@ -198,6 +199,9 @@ export default {
     fileDownloaded: '파일이 다운로드되었습니다',
     emailCopied: '이메일 복사됨',
     fileDownloadFailed: '다운로드 실패',
+    wsSendFailed: '전송할 수 없습니다. 연결을 확인하세요.',
+    joinGroupFailed: '그룹에 참여할 수 없습니다.',
+    createGroupTimeout: '그룹을 만들 수 없습니다. 다시 시도하세요.',
   },
   sidebar: {
     members: '멤버',
@@ -212,6 +216,14 @@ export default {
     filterAll: '전체',
     filterVideos: '비디오',
     filterPhotos: '사진',
+    addMember: '멤버 추가',
+    addMemberTitle: '그룹에 추가',
+    addMemberNoContacts: '추가할 연락처가 없습니다',
+    removeMember: '멤버 제거',
+    leaveGroup: '그룹 나가기',
+    newGroupTitle: '새 그룹',
+    newGroupNamePlaceholder: '그룹 이름',
+    createGroupButton: '만들기',
     membersCount: '명',
   },
   aria: {

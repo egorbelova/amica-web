@@ -1,5 +1,9 @@
 import Message from '../Message/Message';
-import { useSelectedChat, useChatMessages } from '@/contexts/ChatContextCore';
+import {
+  useSelectedChat,
+  useChatMessages,
+  useChatMeta,
+} from '@/contexts/ChatContextCore';
 import {
   useEffect,
   useLayoutEffect,
@@ -56,6 +60,7 @@ const MessageList: React.FC<MessageListProps> = ({
   onSetMessageSelection,
 }) => {
   const { selectedChat } = useSelectedChat();
+  const { handleCreateTemporaryChat } = useChatMeta();
   const {
     messages,
     messagesLoading,
@@ -1044,8 +1049,13 @@ const MessageList: React.FC<MessageListProps> = ({
         primaryMedia: selectedChat?.members?.find(
           (member) => member.id === viewer.user.id,
         )?.profile.primary_media,
+        onClick: () => {
+          handleCreateTemporaryChat(
+            selectedChat?.members?.find((m) => m.id === viewer.user.id),
+          );
+        },
       })),
-    [viewers, selectedChat?.members],
+    [viewers, selectedChat?.members, handleCreateTemporaryChat],
   );
 
   return (

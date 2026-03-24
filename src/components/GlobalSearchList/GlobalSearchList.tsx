@@ -6,21 +6,46 @@ import { useChatMeta } from '@/contexts/ChatContextCore';
 import { useSettings } from '@/contexts/settings/context';
 import { useTabs } from '@/components/Tabs/tabsShared';
 import { useTranslation } from '@/contexts/languageCore';
+import { useToast } from '@/contexts/toast/ToastContextCore';
 import { Icon } from '../Icons/AutoIcons';
+import { joinGroup } from '@/providers/searchGlobal';
 
 const GlobalSearchList: React.FC = () => {
   const { results, clear } = useSearchContext<GlobalSearchItem>();
-  const { handleCreateTemporaryChat, handleChatClick } = useChatMeta();
+  const { handleCreateTemporaryChat, handleChatClick, fetchChats } =
+    useChatMeta();
   const { setActiveProfileTab } = useSettings();
   const { setActiveTab } = useTabs();
   const { t } = useTranslation();
+  const { showToast } = useToast();
 
   const handleSelect = (item: GlobalSearchItem) => {
     if (item.type === 'user') {
       handleCreateTemporaryChat(item.data);
-    } else if (item.type === 'contact') {
+      clear();
+      return;
+    }
+    if (item.type === 'contact') {
       handleChatClick(item.data.chat_id);
-    } else if (item.type === 'setting' && item.data.id) {
+      clear();
+      return;
+    }
+    if (item.type === 'group') {
+      const chatId = item.data.id;
+      void (async () => {
+        const ok = await joinGroup(chatId);
+        if (!ok) {
+          showToast(t('toast.joinGroupFailed'));
+          clear();
+          return;
+        }
+        await fetchChats();
+        handleChatClick(chatId);
+        clear();
+      })();
+      return;
+    }
+    if (item.type === 'setting' && item.data.id) {
       setActiveProfileTab(item.data.id);
       setActiveTab('profile');
     }
@@ -36,11 +61,16 @@ const GlobalSearchList: React.FC = () => {
   const contacts = results.filter(
     (r): r is GlobalSearchItem & { type: 'contact' } => r.type === 'contact',
   );
+  const groups = results.filter(
+    (r): r is GlobalSearchItem & { type: 'group' } => r.type === 'group',
+  );
   const settings = results.filter(
     (r): r is GlobalSearchItem & { type: 'setting' } => r.type === 'setting',
   );
 
   if (results.length === 0) return null;
+
+  console.log(users);
 
   const renderItem = (item: GlobalSearchItem, key: string) => (
     <li
@@ -87,6 +117,21 @@ const GlobalSearchList: React.FC = () => {
           </div>
         </>
       )}
+      {item.type === 'group' && (
+        <>
+          <Avatar
+            displayName={item.data.name ?? ''}
+            displayMedia={item.data.primary_media}
+            className={styles.avatar}
+          />
+          <div className={styles.info}>
+            <span className={styles.name}>{item.data.name ?? ''}</span>
+            <span className={styles.meta}>
+              {`${item.data.info ?? ''} ${t('sidebar.membersCount')}`.trim()}
+            </span>
+          </div>
+        </>
+      )}
       {item.type === 'setting' && item.data.id && (
         <>
           <Icon name='Appearance' className={styles['setting-icon']} />
@@ -102,6 +147,13 @@ const GlobalSearchList: React.FC = () => {
 
   return (
     <ul className={styles['search-list']}>
+      {groups.length > 0 && (
+        <>
+          {groups.map((item, i) =>
+            renderItem(item, `group-${item.data.id}-${i}`),
+          )}
+        </>
+      )}
       {users.length > 0 && (
         <>
           {/* <li className={styles['search-section']}> */}

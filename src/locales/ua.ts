@@ -144,6 +144,7 @@ export default {
     selectToStart: 'Виберіть чат для початку листування',
     chat: 'Чат',
     chatDeleted: 'Чат видалено',
+    leftGroup: 'Ви вийшли з групи',
   },
   sendArea: {
     cancelSelection: 'Скасувати вибір',
@@ -198,6 +199,9 @@ export default {
     fileDownloaded: 'Файл завантажено',
     emailCopied: 'Email скопійовано',
     fileDownloadFailed: 'Не вдалося завантажити файл',
+    wsSendFailed: 'Не вдалося надіслати. Перевірте з’єднання.',
+    joinGroupFailed: 'Не вдалося приєднатися до групи.',
+    createGroupTimeout: 'Не вдалося створити групу. Спробуйте ще раз.',
   },
   sidebar: {
     members: 'Учасники',
@@ -212,6 +216,14 @@ export default {
     filterAll: 'Усі',
     filterVideos: 'Відео',
     filterPhotos: 'Фото',
+    addMember: 'Додати учасника',
+    addMemberTitle: 'До групи',
+    addMemberNoContacts: 'Немає контактів для додавання',
+    removeMember: 'Видалити учасника',
+    leaveGroup: 'Покинути групу',
+    newGroupTitle: 'Нова група',
+    newGroupNamePlaceholder: 'Назва групи',
+    createGroupButton: 'Створити',
     membersCount: 'учасників',
   },
   aria: {

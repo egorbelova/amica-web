@@ -1,33 +1,17 @@
 @use '@/scss/variables' as *;
 
 .input-search {
-  position: fixed;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 50px;
   flex-shrink: 0;
-  z-index: 2;
-  padding: 0 10px;
   margin-top: var(--sat);
+  flex: 1;
 
   transition:
     background 1s,
     bottom 400ms cubic-bezier(0.075, 0.82, 0.165, 1);
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-
-    z-index: -1;
-    border-radius: 20px 20px 0 0;
-    overflow: hidden;
-  }
 
   &__inner {
     overflow: hidden;
@@ -224,9 +208,8 @@
     -webkit-user-select: none;
     user-select: none;
     z-index: 3;
-    order: 3;
     display: flex;
-    position: fixed;
+    position: relative;
     flex-direction: row;
     min-height: 48px !important;
     max-height: 48px !important;
@@ -234,8 +217,6 @@
     align-items: center;
     max-width: calc(100% - 45px);
     padding: 0 20px;
-    left: 50%;
-    transform: scale(1) translateX(-50%);
     border-radius: 99rem;
     background-color: transparent !important;
   }
