@@ -1,0 +1,63 @@
+@use '@/scss/variables' as *;
+
+.viewers-list-overlay {
+  position: fixed;
+  width: fit-content;
+  height: fit-content;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  top: 30px;
+  left: 30px;
+}
+
+.viewers-list {
+  border-radius: 32px;
+  backdrop-filter: blur(7px);
+  padding: 16px;
+  max-height: 400px;
+  min-width: 180px;
+  overflow-y: auto;
+  box-shadow: $glass-shadow;
+}
+
+.viewer-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.viewer-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.viewer-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.viewer-name {
+  font-weight: 500;
+}
+
+.viewer-time {
+  font-size: 0.875rem;
+  color: #d5eaff;
+}
+
+.viewers-list-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--messageMainColor);
+  margin-bottom: 8px;
+}
+
+.user-info-avatar {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+}

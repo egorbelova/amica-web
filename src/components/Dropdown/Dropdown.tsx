@@ -1,10 +1,4 @@
-import {
-  useState,
-  useRef,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-} from 'react';
+import { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './Dropdown.module.scss';
 import { Icon, type IconName } from '../Icons/AutoIcons';
@@ -102,8 +96,6 @@ export function Dropdown<T extends string | number>({
   const rafRef = useRef<number | null>(null);
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    // if (!isPointerDown.current) return;
-
     if (isScrolling.current && isPointerDown.current) return;
 
     if (rafRef.current !== null) {
@@ -129,7 +121,6 @@ export function Dropdown<T extends string | number>({
   }, []);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    // e.preventDefault();
     e.stopPropagation();
     isPointerDown.current = true;
     isScrolling.current = false;
@@ -137,7 +128,6 @@ export function Dropdown<T extends string | number>({
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    // e.preventDefault();
     e.stopPropagation();
 
     if (!isPointerDown.current || isScrolling.current) return;
@@ -186,14 +176,6 @@ export function Dropdown<T extends string | number>({
 
   const resetIndicator = () => {
     setIndicatorPos(null);
-    // const index = items.findIndex((item) => item.value === value);
-    // const el = itemRefs.current[index];
-    // if (el) {
-    //   setIndicatorPos({
-    //     top: el.offsetTop,
-    //     height: el.offsetHeight,
-    //   });
-    // }
   };
 
   useEffect(() => {
@@ -255,7 +237,6 @@ export function Dropdown<T extends string | number>({
                 left: position.left,
               }}
               onScroll={() => {
-                // e.stopPropagation();
                 isScrolling.current = true;
                 resetIndicator();
               }}
@@ -288,12 +269,6 @@ export function Dropdown<T extends string | number>({
                     ref={(el) => {
                       itemRefs.current[index] = el;
                     }}
-
-                    // onClick={(e) => {
-                    //   e.stopPropagation();
-                    //   onChange(item.value);
-                    //   setOpen(false);
-                    // }}
                   >
                     {item.icon && (
                       <Icon className={styles.icon} name={item.icon} />

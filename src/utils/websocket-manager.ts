@@ -487,8 +487,12 @@ class WebSocketManager {
     });
   }
 
-  public sendMessageViewed(messageId: number) {
-    return this.sendMessage({ type: 'message_viewed', message_id: messageId });
+  public sendMessageViewed(chatId: number, messageId: number) {
+    return this.sendMessage({
+      type: 'message_viewed',
+      chat_id: chatId,
+      message_id: messageId,
+    });
   }
 
   public requestRefreshToken(): Promise<string> {

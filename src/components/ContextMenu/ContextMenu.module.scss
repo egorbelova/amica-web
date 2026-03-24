@@ -15,6 +15,12 @@
   --scaleOriginY: top;
   transform: scale(0);
   transform-origin: var(--scaleOriginX) var(--scaleOriginY);
+  transition: scale 0.3s ease-in-out;
+  scale: 1;
+
+  // &--with-viewers {
+  // scale: 0.95;
+  // }
 
   &__item {
     display: flex;

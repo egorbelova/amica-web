@@ -20,13 +20,18 @@ export interface File {
   extension?: string;
 }
 
+export interface Viewer {
+  user: User;
+  read_date: string;
+}
+
 export interface Message {
   id: number;
   value: string;
   edit_date: string | null;
   date: string;
   user: number;
-  viewers?: User[];
+  viewers?: Viewer[];
   liked: number;
   files: File[];
   is_own: boolean;
@@ -86,12 +91,12 @@ export interface UserProfile {
 
 export interface User {
   id: number;
-  email: string;
-  username: string;
-  profile: UserProfile;
-  preferred_session_lifetime_days: number;
+  email?: string;
+  username?: string;
+  profile?: UserProfile;
+  preferred_session_lifetime_days?: number;
   active_wallpaper?: WallpaperSetting | null;
-  last_seen: string | null;
+  last_seen?: string | null;
   is_contact?: boolean;
   contact_id?: number;
 }

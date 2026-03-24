@@ -383,6 +383,39 @@ export function useMessages({
     };
   }, [handleMessageReaction]);
 
+  const handleMessageViewed = useCallback(
+    (data: WebSocketMessage) => {
+      if (
+        data.type === 'message_viewed' &&
+        data.chat_id != null &&
+        data.message_id != null
+      ) {
+        updateMessageInChat(data.chat_id, data.message_id, (message) => {
+          return {
+            ...message,
+            viewers: [
+              ...(message.viewers || []),
+              {
+                read_date: new Date().toISOString(),
+                user: {
+                  id: data.userId,
+                },
+              },
+            ],
+          };
+        });
+      }
+    },
+    [updateMessageInChat],
+  );
+
+  useEffect(() => {
+    websocketManager.on('message_viewed', handleMessageViewed);
+    return () => {
+      websocketManager.off('message_viewed', handleMessageViewed);
+    };
+  }, [handleMessageViewed]);
+
   const getCachedMessages = useCallback((chatId: number) => {
     return messagesCacheRef.current[chatId] || null;
   }, []);

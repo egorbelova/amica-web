@@ -200,9 +200,18 @@ const MessageInput: React.FC<SendAreaProps> = ({
   const handleInput = useCallback(() => {
     const el = editableRef.current;
     if (!el) return;
-    const rawText = el.innerText || '';
-    const normalizedText = rawText.replace(/\u00A0/g, ' ').trim();
-    setMessage(normalizedText);
+
+    let text = el.innerText.replace(/\u00A0/g, ' ');
+
+    const onlyBreak =
+      el.childNodes.length === 1 && el.childNodes[0].nodeName === 'BR';
+
+    if (text.trim() === '' && onlyBreak) {
+      text = '';
+      el.innerHTML = '';
+    }
+
+    setMessage(text);
   }, []);
 
   useEffect(() => {
@@ -569,7 +578,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
                       autoFocus={false}
                     />
                     <span
-                      className={`${styles['textarea_placeholder']} ${message ? styles.hidden : ''}`}
+                      className={`${styles['textarea_placeholder']} ${editableRef.current?.innerText ? styles.hidden : ''}`}
                     >
                       {t('sendArea.messagePlaceholder')}
                     </span>

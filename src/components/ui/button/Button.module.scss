@@ -33,6 +33,10 @@
   &:hover {
     background: var(--button-hover, rgba(127, 127, 127, 0.3));
   }
+
+  &:disabled {
+    color: var(--color-text-secondary, #888);
+  }
 }
 
 .active {

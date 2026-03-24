@@ -1,5 +1,9 @@
 import React, { useCallback, useRef, useMemo, memo } from 'react';
-import { useChatMeta, useSelectedChat, useChatMessages } from '@/contexts/ChatContextCore';
+import {
+  useChatMeta,
+  useSelectedChat,
+  useChatMessages,
+} from '@/contexts/ChatContextCore';
 import { useToast } from '@/contexts/toast/ToastContextCore';
 import { useTranslation } from '@/contexts/languageCore';
 import { useFormatLastSeen } from '@/hooks/useFormatLastSeen';
@@ -145,20 +149,36 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     }
   }, [interlocutorEditVisible, onInterlocutorEditBack, onClose]);
 
-  const handleEditClick = useCallback(() => {
-    if (selectedChat?.members?.[0]?.is_contact) {
-      onInterlocutorEdit();
-    } else {
-      addContact(selectedChat!.members[0].id);
-    }
-  }, [selectedChat, onInterlocutorEdit, addContact]);
-
   const handleSaveContact = useCallback(
     (contactId: number | undefined, name: string) => {
       saveContact(contactId, name.trim());
     },
     [saveContact],
   );
+
+  const handleEditClick = useCallback(() => {
+    if (interlocutorEditVisible) {
+      const canSave = effectiveNameLength > 0 && effectiveNameLength <= 64;
+      if (canSave) {
+        handleSaveContact(interlocutor?.contact_id, editValue);
+        setInterlocutorEditVisible(false);
+      }
+    } else if (selectedChat?.members?.[0]?.is_contact) {
+      onInterlocutorEdit();
+    } else {
+      addContact(selectedChat!.members[0].id);
+    }
+  }, [
+    interlocutorEditVisible,
+    effectiveNameLength,
+    selectedChat,
+    interlocutor?.contact_id,
+    editValue,
+    handleSaveContact,
+    setInterlocutorEditVisible,
+    onInterlocutorEdit,
+    addContact,
+  ]);
 
   const handleDeleteContact = useCallback(
     (contactId: number | undefined) => {
@@ -203,6 +223,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
             attachmentsActive={attachmentsActive}
             showFilterDropdown={activeTab === 'media'}
             interlocutorEditVisible={interlocutorEditVisible}
+            saveDisabled={effectiveNameLength === 0 || effectiveNameLength > 64}
             filterItems={filterItemsTranslated}
             effectiveFilterType={effectiveFilterTypeTranslated}
             onFilterChange={handleFilterChange}
@@ -274,8 +295,6 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
               chatType={selectedChat.type}
               editValue={editValue}
               onValueChange={setValue}
-              effectiveNameLength={effectiveNameLength}
-              onSave={handleSaveContact}
               onDelete={handleDeleteContact}
               contactId={interlocutor?.contact_id}
               originalUsername={interlocutor?.username}

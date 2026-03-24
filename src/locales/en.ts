@@ -189,7 +189,7 @@ export default {
     saveAs: 'Save As...',
     edit: 'Edit',
     select: 'Select',
-    delete: 'Delete',
+    delete: 'Delete for everyone',
     seen: 'Seen',
     seenBy: 'Seen by:',
   },

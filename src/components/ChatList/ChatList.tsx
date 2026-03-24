@@ -17,7 +17,8 @@ import {
   ChatListError,
   ChatListEmpty,
 } from './ChatListStates';
-import ContextMenu, { type MenuItem } from '../ContextMenu/ContextMenu';
+import { type MenuItem } from '../ui/menu/Menu';
+import { Menu } from '../ui/menu/Menu';
 
 const MemoizedChatListItem = memo(ChatListItem);
 const ChatListContent = memo(function ChatListContent({
@@ -115,7 +116,7 @@ function ChatList() {
   const chatListRef = useRef<HTMLDivElement>(null);
   const isActive = chats.length > 0 && term.length === 0;
   const isEmpty = displayChats.length === 0;
-  const contextMenuItems = React.useMemo<MenuItem[]>(
+  const contextMenuItems = React.useMemo<MenuItem<string>[]>(
     () =>
       contextMenuChatId == null
         ? []
@@ -123,16 +124,12 @@ function ChatList() {
             {
               label: 'Delete chat',
               icon: 'Delete',
-              danger: true,
+              destructive: true,
               onClick: () => deleteChat(contextMenuChatId),
             },
           ],
     [contextMenuChatId, deleteChat],
   );
-
-  const handleContextMenuClose = React.useCallback(() => {
-    setContextMenuChatId(null);
-  }, []);
 
   const handleChatContextMenu = React.useCallback(
     (chatId: number, position: { x: number; y: number }) => {
@@ -174,11 +171,10 @@ function ChatList() {
         />
       )}
       {contextMenuChatId != null && (
-        <ContextMenu
+        <Menu
           key={`chat-context-menu-${contextMenuInstanceKey}`}
           items={contextMenuItems}
           position={contextMenuPosition}
-          onClose={handleContextMenuClose}
         />
       )}
     </div>

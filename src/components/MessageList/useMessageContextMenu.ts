@@ -1,8 +1,6 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
-import type {
-  ContextMenuAnimatedIcon,
-  MenuItem,
-} from '../ContextMenu/ContextMenu';
+import type { ContextMenuAnimatedIcon } from '../ContextMenu/ContextMenuItemLottie';
+import type { MenuItem } from '../ui/menu/Menu';
 import type { IconName } from '../Icons/AutoIcons';
 import type { Message as MessageType, File } from '@/types';
 import { apiFetch } from '@/utils/apiFetch';
@@ -11,6 +9,7 @@ import { fallbackCopy } from './clipboardUtils';
 import { MESSAGE_REACTION_OPTIONS } from '@/constants/messageReactions';
 import { buildOptimisticReactionUpdate } from './reactionOptimistic';
 import { useTranslation } from '@/contexts/languageCore';
+import type { Viewer } from '@/types';
 
 export interface UseMessageContextMenuParams {
   selectedChat: { id: number } | null;
@@ -25,10 +24,7 @@ export interface UseMessageContextMenuParams {
   ) => void;
   showToast: (msg: string) => void;
   canCopyToClipboard: boolean;
-  onShowViewers: (msg: MessageType) => void;
-  /** Call when menu opens so clipboard check can run lazily (avoids init re-render). */
   triggerClipboardCheck?: () => void;
-  /** Call when user chooses "Select" to enter multi-select mode with this message. */
   onSelectMessage?: (msg: MessageType) => void;
 }
 
@@ -41,12 +37,18 @@ export interface ReactionMenuOption {
 }
 
 export interface UseMessageContextMenuResult {
-  menuItems: MenuItem[];
+  menuItems: MenuItem<string | number>[];
+  viewers: Viewer[];
   menuPos: { x: number; y: number } | null;
   menuVisible: boolean;
   isMenuHiding: boolean;
   menuInstanceKey: number;
   menuMessage: MessageType | null;
+  isNestedViewersMenuOpen: boolean;
+  closeNestedViewersMenu: () => void;
+  submenuPosition: { x: number; y: number } | null;
+  submenuWidth: number | null;
+  onDropdownItemClick: (rect: { itemRect: DOMRect; menuRect: DOMRect }) => void;
   reactionItems: readonly ReactionMenuOption[];
   selectedReactionTypes: readonly string[];
   handleReactionSelect: (reactionType: string) => void;
@@ -68,7 +70,6 @@ export function useMessageContextMenu({
   updateMessageInChat,
   showToast,
   canCopyToClipboard,
-  onShowViewers,
   triggerClipboardCheck,
   onSelectMessage,
 }: UseMessageContextMenuParams): UseMessageContextMenuResult {
@@ -80,13 +81,33 @@ export function useMessageContextMenu({
   const [menuInstanceKey, setMenuInstanceKey] = useState(0);
   const timerRef = useRef<number | null>(null);
   const suppressNextContextMenuRef = useRef(false);
-
+  const [isNestedViewersMenuOpen, setIsNestedViewersMenuOpen] = useState(false);
+  const [submenuContext, setSubmenuContext] = useState<{
+    position: { x: number; y: number };
+    width: number;
+  } | null>(null);
   const handleClose = useCallback(() => setIsMenuHiding(true), []);
+
+  const onDropdownItemClick = useCallback(
+    (rect: { itemRect: DOMRect; menuRect: DOMRect }) => {
+      const gap = 4;
+      setSubmenuContext({
+        position: {
+          x: rect.menuRect.left + gap,
+          y: rect.itemRect.bottom + gap,
+        },
+        width: rect.menuRect.width,
+      });
+    },
+    [],
+  );
 
   const handleAnimationEnd = useCallback(() => {
     setIsMenuHiding((prev) => {
       if (prev) {
         setMenuVisible(false);
+        setIsNestedViewersMenuOpen(false);
+        setSubmenuContext(null);
         return false;
       }
       return prev;
@@ -211,11 +232,8 @@ export function useMessageContextMenu({
   const handleReactionSelect = useCallback(
     (reactionType: string) => {
       if (!menuMessage || !selectedChat?.id) return;
-      updateMessageInChat(
-        selectedChat.id,
-        menuMessage.id,
-        (currentMessage) =>
-          buildOptimisticReactionUpdate(currentMessage, reactionType),
+      updateMessageInChat(selectedChat.id, menuMessage.id, (currentMessage) =>
+        buildOptimisticReactionUpdate(currentMessage, reactionType),
       );
       websocketManager.sendMessageReaction(
         selectedChat.id,
@@ -227,7 +245,7 @@ export function useMessageContextMenu({
     [menuMessage, selectedChat?.id, updateMessageInChat],
   );
 
-  const menuItems = useMemo<MenuItem[]>(
+  const menuItems = useMemo<MenuItem<string | number>[]>(
     () => [
       // {
       //   label: 'Reply',
@@ -287,6 +305,18 @@ export function useMessageContextMenu({
           }
         },
       },
+      ...(menuMessage?.viewers?.length && menuMessage?.is_own
+        ? [
+            { separator: true, label: '', onClick: () => {} },
+            {
+              label: `${menuMessage.viewers.length} ${t('messageContextMenu.seen')}`,
+              isDropdown: true,
+              dropdownExpanded: isNestedViewersMenuOpen,
+              icon: 'Read' as IconName,
+              onClick: () => setIsNestedViewersMenuOpen((prev) => !prev),
+            },
+          ]
+        : []),
       ...(menuMessage?.is_own
         ? [
             { separator: true, label: '', onClick: () => {} },
@@ -294,30 +324,20 @@ export function useMessageContextMenu({
               label: t('messageContextMenu.delete'),
               animatedIcon: 'delete' as ContextMenuAnimatedIcon,
               onClick: () => menuMessage && handleDeleteMessage(menuMessage),
-              danger: true,
-            },
-          ]
-        : []),
-      ...(menuMessage?.viewers?.length && menuMessage?.is_own
-        ? [
-            { separator: true, label: '', onClick: () => {} },
-            {
-              label: `${menuMessage.viewers.length} ${t('messageContextMenu.seen')}`,
-              icon: 'Read' as IconName,
-              onClick: () => onShowViewers(menuMessage),
+              destructive: true,
             },
           ]
         : []),
     ],
     [
       menuMessage,
+      isNestedViewersMenuOpen,
       canCopyToClipboard,
       handleCopyMessage,
       handleCopyMedia,
       handleSaveFile,
       handleEditMessage,
       handleDeleteMessage,
-      onShowViewers,
       onSelectMessage,
       t,
     ],
@@ -328,6 +348,8 @@ export function useMessageContextMenu({
       e.preventDefault();
       triggerClipboardCheck?.();
       setMenuVisible(false);
+      setIsNestedViewersMenuOpen(false);
+      setSubmenuContext(null);
       setTimeout(() => {
         setMenuMessage(message);
         setMenuPos({
@@ -372,6 +394,15 @@ export function useMessageContextMenu({
     isMenuHiding,
     menuInstanceKey,
     menuMessage,
+    isNestedViewersMenuOpen,
+    closeNestedViewersMenu: () => {
+      setIsNestedViewersMenuOpen(false);
+      setSubmenuContext(null);
+    },
+    submenuPosition: submenuContext?.position ?? null,
+    submenuWidth: submenuContext?.width ?? null,
+    onDropdownItemClick,
+    viewers: menuMessage?.viewers ?? [],
     reactionItems: MESSAGE_REACTION_OPTIONS,
     selectedReactionTypes:
       menuMessage?.user_reactions ??

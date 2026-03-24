@@ -9,20 +9,22 @@ import {
   useCallback,
   useMemo,
 } from 'react';
-import ContextMenu from '../ContextMenu/ContextMenu';
 import styles from './MessageList.module.scss';
 import { useJumpActions } from '@/hooks/useJump';
 import { useLazyCanCopyToClipboard } from '@/hooks/useCanCopyToClipboard';
 import { useToast } from '@/contexts/toast/ToastContextCore';
 import { useTranslation } from '@/contexts/languageCore';
-import type { Message as MessageType, User } from '@/types';
-import ViewersList from './ViewersList';
+import type { Message as MessageType } from '@/types';
 import { useMessageContextMenu } from './useMessageContextMenu';
 import { websocketManager } from '@/utils/websocket-manager';
 import { buildOptimisticReactionUpdate } from './reactionOptimistic';
 import DateSeparator from './DateSeparator';
 import DatePickerModal from './DatePickerModal';
 import type { DateKey } from './DateSeparator';
+import { useUser } from '@/contexts/UserContextCore';
+import { Menu } from '../ui/menu/Menu';
+import { ReactionsPanel } from '../ContextMenu/ReactionsPanel';
+import { formatDateViewed } from '@/utils/formatDateViewed';
 
 const VISIBLE_BUFFER = 7;
 const PAGINATION_THRESHOLD_PX = 300;
@@ -74,6 +76,8 @@ const MessageList: React.FC<MessageListProps> = ({
     useLazyCanCopyToClipboard();
   const { t, locale } = useTranslation();
   const intlLocale = LOCALE_MAP[locale] ?? locale;
+  const { user } = useUser();
+  const userId = user?.id;
 
   const formatDateSeparatorLabel = useCallback(
     (dateKey: DateKey): string => {
@@ -95,18 +99,10 @@ const MessageList: React.FC<MessageListProps> = ({
     [t, intlLocale],
   );
 
-  const [viewersVisible, setViewersVisible] = useState(false);
-  const [currentViewers, setCurrentViewers] = useState<User[]>([]);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [datePickerInitialDate, setDatePickerInitialDate] =
     useState<DateKey | null>(null);
 
-  const handleShowViewers = useCallback((msg: MessageType) => {
-    setCurrentViewers(msg.viewers || []);
-    setViewersVisible(true);
-  }, []);
-
-  const handleViewersClose = useCallback(() => setViewersVisible(false), []);
   const selectedChatIdForReaction = selectedChat?.id;
   const handleMessageReactionClick = useCallback(
     (message: MessageType, reactionType: string) => {
@@ -126,13 +122,64 @@ const MessageList: React.FC<MessageListProps> = ({
     [selectedChatIdForReaction, updateMessageInChat],
   );
 
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const viewedSet = new Set<number>();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+
+          const node = entry.target as HTMLElement;
+          const messageId = Number(node.dataset.messageId);
+
+          if (messageId && !viewedSet.has(messageId)) {
+            viewedSet.add(messageId);
+
+            websocketManager.sendMessageViewed(selectedChatId, messageId);
+
+            observer.unobserve(node);
+          }
+        });
+      },
+      {
+        root: el,
+        threshold: 0.6,
+      },
+    );
+
+    messages
+      .filter((m) => {
+        const hasUserViewed = m.viewers?.some((v) => v?.user.id === userId);
+
+        const isOwnMsg = Boolean(m.is_own);
+
+        return !hasUserViewed && !isOwnMsg;
+      })
+      .forEach((m) => {
+        const node = el.querySelector(`[data-message-id="${m.id}"]`);
+        if (node) observer.observe(node);
+      });
+
+    return () => observer.disconnect();
+  }, [messages, userId, selectedChatId]);
+
   const {
     menuItems,
     menuPos,
     menuVisible,
-    isMenuHiding,
     menuInstanceKey,
+    isMenuHiding,
+    isNestedViewersMenuOpen,
+    closeNestedViewersMenu,
+    submenuPosition,
+    submenuWidth,
+    onDropdownItemClick,
     reactionItems,
+    viewers,
     selectedReactionTypes,
     handleReactionSelect,
     handleClose,
@@ -148,10 +195,32 @@ const MessageList: React.FC<MessageListProps> = ({
     updateMessageInChat,
     showToast,
     canCopyToClipboard,
-    onShowViewers: handleShowViewers,
     triggerClipboardCheck,
     onSelectMessage,
   });
+
+  const [positionedMenu, setPositionedMenu] = useState<{
+    key: number;
+    rect: DOMRect;
+  } | null>(null);
+  const handleMenuPositioned = useCallback(
+    (rect: DOMRect) => {
+      setPositionedMenu((prev) => {
+        if (
+          prev &&
+          prev.key === menuInstanceKey &&
+          prev.rect.left === rect.left &&
+          prev.rect.top === rect.top
+        ) {
+          return prev;
+        }
+        return { key: menuInstanceKey, rect };
+      });
+    },
+    [menuInstanceKey],
+  );
+  const menuRect =
+    positionedMenu?.key === menuInstanceKey ? positionedMenu.rect : null;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const loadOlderTriggeredRef = useRef(false);
@@ -967,6 +1036,18 @@ const MessageList: React.FC<MessageListProps> = ({
   }, [animatedMessageIds]);
   const animatedTotalCount = animatedMessageIds.length;
 
+  const viewersMenuItems = useMemo(
+    () =>
+      viewers.map((viewer) => ({
+        label: viewer.user.username,
+        subtitle: formatDateViewed(viewer.read_date),
+        primaryMedia: selectedChat?.members?.find(
+          (member) => member.id === viewer.user.id,
+        )?.profile.primary_media,
+      })),
+    [viewers, selectedChat?.members],
+  );
+
   return (
     <div
       className='room_div'
@@ -992,20 +1073,59 @@ const MessageList: React.FC<MessageListProps> = ({
       onPointerCancel={stopPointerSelection}
     >
       {menuVisible && (
-        <ContextMenu
-          key={`message-context-menu-${menuInstanceKey}`}
-          items={menuItems}
-          reactions={reactionItems}
-          selectedReactionTypes={selectedReactionTypes}
-          onReactionSelect={handleReactionSelect}
-          position={menuPos || { x: 0, y: 0 }}
-          onClose={handleClose}
-          onAnimationEnd={handleAnimationEnd}
-          isHiding={isMenuHiding}
-        />
-      )}
-      {viewersVisible && (
-        <ViewersList viewers={currentViewers} onClose={handleViewersClose} />
+        <>
+          <Menu
+            key={`message-context-menu-${menuInstanceKey}`}
+            items={menuItems}
+            position={menuPos || { x: 0, y: 0 }}
+            hideToggle
+            onClose={handleClose}
+            isHiding={isMenuHiding}
+            onAnimationEnd={handleAnimationEnd}
+            onPositioned={handleMenuPositioned}
+            onDropdownItemClick={onDropdownItemClick}
+            menuGroupId={`message-context-${menuInstanceKey}`}
+          />
+          {menuRect && (
+            <ReactionsPanel
+              reactions={reactionItems}
+              selectedReactionTypes={selectedReactionTypes}
+              onReactionSelect={handleReactionSelect}
+              menuRect={menuRect}
+              visible={true}
+              isHiding={isMenuHiding}
+              menuGroupId={`message-context-${menuInstanceKey}`}
+              onAnimationEnd={handleAnimationEnd}
+            />
+          )}
+          {isNestedViewersMenuOpen && submenuPosition && submenuWidth && (
+            <Menu
+              key={`viewers-message-context-menu-${menuInstanceKey}`}
+              items={viewersMenuItems}
+              position={submenuPosition}
+              open={true}
+              onClose={closeNestedViewersMenu}
+              hideToggle
+              width={submenuWidth}
+              openRight
+              menuGroupId={`message-context-${menuInstanceKey}`}
+            />
+          )}
+        </>
+        // <ContextMenu
+        //   key={`message-context-menu-${menuInstanceKey}`}
+        //   items={menuItems}
+        //   reactions={reactionItems}
+        //   viewers={viewers}
+        //   showViewers={viewersVisible}
+        //   setShowViewers={setViewersVisible}
+        //   selectedReactionTypes={selectedReactionTypes}
+        //   onReactionSelect={handleReactionSelect}
+        //   position={menuPos || { x: 0, y: 0 }}
+        //   onClose={handleClose}
+        //   onAnimationEnd={handleAnimationEnd}
+        //   isHiding={isMenuHiding}
+        // />
       )}
 
       <DatePickerModal

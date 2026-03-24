@@ -27,6 +27,22 @@ const RoomPage: React.FC = () => {
     <>
       <TabsProvider>
         <div className={styles.roomPageContainer}>
+          {/* <Menu
+            items={[
+              {
+                label: 'Label 1',
+                value: 'label1',
+                icon: 'CopyText' as IconName,
+              },
+              {
+                label: 'Label 2',
+                value: 'label2',
+                icon: 'CopyText' as IconName,
+              },
+            ]}
+            value={'test'}
+            position={{ x: 100, y: 100 }}
+          /> */}
           <Wallpaper isChatWindow={false} />
           <LeftSideBar />
           <MainChatWindow />

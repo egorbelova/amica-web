@@ -141,14 +141,6 @@
 .button {
   min-width: 45px;
   width: fit-content;
-  background: var(--surface-button-bg) !important;
-  background-color: var(--surface-button-bg) !important;
-  color: var(--surface-button-text) !important;
-
-  &:hover {
-    background: var(--button-hover) !important;
-    background-color: var(--button-hover) !important;
-  }
 
   svg {
     width: 20px;
@@ -438,6 +430,7 @@
 }
 
 .save {
+  color: #fff;
   width: 100% !important;
   background-color: var(--mainColor);
   &:hover {
@@ -451,8 +444,9 @@
 }
 
 .delete {
+  color: #fff;
   width: 100% !important;
-  background-color: rgba(202, 10, 10, 0.8);
+  background-color: var(--color-danger);
   &:hover {
     background-color: color-mix(
       in srgb,

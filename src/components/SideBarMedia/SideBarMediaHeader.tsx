@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { useTranslation } from '@/contexts/languageCore';
 import { Icon } from '@/components/Icons/AutoIcons';
 import { Dropdown } from '@/components/Dropdown/Dropdown';
 import type { DropdownItem } from '@/components/Dropdown/Dropdown';
@@ -13,6 +14,7 @@ interface SideBarMediaHeaderProps {
   attachmentsActive: boolean;
   showFilterDropdown: boolean;
   interlocutorEditVisible: boolean;
+  saveDisabled?: boolean;
   filterItems: DropdownItem<number>[];
   effectiveFilterType: string;
   onFilterChange: (label: string) => void;
@@ -26,17 +28,14 @@ const SideBarMediaHeader: React.FC<SideBarMediaHeaderProps> = ({
   attachmentsActive,
   showFilterDropdown,
   interlocutorEditVisible,
+  saveDisabled = false,
   filterItems,
   effectiveFilterType,
   onFilterChange,
 }) => {
+  const { t } = useTranslation();
   const backButtonIcon = React.useMemo(
-    () =>
-      interlocutorEditVisible ? (
-        <Icon name='Arrow' style={{ transform: 'rotate(180deg)' }} />
-      ) : (
-        <Icon name='Cross' />
-      ),
+    () => (interlocutorEditVisible ? <>Cancel</> : <Icon name='Cross' />),
     [interlocutorEditVisible],
   );
   return (
@@ -52,12 +51,11 @@ const SideBarMediaHeader: React.FC<SideBarMediaHeaderProps> = ({
       {showEditButton && !attachmentsActive && (
         <Button
           key='sidebar-header-button-edit'
-          className={`${styles.button} ${
-            interlocutorEditVisible ? styles.hidden : ''
-          }`}
+          className={`${styles.button}`}
           onClick={onEditClick}
+          disabled={interlocutorEditVisible && saveDisabled}
         >
-          {editLabel}
+          {interlocutorEditVisible ? t('buttons.save') : editLabel}
         </Button>
       )}
 
