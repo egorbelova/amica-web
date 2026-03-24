@@ -16,6 +16,7 @@
   justify-content: center;
   width: 100%;
   overflow: hidden;
+  contain: content;
 }
 
 .item {
@@ -163,6 +164,7 @@
   width: fit-content;
   z-index: 999;
   padding: 7px;
+  contain: content;
 }
 
 .speed {
@@ -289,6 +291,7 @@
   background: #000;
   color: #fff;
   fill: #fff;
+  contain: content;
 }
 
 .progress-bar {

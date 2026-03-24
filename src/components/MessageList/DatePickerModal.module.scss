@@ -24,6 +24,7 @@
 }
 
 .modal {
+  contain: content;
   background: var(--surface-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);

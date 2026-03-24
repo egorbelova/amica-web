@@ -10,6 +10,7 @@
   align-items: center;
   container: main_chat_window / inline-size;
   overflow: hidden;
+  contain: style;
 
   // &::before {
   //   content: '';

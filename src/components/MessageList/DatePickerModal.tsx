@@ -224,6 +224,19 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
     return () => cancelAnimationFrame(raf);
   }, [isOpen, initialDateKey, monthOrder]);
 
+  const closeButton = useMemo(
+    () => (
+      <Button
+        className={styles.close}
+        onClick={onClose}
+        aria-label={t('buttons.close')}
+      >
+        <Icon name='Cross' />
+      </Button>
+    ),
+    [onClose, t],
+  );
+
   if (!isOpen) return null;
 
   const content = (
@@ -237,9 +250,7 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
       >
         <div className={styles.header}>
           <h3 className={styles.title}>{t('datePicker.jumpToDate')}</h3>
-          <Button className={styles.close} onClick={onClose} aria-label={t('buttons.close')}>
-            <Icon name='Cross' />
-          </Button>
+          {closeButton}
         </div>
         <div className={styles.calendar}>
           <div className={styles.nav}>

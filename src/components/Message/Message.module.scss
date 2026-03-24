@@ -262,6 +262,7 @@
   width: max-content;
   max-width: min(432px, calc(100cqw - 60px));
   flex-shrink: 0;
+  contain: content;
 }
 
 .avatar {
@@ -300,6 +301,7 @@
   margin-right: auto;
   width: fit-content;
   max-width: 100%;
+  contain: content;
 }
 
 .message_reactions_temp_full {
@@ -421,6 +423,7 @@
   transition: background 1.5s;
   position: relative;
   width: 100%;
+  contain: style;
 }
 
 :global(.temp_full.active) {

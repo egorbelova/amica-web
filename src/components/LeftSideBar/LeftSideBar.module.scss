@@ -185,16 +185,24 @@
   border-radius: 32px;
   padding: 18px 20px 20px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  animation: fadeIn 0.2s ease;
 }
 
 .createGroupTitle {
-  // margin: 0 0 14px;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 500;
   position: absolute;
   color: var(--messageMainColor, #fff);
   left: 50%;
   transform: translateX(-50%);
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .createGroupInput {

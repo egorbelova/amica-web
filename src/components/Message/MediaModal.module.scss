@@ -13,6 +13,7 @@
 }
 
 .modal {
+  contain: content;
   position: fixed;
   max-width: 90vw;
   max-height: 90vh;
