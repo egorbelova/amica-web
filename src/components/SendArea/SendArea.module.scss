@@ -183,6 +183,7 @@
 .textarea-container {
   position: relative;
   overflow: scroll;
+  flex: 1;
   height: fit-content;
   flex-shrink: 0;
   overscroll-behavior: contain;
@@ -332,6 +333,7 @@
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
   box-shadow: none;
+  align-self: flex-end;
 
   &--hidden {
     opacity: 0;
@@ -355,8 +357,17 @@
   width: 100%;
   margin-top: auto;
   margin-bottom: auto;
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   overflow: hidden;
+}
+
+.textarea-container-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
 }
 
 .textarea_placeholder {

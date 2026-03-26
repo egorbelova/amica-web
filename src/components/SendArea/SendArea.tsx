@@ -567,39 +567,40 @@ const MessageInput: React.FC<SendAreaProps> = ({
                       </Button>
                     </div>
                   )}
-                  <div className={styles['textarea-container']}>
-                    <div
-                      ref={editableRef}
-                      onInput={handleInput}
-                      onKeyDown={handleKeyDown}
-                      onPaste={handlePaste}
-                      className={styles['textarea']}
-                      contentEditable
-                      suppressContentEditableWarning
-                      spellCheck={false}
-                      autoFocus={false}
-                    />
-                    <span
-                      className={`${styles['textarea_placeholder']} ${editableRef.current?.innerText ? styles.hidden : ''}`}
+                  <div className={styles['textarea-container-inner']}>
+                    <div className={styles['textarea-container']}>
+                      <div
+                        ref={editableRef}
+                        onInput={handleInput}
+                        onKeyDown={handleKeyDown}
+                        onPaste={handlePaste}
+                        className={styles['textarea']}
+                        contentEditable
+                        suppressContentEditableWarning
+                        spellCheck={false}
+                        autoFocus={false}
+                      />
+                      <span
+                        className={`${styles['textarea_placeholder']} ${editableRef.current?.innerText ? styles.hidden : ''}`}
+                      >
+                        {t('sendArea.messagePlaceholder')}
+                      </span>
+                    </div>
+                    <Button
+                      onPointerDown={(e) => {
+                        e.preventDefault();
+                      }}
+                      onClick={handleSubmit}
+                      className={`${styles['input_submit']} ${!message.trim() && files.length === 0 ? styles['input_submit--hidden'] : ''}`}
+                      disabled={
+                        (!message.trim() && files.length === 0) || isUploading
+                      }
+                      aria-label={t('aria.sendMessage')}
                     >
-                      {t('sendArea.messagePlaceholder')}
-                    </span>
+                      {sendIcon}
+                    </Button>
                   </div>
                 </div>
-
-                <Button
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                  }}
-                  onClick={handleSubmit}
-                  className={`${styles['input_submit']} ${!message.trim() && files.length === 0 ? styles['input_submit--hidden'] : ''}`}
-                  disabled={
-                    (!message.trim() && files.length === 0) || isUploading
-                  }
-                  aria-label={t('aria.sendMessage')}
-                >
-                  {sendIcon}
-                </Button>
               </form>
             </>
           )}

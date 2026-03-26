@@ -66,7 +66,6 @@ function SmartMediaLayoutInner({ files, items }: InnerProps) {
       lastTap.current = now;
       setTimeout(() => {
         if (lastTap.current !== 0) {
-          // setPlaying((prev) => !prev);
           lastTap.current = 0;
         }
       }, DOUBLE_CLICK_DELAY);

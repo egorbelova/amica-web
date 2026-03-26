@@ -6,6 +6,7 @@ import { apiFetch } from '@/utils/apiFetch';
 import AudioLayout from './AudioLayout';
 import type { File } from '@/types';
 import type { Message } from '@/types';
+import { Icon } from '../Icons/AutoIcons';
 
 interface ReelProps {
   items: Message[];
@@ -182,6 +183,15 @@ const Reel: React.FC<ReelProps> = ({ items, onClose }) => {
   };
 
   const [blobUrlsMap, setBlobUrlsMap] = useState<Record<string, string[]>>({});
+  const blobUrlsMapRef = useRef<Record<string, string[]>>({});
+
+  useEffect(() => {
+    blobUrlsMapRef.current = blobUrlsMap;
+  }, [blobUrlsMap]);
+
+  const [valueClampExpanded, setValueClampExpanded] = useState<
+    Record<string, boolean>
+  >({});
 
   useEffect(() => {
     let isCancelled = false;
@@ -191,26 +201,47 @@ const Reel: React.FC<ReelProps> = ({ items, onClose }) => {
       for (const file of item.files) {
         try {
           const res = await apiFetch(file.thumbnail_medium_url || '');
+          if (isCancelled) {
+            urls.forEach((u) => URL.revokeObjectURL(u));
+            return;
+          }
           const blob = await res.blob();
+          if (isCancelled) {
+            urls.forEach((u) => URL.revokeObjectURL(u));
+            return;
+          }
           urls.push(URL.createObjectURL(blob));
         } catch (err) {
           console.error(err);
         }
       }
-      if (!isCancelled) {
-        setBlobUrlsMap((prev) => ({ ...prev, [item.id]: urls }));
+      if (isCancelled) {
+        urls.forEach((u) => URL.revokeObjectURL(u));
+        return;
       }
+      setBlobUrlsMap((prev) => {
+        const previous = prev[item.id];
+        if (previous) {
+          previous.forEach((u) => URL.revokeObjectURL(u));
+        }
+        return { ...prev, [item.id]: urls };
+      });
     };
 
     fetchBlobs(currentItem);
 
     return () => {
       isCancelled = true;
-      Object.values(blobUrlsMap)
-        .flat()
-        .forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [currentItem, blobUrlsMap]);
+  }, [currentItem]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(blobUrlsMapRef.current)
+        .flat()
+        .forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, []);
 
   const prevFile = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -327,7 +358,19 @@ const Reel: React.FC<ReelProps> = ({ items, onClose }) => {
                   </div>
                 ))}
               </div>
-              <div className={styles['value']}>{item.value}</div>
+              <div
+                className={`${styles['value']}${valueClampExpanded[item.id] ? ` ${styles.valueExpanded}` : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setValueClampExpanded((prev) => ({
+                    ...prev,
+                    [item.id]: !prev[item.id],
+                  }));
+                }}
+              >
+                {item.value}
+              </div>
             </div>
 
             {idx === currentItemIndex && item.files.length > 1 && (
@@ -336,13 +379,13 @@ const Reel: React.FC<ReelProps> = ({ items, onClose }) => {
                   className={`${styles.left} ${styles['reel-control']}`}
                   onClick={prevFile}
                 >
-                  ←
+                  <Icon name='Arrow' style={{ transform: 'rotate(180deg)' }} />
                 </button>
                 <button
                   className={`${styles.right} ${styles['reel-control']}`}
                   onClick={nextFile}
                 >
-                  →
+                  <Icon name='Arrow' />
                 </button>
               </>
             )}
@@ -360,10 +403,10 @@ const Reel: React.FC<ReelProps> = ({ items, onClose }) => {
       {windowWidth >= 576 && (
         <div className={styles['controls']}>
           <button className={styles['control']} onClick={prevItem}>
-            ↑
+            <Icon name='Arrow' style={{ transform: 'rotate(270deg)' }} />
           </button>
           <button className={styles['control']} onClick={nextItem}>
-            ↓
+            <Icon name='Arrow' style={{ transform: 'rotate(90deg)' }} />
           </button>
         </div>
       )}
