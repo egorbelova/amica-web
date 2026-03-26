@@ -29,9 +29,6 @@ const SearchInput = ({
 
   return (
     <div className={styles['input-search']}>
-      <div className={styles['liquidGlass-tint']}></div>
-      <div className={styles['liquidGlass-shine']}></div>
-
       <div className={styles['input-search__inner']}>
         <div className={styles['input-search__icon']}>{searchIcon}</div>
         <div className={styles['input-search__input']}>

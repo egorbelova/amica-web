@@ -39,7 +39,6 @@
   --dropdown-bg: #33333333;
   --dropdown-hover: #99999933;
   --dropdown-selected: #99999999;
-  --button-hover: rgba(127, 127, 127, 0.3);
 
   --search-field-bg: rgba(30, 30, 30, 0.7);
   --search-glass-tint: rgba(35, 35, 35, 0.7);
@@ -62,8 +61,9 @@
   --surface-bg-muted: rgba(0, 0, 0, 0.4);
   --surface-border: rgba(255, 255, 255, 0.1);
   --surface-text: #fff;
-  --surface-button-bg: rgba(255, 255, 255, 0.1);
+  --surface-button-bg: rgba(255, 255, 255, 0.4);
   --surface-button-bg-active: rgba(255, 255, 255, 0.25);
+  --button-hover: rgba(255, 255, 255, 0.2);
   --surface-button-text: #fff;
   --color-text: #fff;
   --color-border: rgba(255, 255, 255, 0.15);
@@ -92,8 +92,9 @@
     --surface-bg-muted: rgba(255, 255, 255, 0.35);
     --surface-border: rgba(0, 0, 0, 0.08);
     --surface-text: #1c1c1e;
-    --surface-button-bg: rgba(255, 255, 255, 0.95);
-    --surface-button-bg-active: #ffffff;
+    --surface-button-bg: rgba(255, 255, 255, 0.3);
+    --surface-button-bg-active: rgba(255, 255, 255, 0.1);
+    --button-hover: rgba(255, 255, 255, 0.7);
     --surface-button-text: #1c1c1e;
     --color-text: #1c1c1e;
     --color-border: rgba(0, 0, 0, 0.12);
@@ -113,7 +114,6 @@
     --dropdown-hover: rgba(0, 0, 0, 0.08);
     --dropdown-selected: rgba(0, 0, 0, 0.12);
     --dropdown-toggle-hover: rgba(255, 255, 255, 0.8);
-    --button-hover: rgba(255, 255, 255, 0.8);
     --search-field-bg: rgba(255, 255, 255, 0.7);
     --search-glass-tint: rgba(255, 255, 255, 0.85);
     --search-focus-bg: #f5f5f7;

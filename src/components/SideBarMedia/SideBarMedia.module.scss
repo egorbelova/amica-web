@@ -55,6 +55,10 @@
   overflow-x: hidden;
   border-left: 0.5px solid var(--surface-border);
 
+  @media screen and (max-width: 768px) {
+    border-left: none;
+  }
+
   &__info-secondary {
     display: flex;
     margin: 10px 20px 0 20px;
@@ -542,7 +546,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 5px;
   background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);

@@ -11,7 +11,7 @@ import { Icon } from '../Icons/AutoIcons';
 import { joinGroup } from '@/providers/searchGlobal';
 
 const GlobalSearchList: React.FC = () => {
-  const { results, clear } = useSearchContext<GlobalSearchItem>();
+  const { results, clear, term } = useSearchContext<GlobalSearchItem>();
   const { handleCreateTemporaryChat, handleChatClick, fetchChats } =
     useChatMeta();
   const { setActiveProfileTab } = useSettings();
@@ -79,8 +79,6 @@ const GlobalSearchList: React.FC = () => {
   const settings = results.filter(
     (r): r is GlobalSearchItem & { type: 'setting' } => r.type === 'setting',
   );
-
-  if (results.length === 0) return null;
 
   const renderItem = (item: GlobalSearchItem, key: string) => (
     <li
@@ -156,7 +154,9 @@ const GlobalSearchList: React.FC = () => {
   );
 
   return (
-    <ul className={styles['search-list']}>
+    <ul
+      className={`${styles['search-list']}  ${term.length > 0 && results.length > 0 ? styles['search-list--active'] : ''}`}
+    >
       {groups.length > 0 && (
         <>
           {groups.map((item, i) =>

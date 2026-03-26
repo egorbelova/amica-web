@@ -15,7 +15,7 @@
   );
   align-items: center;
   font-size: 1rem;
-  backdrop-filter: blur(1px);
+  backdrop-filter: blur(2px);
   box-shadow: $glass-shadow;
   border: 1px solid var(--surface-border, rgba(255, 255, 255, 0.1));
   white-space: nowrap;
@@ -50,6 +50,7 @@
   gap: inherit;
   white-space: nowrap;
   transition: filter 0.15s ease;
+  fill: var(--surface-button-text, #fff);
 }
 
 .blurring .content {
