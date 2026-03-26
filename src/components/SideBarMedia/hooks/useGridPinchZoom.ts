@@ -29,6 +29,8 @@ export function useGridPinchZoom(
     const pointers = new Map<number, PointerEvent>();
     let initialPinchSpan = MIN_PINCH_SPAN;
     let initialColumns = rowScaleRef.current;
+    /** Touch pinch: spread → fewer columns (bigger cells); pinch in → more columns. */
+    let touchPinchInverted = false;
 
     const applyScrollAnchor = (
       container: HTMLElement,
@@ -53,6 +55,8 @@ export function useGridPinchZoom(
         e.preventDefault();
         initialColumns = rowScaleRef.current;
         const [p1, p2] = Array.from(pointers.values());
+        touchPinchInverted =
+          p1.pointerType === 'touch' && p2.pointerType === 'touch';
         initialPinchSpan = Math.max(
           pointerDistance(p1, p2),
           MIN_PINCH_SPAN,
@@ -78,7 +82,9 @@ export function useGridPinchZoom(
 
       const prevColumns = rowScaleRef.current;
       const ratio = span / initialPinchSpan;
-      let nextFloat = initialColumns * ratio;
+      let nextFloat = touchPinchInverted
+        ? initialColumns / ratio
+        : initialColumns * ratio;
       nextFloat = Math.max(MIN_COLUMNS, Math.min(MAX_COLUMNS, nextFloat));
       const nextColumns = Math.round(nextFloat);
       if (nextColumns === prevColumns) return;
