@@ -20,11 +20,35 @@ COPY . .
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm run build
 
-FROM nginx:1.26-alpine
+FROM nginx:1.28.3-alpine AS brotli-builder
 
-RUN apk add --no-cache nginx-mod-http-brotli
+RUN apk add --no-cache --virtual .build-deps \
+    build-base \
+    git \
+    pcre2-dev \
+    zlib-dev \
+    openssl-dev \
+    linux-headers \
+    wget \
+    tar
+
+WORKDIR /tmp
+
+RUN git clone --recurse-submodules -j8 https://github.com/google/ngx_brotli.git
+
+RUN wget -O nginx.tar.gz https://nginx.org/download/nginx-1.28.3.tar.gz && \
+    tar -xzf nginx.tar.gz
+
+RUN CONFARGS="$(nginx -V 2>&1 | sed -n 's/^.*arguments: //p')" && \
+    cd /tmp/nginx-1.28.3 && \
+    sh -c "./configure --with-compat $CONFARGS --add-dynamic-module=/tmp/ngx_brotli" && \
+    make modules
+
+FROM nginx:1.28.3-alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=brotli-builder /tmp/nginx-1.28.3/objs/ngx_http_brotli_filter_module.so /etc/nginx/modules/
+COPY --from=brotli-builder /tmp/nginx-1.28.3/objs/ngx_http_brotli_static_module.so /etc/nginx/modules/
 COPY nginx.conf /etc/nginx/nginx.conf
 
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
