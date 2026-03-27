@@ -326,8 +326,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
       const msg = data.data as unknown as Message;
       const chatKind = streamingChatTypeRef.current;
       const shouldEnd =
-        msg.is_own === false ||
-        (msg.is_own === true && chatKind !== 'C');
+        msg.is_own === false || (msg.is_own === true && chatKind !== 'C');
 
       if (!shouldEnd) return;
 
