@@ -36,6 +36,19 @@ interface SendAreaProps {
   onDeleteSelectedMessages?: () => void;
 }
 
+function wsChatIdMatches(
+  messageChatId: unknown,
+  expected: number | null,
+): boolean {
+  if (expected == null) return false;
+  if (typeof messageChatId !== 'number' && typeof messageChatId !== 'string') {
+    return false;
+  }
+  const a = Number(messageChatId);
+  const b = Number(expected);
+  return Number.isFinite(a) && Number.isFinite(b) && a === b;
+}
+
 const MessageInput: React.FC<SendAreaProps> = ({
   isSelectionMode = false,
   selectedMessagesCount = 0,
@@ -58,6 +71,11 @@ const MessageInput: React.FC<SendAreaProps> = ({
   const streamEndDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  /**
+   * Сразу после успешного XHR, до commit React — иначе chat_message может
+   * прийти раньше, чем fileSendPhaseRef станет 'streaming', и индикатор зависнет.
+   */
+  const fileSendAwaitingWsRef = useRef(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editableRef = useRef<HTMLDivElement>(null);
@@ -230,6 +248,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
       try {
         clearStreamDebounce();
         streamingChatIdRef.current = chatId;
+        fileSendAwaitingWsRef.current = false;
         setUploadProgress(0);
         setFileSendPhase('uploading');
 
@@ -242,10 +261,12 @@ const MessageInput: React.FC<SendAreaProps> = ({
           setUploadProgress(0);
           streamingChatIdRef.current = null;
           streamingChatTypeRef.current = null;
+          fileSendAwaitingWsRef.current = false;
           return true;
         }
 
         streamingChatTypeRef.current = uploadChatType ?? null;
+        fileSendAwaitingWsRef.current = true;
         setFileSendPhase('streaming');
         setUploadProgress(0);
 
@@ -256,6 +277,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
         setFileSendPhase('idle');
         streamingChatIdRef.current = null;
         streamingChatTypeRef.current = null;
+        fileSendAwaitingWsRef.current = false;
         setUploadProgress(0);
         return false;
       }
@@ -270,6 +292,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
     });
     streamingChatIdRef.current = null;
     streamingChatTypeRef.current = null;
+    fileSendAwaitingWsRef.current = false;
     clearStreamDebounce();
   }, [chatId, clearStreamDebounce]);
 
@@ -278,14 +301,15 @@ const MessageInput: React.FC<SendAreaProps> = ({
       clearStreamDebounce();
       streamingChatIdRef.current = null;
       streamingChatTypeRef.current = null;
+      fileSendAwaitingWsRef.current = false;
       setFileSendPhase('idle');
     };
 
     const onChatMessage = (data: WebSocketMessage) => {
-      if (fileSendPhaseRef.current !== 'streaming') return;
+      if (!fileSendAwaitingWsRef.current) return;
       if (data.type !== 'chat_message' || data.chat_id == null || !data.data)
         return;
-      if (data.chat_id !== streamingChatIdRef.current) return;
+      if (!wsChatIdMatches(data.chat_id, streamingChatIdRef.current)) return;
       const msg = data.data as unknown as Message;
       const chatKind = streamingChatTypeRef.current;
       if (!msg.is_own) {
@@ -296,20 +320,20 @@ const MessageInput: React.FC<SendAreaProps> = ({
     };
 
     const onMessageUpdated = (data: WebSocketMessage) => {
-      if (fileSendPhaseRef.current !== 'streaming') return;
+      if (!fileSendAwaitingWsRef.current) return;
       if (
         data.type !== 'message_updated' ||
         data.chat_id == null ||
         !data.data
       )
         return;
-      if (data.chat_id !== streamingChatIdRef.current) return;
+      if (!wsChatIdMatches(data.chat_id, streamingChatIdRef.current)) return;
       const msg = data.data as unknown as Message;
       if (msg.is_own) return;
       clearStreamDebounce();
       streamEndDebounceRef.current = setTimeout(() => {
         streamEndDebounceRef.current = null;
-        if (fileSendPhaseRef.current === 'streaming') finishStreaming();
+        if (fileSendAwaitingWsRef.current) finishStreaming();
       }, 500);
     };
 
@@ -327,6 +351,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
     const id = window.setTimeout(() => {
       streamingChatIdRef.current = null;
       streamingChatTypeRef.current = null;
+      fileSendAwaitingWsRef.current = false;
       setFileSendPhase('idle');
     }, maxWaitMs);
     return () => clearTimeout(id);
