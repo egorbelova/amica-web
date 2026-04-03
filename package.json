@@ -9,7 +9,7 @@
     "build:ci": "pnpm run typecheck && pnpm run lint && pnpm run build",
     "build:ignore": "pnpm run build",
     "typecheck": "tsc -b",
-    "lint": "eslint . --cache --cache-location .eslintcache",
+    "lint": "eslint src scripts vite.config.ts --cache --cache-location .eslintcache",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "gen:icons": "node scripts/generate-icons.ts",
