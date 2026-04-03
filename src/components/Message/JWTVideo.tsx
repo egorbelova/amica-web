@@ -4,6 +4,7 @@ import {
   forwardRef,
   useImperativeHandle,
   useState,
+  memo,
 } from 'react';
 import { getAccessTokenOrThrow, refreshTokenIfNeeded } from '@/utils/authStore';
 
@@ -15,7 +16,7 @@ interface JWTVideoProps {
   playing?: boolean;
 }
 
-export const JWTVideo = forwardRef<HTMLVideoElement, JWTVideoProps>(
+const JWTVideoInner = forwardRef<HTMLVideoElement, JWTVideoProps>(
   ({ url, className, muted = false, autoPlay = true, playing = true }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [signedUrl, setSignedUrl] = useState<string | null>(null);
@@ -23,17 +24,24 @@ export const JWTVideo = forwardRef<HTMLVideoElement, JWTVideoProps>(
     useImperativeHandle(ref, () => videoRef.current!);
 
     useEffect(() => {
-      const addTokenToUrl = async () => {
+      let cancelled = false;
+      (async () => {
         try {
           await refreshTokenIfNeeded();
           const token = await getAccessTokenOrThrow();
           const separator = url.includes('?') ? '&' : '?';
-          setSignedUrl(`${url}${separator}token=${encodeURIComponent(token)}`);
+          const next = `${url}${separator}token=${encodeURIComponent(token)}`;
+          if (cancelled) {
+            return;
+          }
+          setSignedUrl((prev) => (prev === next ? prev : next));
         } catch (e) {
           console.error(e);
         }
+      })();
+      return () => {
+        cancelled = true;
       };
-      addTokenToUrl();
     }, [url]);
 
     useEffect(() => {
@@ -71,3 +79,7 @@ export const JWTVideo = forwardRef<HTMLVideoElement, JWTVideoProps>(
     );
   },
 );
+
+JWTVideoInner.displayName = 'JWTVideo';
+
+export const JWTVideo = memo(JWTVideoInner);
