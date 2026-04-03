@@ -216,7 +216,8 @@
     }
 
     background: none;
-    border-radius: 0;
+    border-radius: none;
+    // transform: translateZ(0);
     backdrop-filter: none;
     outline: none;
     &::before {

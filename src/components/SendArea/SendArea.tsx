@@ -53,28 +53,24 @@ const MessageInput: React.FC<SendAreaProps> = ({
   const { t } = useTranslation();
   const [message, setMessage] = useState('');
   const [files, setFiles] = useState<File[]>([]);
-  /** idle → WASM compress (worker) → XHR upload → WS: канал ждёт чужой ответ; D/G — своё сообщение в чате */
   const [fileSendPhase, setFileSendPhase] = useState<
     'idle' | 'compressing' | 'uploading' | 'streaming'
   >('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const uploadProgressFloorRef = useRef(0);
 
   const fileSendPhaseRef = useRef(fileSendPhase);
   const streamingChatIdRef = useRef<number | null>(null);
-  /** Chat type at moment upload finished; `'C'` = ждём не своё сообщение, иначе — своё */
   const streamingChatTypeRef = useRef<'D' | 'G' | 'C' | null>(null);
   const streamEndDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  /** WS уже подтвердил доставку (D/G) до ответа XHR — не включать фазу streaming */
   const skipStreamingAfterUploadRef = useRef(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editableRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  /** Per-chat draft text; key = chatId */
   const draftByChatIdRef = useRef<Record<number, string>>({});
-  /** Saved edit session when user switches chat while editing; restored on return */
   const editStateByChatIdRef = useRef<
     Record<number, { message: Message; editText: string } | null>
   >({});
@@ -253,24 +249,41 @@ const MessageInput: React.FC<SendAreaProps> = ({
       }
 
       setFiles(prepared);
+      console.info(
+        '[SendArea] sending files',
+        prepared.map((f) => ({
+          name: f.name,
+          size: f.size,
+          type: f.type,
+        })),
+      );
 
       try {
         clearStreamDebounce();
         skipStreamingAfterUploadRef.current = false;
         streamingChatIdRef.current = chatId;
         streamingChatTypeRef.current = uploadChatType ?? null;
+        uploadProgressFloorRef.current = 0;
         setUploadProgress(0);
         fileSendPhaseRef.current = 'uploading';
         setFileSendPhase('uploading');
+
+        const applyUploadPercent = (percent: number) => {
+          if (chatIdRef.current !== uploadChatId) return;
+          const clamped = Math.min(100, Math.max(0, percent));
+          uploadProgressFloorRef.current = Math.max(
+            uploadProgressFloorRef.current,
+            clamped,
+          );
+          setUploadProgress(uploadProgressFloorRef.current);
+        };
 
         if (shouldUseChunkedVideoUpload(prepared)) {
           await uploadMessageFilesChunked(
             prepared,
             chatId,
             textMessage,
-            (percent) => {
-              if (chatIdRef.current === uploadChatId) setUploadProgress(percent);
-            },
+            applyUploadPercent,
           );
         } else {
           const formData = new FormData();
@@ -279,14 +292,13 @@ const MessageInput: React.FC<SendAreaProps> = ({
           prepared.forEach((file) => {
             formData.append('file', file);
           });
-          await apiUpload('/api/messages/', formData, (percent) => {
-            if (chatIdRef.current === uploadChatId) setUploadProgress(percent);
-          });
+          await apiUpload('/api/messages/', formData, applyUploadPercent);
         }
 
         if (chatIdRef.current !== uploadChatId) {
           fileSendPhaseRef.current = 'idle';
           setFileSendPhase('idle');
+          uploadProgressFloorRef.current = 0;
           setUploadProgress(0);
           streamingChatIdRef.current = null;
           streamingChatTypeRef.current = null;
@@ -294,6 +306,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
           return true;
         }
 
+        uploadProgressFloorRef.current = 0;
         setUploadProgress(0);
 
         if (skipStreamingAfterUploadRef.current) {
@@ -317,6 +330,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
         setFileSendPhase('idle');
         streamingChatIdRef.current = null;
         streamingChatTypeRef.current = null;
+        uploadProgressFloorRef.current = 0;
         setUploadProgress(0);
         return false;
       }
@@ -327,6 +341,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
   useEffect(() => {
     startTransition(() => {
       setFileSendPhase('idle');
+      uploadProgressFloorRef.current = 0;
       setUploadProgress(0);
     });
     fileSendPhaseRef.current = 'idle';
@@ -588,15 +603,30 @@ const MessageInput: React.FC<SendAreaProps> = ({
       const newFiles = Array.from(fileList);
 
       const validFiles: File[] = [];
+      let skippedCount = 0;
       for (const file of newFiles) {
         if (file.size > MAX_FILE_SIZE) {
+          skippedCount += 1;
           continue;
         }
         validFiles.push(file);
       }
 
       if (validFiles.length > 0) {
+        console.info(
+          '[SendArea] selected files',
+          validFiles.map((f) => ({
+            name: f.name,
+            size: f.size,
+            type: f.type,
+          })),
+        );
         setFiles((prev) => [...prev, ...validFiles]);
+      }
+      if (skippedCount > 0) {
+        alert(
+          `${skippedCount} file(s) were skipped because they exceed the 1 GB limit.`,
+        );
       }
 
       e.target.value = '';

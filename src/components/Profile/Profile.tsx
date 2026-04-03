@@ -51,9 +51,6 @@ function median(values: number[]) {
   return sorted[mid];
 }
 
-/**
- * Эвристика инерции: одинаковый знак, плотный поток событий и плавное затухание амплитуды.
- */
 function wheelInertiaLikely(samples: WheelSample[]) {
   if (samples.length < WHEEL_INERTIA_MIN_SAMPLES) return false;
   const signsSame = samples.every((s) => s.sign === samples[0].sign);
@@ -104,10 +101,6 @@ function clampDragOffset(offset: number, pageWidth: number) {
   return Math.min(Math.max(0, offset), maxDragOffsetPx(pageWidth));
 }
 
-/**
- * Трек сдвинут так, что предыдущий экран в стеке уже полностью на месте
- * (см. translate в пикселях: покой на вершине стека ≈ -n·W, предыдущий ≈ -(n−1)·W).
- */
 function isTranslateFullyOnPreviousPage(
   translateXM41: number,
   stackDepth: number,
@@ -150,7 +143,6 @@ export default function Profile() {
     null,
   );
   const isSpringingBackRef = useRef(false);
-  /** Ждём конца slide-out, чтобы вызвать pop (transitionend или fallback-таймер). */
   const pendingPopAfterSlideRef = useRef(false);
   const profilePageStackRef = useRef(profilePageStack);
   const dragOffsetRef = useRef(0);
@@ -431,7 +423,6 @@ export default function Profile() {
       const w = el.offsetWidth || 300;
       const h = el.offsetHeight || 300;
       const { dx: wdx, dy: wdy } = wheelEventToPixelDelta(e, w, h);
-      // Opposite sign vs touch/trackpad default so «назад» совпадает с ожиданием.
       const pullDx = -wdx;
 
       if (!wheelCommittedRef.current) {
