@@ -30,6 +30,22 @@ function isLandscapeMedia(file: File): boolean {
   return mediaAspectRatio(file) > LANDSCAPE_MIN_RATIO;
 }
 
+/** Высота ряда при полной ширине W (приоритет ширины). */
+function heightForFullWidthRow(
+  w: number,
+  file: File,
+  landscapeFallback: number,
+) {
+  const r = mediaAspectRatio(file, landscapeFallback);
+  return w / r;
+}
+
+/** Высота портрета при заданной ширине колонки (ширина фиксирована первой). */
+function heightForPortraitColumn(colW: number, file: File) {
+  const r = mediaAspectRatio(file, 3 / 4);
+  return colW / r;
+}
+
 function portraitColumnWidth(W: number, rowH: number, portrait: File): number {
   const rP = mediaAspectRatio(portrait, 3 / 4);
   const maxNarrow = (W - GAP) * 0.46;
@@ -100,27 +116,43 @@ export function generateLayout(files: File[], MAX_W = 432): LayoutItem[] {
     const b1 = isLandscapeMedia(files[1]);
 
     if (a0 && a1) {
-      const rowH = (H - GAP) / 2;
-      result.push({ file: files[0], top: 0, left: 0, width: W, height: rowH });
+      const colW = (W - GAP) / 2;
+      const hNeed = Math.max(
+        heightForPortraitColumn(colW, files[0]),
+        heightForPortraitColumn(colW, files[1]),
+      );
+      const rowH = Math.round(Math.min(MAX_H, Math.max(MIN_H, hNeed)));
+      result.push({
+        file: files[0],
+        top: 0,
+        left: 0,
+        width: colW,
+        height: rowH,
+      });
       result.push({
         file: files[1],
-        top: rowH + GAP,
-        left: 0,
-        width: W,
+        top: 0,
+        left: colW + GAP,
+        width: colW,
         height: rowH,
       });
       return result;
     }
 
     if (b0 && b1) {
-      const rowH = (H - GAP) / 2;
-      result.push({ file: files[0], top: 0, left: 0, width: W, height: rowH });
+      let h0 = heightForFullWidthRow(W, files[0], 16 / 9);
+      let h1 = heightForFullWidthRow(W, files[1], 16 / 9);
+      const sum = h0 + h1 + GAP;
+      const scale = sum > MAX_H ? (MAX_H - GAP) / (h0 + h1) : 1;
+      h0 = Math.round(h0 * scale);
+      h1 = Math.round(h1 * scale);
+      result.push({ file: files[0], top: 0, left: 0, width: W, height: h0 });
       result.push({
         file: files[1],
-        top: rowH + GAP,
+        top: h0 + GAP,
         left: 0,
         width: W,
-        height: rowH,
+        height: h1,
       });
       return result;
     }
@@ -220,7 +252,7 @@ export function generateLayout(files: File[], MAX_W = 432): LayoutItem[] {
 
   if (count === 3) {
     if (isPortraitMedia(files[0])) {
-      const leftW = Math.round(W * 0.44);
+      const leftW = Math.round(W * 0.66);
       const rightW = W - leftW - GAP;
       const rightH = (H - GAP) / 2;
       result.push({

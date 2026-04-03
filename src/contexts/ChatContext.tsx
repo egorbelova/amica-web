@@ -333,7 +333,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       const clearLoadingForThis = () =>
         setLoadingChatId((prev) => (prev === chatId ? null : prev));
 
-      if (websocketManager.isConnected()) {
+      const startWsGetChat = () => {
         if (!wsGetChatRequestedOnceRef.current[chatId]) {
           wsGetChatRequestedOnceRef.current[chatId] = true;
           const cached = getCachedMessages(chatId);
@@ -397,21 +397,34 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         websocketManager.on('chat', handleChat);
         websocketManager.on('message', handleError);
         websocketManager.sendMessage({ type: 'get_chat', chat_id: chatId });
-        return;
-      }
+      };
 
       try {
-        const res = await apiFetch(`/api/get_chat/${chatId}/`);
-        if (!res.ok) throw new Error(`Failed: ${res.status}`);
-        const data = await res.json();
-        applyChatData(data);
+        if (!websocketManager.isConnected()) {
+          await websocketManager.waitForConnection();
+        }
+        if (selectedChatIdRef.current !== chatId) {
+          clearLoadingForThis();
+          return;
+        }
+        startWsGetChat();
       } catch (err) {
-        delete wsInitialAnimationPendingRef.current[chatId];
         console.error(err);
-        setLoadingChatId((prev) => (prev === chatId ? null : prev));
-        if (selectedChatIdRef.current === chatId) {
-          updateMessages([], chatId);
-          setSelectedChatId(chatId);
+        try {
+          const res = await apiFetch(`/api/get_chat/${chatId}/`);
+          if (!res.ok) {
+            throw new Error(`Failed: ${res.status}`, { cause: err });
+          }
+          const data = await res.json();
+          applyChatData(data);
+        } catch (fallbackErr) {
+          delete wsInitialAnimationPendingRef.current[chatId];
+          console.error(fallbackErr);
+          setLoadingChatId((prev) => (prev === chatId ? null : prev));
+          if (selectedChatIdRef.current === chatId) {
+            updateMessages([], chatId);
+            setSelectedChatId(chatId);
+          }
         }
       }
     },
@@ -783,10 +796,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     (user: User) => {
       const dmChatMatchesUser = (chat: Chat) => {
         if (chat.type !== 'D') return false;
-        if (
-          chat.peer_user_id != null &&
-          chat.peer_user_id === user.id
-        ) {
+        if (chat.peer_user_id != null && chat.peer_user_id === user.id) {
           return true;
         }
         return (
@@ -801,10 +811,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         window.history.pushState({}, '', `#${existingChat.id}`);
         selectChat(existingChat.id);
         const cached = getCachedMessages(existingChat.id);
-        if (
-          existingChat.last_message &&
-          (!cached || cached.length === 0)
-        ) {
+        if (existingChat.last_message && (!cached || cached.length === 0)) {
           updateMessages([existingChat.last_message], existingChat.id);
         }
         void fetchChat(existingChat.id);

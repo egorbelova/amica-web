@@ -6,6 +6,10 @@ import {
   startTransition,
 } from 'react';
 import type { Message, Chat } from '@/types';
+import {
+  normalizeMessageFilesOrder,
+  normalizeMessagesFilesOrder,
+} from '@/utils/sortMessageFiles';
 import type { WebSocketMessage } from '@/utils/websocket-manager';
 import { websocketManager } from '@/utils/websocket-manager';
 
@@ -70,7 +74,14 @@ export function useMessages({
       return;
     appliedInitialRef.current = true;
     startTransition(() => {
-      setMessagesCache(initialMessagesCache);
+      setMessagesCache(
+        Object.fromEntries(
+          Object.entries(initialMessagesCache).map(([id, list]) => [
+            id,
+            normalizeMessagesFilesOrder(list),
+          ]),
+        ),
+      );
     });
   }, [initialMessagesCache]);
 
@@ -80,7 +91,9 @@ export function useMessages({
     (data: WebSocketMessage) => {
       if (data.type === 'chat_message' && data.chat_id && data.data) {
         const chatId = data.chat_id;
-        const newMessage = data.data as unknown as Message;
+        const newMessage = normalizeMessageFilesOrder(
+          data.data as unknown as Message,
+        );
 
         setChats((prevChats) =>
           prevChats.map((chat) =>
@@ -117,15 +130,16 @@ export function useMessages({
       chatId: number,
       options?: { updateChatLastMessage?: boolean },
     ) => {
+      const normalized = normalizeMessagesFilesOrder(newMessages);
       setMessagesCache((prev) => ({
         ...prev,
-        [chatId]: newMessages,
+        [chatId]: normalized,
       }));
 
       const shouldUpdateChatLastMessage =
         options?.updateChatLastMessage !== false;
-      if (newMessages.length > 0 && shouldUpdateChatLastMessage) {
-        const lastMessage = newMessages[newMessages.length - 1];
+      if (normalized.length > 0 && shouldUpdateChatLastMessage) {
+        const lastMessage = normalized[normalized.length - 1];
         setChats((prevChats) => {
           const targetChat = prevChats.find((chat) => chat.id === chatId);
           if (!targetChat) return prevChats;
@@ -148,8 +162,8 @@ export function useMessages({
       setMessagesCache((prev) => {
         const existing = prev[chatId] ?? [];
         const existingIds = new Set(existing.map((m) => String(m.id)));
-        const newOnes = olderMessages.filter(
-          (m) => !existingIds.has(String(m.id)),
+        const newOnes = normalizeMessagesFilesOrder(
+          olderMessages.filter((m) => !existingIds.has(String(m.id))),
         );
         if (newOnes.length === 0) return prev;
         return {
@@ -168,10 +182,11 @@ export function useMessages({
       options?: { updateChatLastMessage?: boolean },
     ) => {
       if (newerMessages.length === 0) return;
+      const normalizedBatch = normalizeMessagesFilesOrder(newerMessages);
       setMessagesCache((prev) => {
         const existing = prev[chatId] ?? [];
         const existingIds = new Set(existing.map((m) => String(m.id)));
-        const newOnes = newerMessages.filter(
+        const newOnes = normalizedBatch.filter(
           (m) => !existingIds.has(String(m.id)),
         );
         if (newOnes.length === 0) return prev;
@@ -183,7 +198,7 @@ export function useMessages({
       const shouldUpdateChatLastMessage =
         options?.updateChatLastMessage !== false;
       if (!shouldUpdateChatLastMessage) return;
-      const lastMessage = newerMessages[newerMessages.length - 1];
+      const lastMessage = normalizedBatch[normalizedBatch.length - 1];
       setChats((prevChats) => {
         const targetChat = prevChats.find((chat) => chat.id === chatId);
         if (!targetChat) return prevChats;
@@ -214,7 +229,7 @@ export function useMessages({
           if (Number(m.id) !== mid) return m;
           const nextUpdates =
             typeof updates === 'function' ? updates(m) : updates;
-          return { ...m, ...nextUpdates };
+          return normalizeMessageFilesOrder({ ...m, ...nextUpdates });
         });
         return { ...prev, [chatId]: newList };
       });
@@ -298,7 +313,9 @@ export function useMessages({
         data.data
       ) {
         const chatId = data.chat_id;
-        const serverMessage = data.data as unknown as Message;
+        const serverMessage = normalizeMessageFilesOrder(
+          data.data as unknown as Message,
+        );
         if (serverMessage.is_deleted) {
           removeMessageFromChat(chatId, serverMessage.id);
           return;
@@ -357,7 +374,9 @@ export function useMessages({
         data.data != null
       ) {
         const chatId = Number(data.chat_id);
-        const serverMessage = data.data as unknown as Message;
+        const serverMessage = normalizeMessageFilesOrder(
+          data.data as unknown as Message,
+        );
         if (!Number.isFinite(chatId) || !serverMessage?.id) return;
         updateMessageInChat(chatId, Number(serverMessage.id), serverMessage);
         setChats((prevChats) => {
