@@ -40,6 +40,8 @@ function imageCompressWasmPlaceholder(): Plugin {
 }
 
 export default defineConfig({
+  // Module worker + dynamic import (e.g. wasm ?url) produces multiple chunks; iife cannot.
+  worker: { format: 'es' },
   plugins: [
     imageCompressWasmPlaceholder(),
     react(),
