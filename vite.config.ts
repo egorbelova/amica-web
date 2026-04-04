@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'path';
+import zlib from 'node:zlib';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import compression from 'vite-plugin-compression';
@@ -39,9 +40,28 @@ function imageCompressWasmPlaceholder(): Plugin {
   };
 }
 
+const brotliParams = {
+  [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY,
+  [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
+  /** Larger sliding window → better ratio on repetitive JS/CSS (more CPU/RAM while compressing). */
+  [zlib.constants.BROTLI_PARAM_LGWIN]: 24,
+} as const;
+
 export default defineConfig({
   // Module worker + dynamic import (e.g. wasm ?url) produces multiple chunks; iife cannot.
   worker: { format: 'es' },
+  build: {
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        passes: 2,
+        ecma: 2020,
+      },
+      format: {
+        comments: false,
+      },
+    },
+  },
   plugins: [
     imageCompressWasmPlaceholder(),
     react(),
@@ -50,14 +70,16 @@ export default defineConfig({
       algorithm: 'brotliCompress',
       ext: '.br',
       filter: /\.(js|mjs|css|html)$/i,
-      threshold: 30720,
+      threshold: 1024,
+      compressionOptions: { params: { ...brotliParams } },
     }),
 
     compression({
       algorithm: 'gzip',
       ext: '.gz',
       filter: /\.(js|mjs|css|html)$/i,
-      threshold: 30720,
+      threshold: 1024,
+      compressionOptions: { level: zlib.constants.Z_BEST_COMPRESSION },
     }),
   ],
   resolve: {

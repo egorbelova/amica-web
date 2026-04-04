@@ -1,24 +1,16 @@
-FROM node:25-alpine AS build
-
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-
-# Corepack is unavailable in this base image; install pnpm directly.
-RUN npm install -g pnpm@latest
+FROM oven/bun:1-alpine AS build
 
 WORKDIR /app
 
 # Build-only deps (no eslint, stylelint, prettier, husky, lint-staged)
 COPY package.build.json package.json
-COPY pnpm-lock.build.yaml pnpm-lock.yaml
 
-RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm install --frozen-lockfile --unsafe-perm
+RUN --mount=type=cache,id=bun-cache,target=/root/.bun/install/cache \
+    bun install --no-save
 
 COPY . .
 
-RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm run build
+RUN bun run build
 
 FROM alpine:3.22
 

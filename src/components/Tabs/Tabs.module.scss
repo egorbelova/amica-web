@@ -88,30 +88,49 @@
   }
 }
 
+// Outer: horizontal position via translate (compositor-friendly). Inner: scale /
+// shadows so drag can update X with 0ms while scale still eases over 0.2s.
 .drag-indicator {
   contain: content;
   position: absolute;
+  left: 0;
   top: 50%;
-  transform: translate(-50%, -50%) scale(1);
+  transform: translate(calc(var(--indicator-x, 0px) - 50%), -50%);
   transform-origin: center;
   width: calc(33% - 8px);
   height: calc(100% - 8px);
-  border-radius: 999px;
-  // border: none;
-  box-shadow: none;
   z-index: 2;
   cursor: grab;
   touch-action: none;
-  background: transparent;
   user-select: none;
-  overflow: hidden;
   --transition-duration: 280ms;
+  transition: transform var(--transition-duration) ease;
+}
+
+.drag-indicator--dragging {
+  cursor: grabbing;
+  transition: transform 0ms linear;
+}
+
+.drag-indicator--no-anim {
+  transition: none !important;
+}
+
+.drag-indicator__surface {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  overflow: hidden;
+  background: transparent;
+  box-shadow: none;
+  transform: scale(1);
+  transform-origin: center;
+  pointer-events: none;
   transition:
-    left var(--transition-duration) ease,
-    transform var(--transition-duration) ease,
-    background var(--transition-duration) ease,
-    box-shadow var(--transition-duration) ease,
-    border var(--transition-duration) ease;
+    transform 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    border 0.2s ease;
 
   &::before,
   &::after {
@@ -139,33 +158,17 @@
   // }
 }
 
-.drag-indicator--dragging,
-.drag-indicator--moving {
-  // border: 1px solid rgba(255, 255, 255, 0.1);
+.drag-indicator--dragging .drag-indicator__surface,
+.drag-indicator--moving .drag-indicator__surface {
   box-shadow: var(--glass-shadow);
+  transform: scale(1.1);
 }
 
-.drag-indicator--active {
-  transform: translate(-50%, -50%) scale(1);
-}
-
-.drag-indicator--dragging {
-  cursor: grabbing;
-  transform: translate(-50%, -50%) scale(1.1);
+.drag-indicator--dragging .drag-indicator__surface {
   background: transparent;
-
-  transition:
-    left 0ms linear,
-    transform 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease;
 }
 
-.drag-indicator--moving {
-  transform: translate(-50%, -50%) scale(1.1);
-}
-
-.drag-indicator--no-anim {
+.drag-indicator--no-anim .drag-indicator__surface {
   transition: none !important;
 }
 

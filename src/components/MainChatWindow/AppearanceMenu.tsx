@@ -146,9 +146,10 @@ const ThemePreviewSection = memo(function ThemePreviewSection({
           className={`${styles.themePreviewItem} ${theme === 'light' ? styles.themePreviewItemActive : ''}`}
         >
           <img
+            decoding='async'
             src={
               new URL(
-                '../../assets/Screenshots/themes/light.jpg',
+                '../../assets/Screenshots/themes/light.webp',
                 import.meta.url,
               ).href
             }
@@ -163,9 +164,10 @@ const ThemePreviewSection = memo(function ThemePreviewSection({
           className={`${styles.themePreviewItem} ${theme === 'dark' ? styles.themePreviewItemActive : ''}`}
         >
           <img
+            decoding='async'
             src={
               new URL(
-                '../../assets/Screenshots/themes/dark.jpg',
+                '../../assets/Screenshots/themes/dark.webp',
                 import.meta.url,
               ).href
             }

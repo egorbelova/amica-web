@@ -283,12 +283,10 @@ const ChatListItem = forwardRef<HTMLDivElement, ChatListItemProps>(
                     ))}
                   </span>
                 )}
-                {/* <span className={styles['chat-list-item__message-text-content']}> */}
                 {lastMessage &&
                   (lastMessageText
                     ? lastMessageText
                     : `${lastMessageFiles.length === 1 ? '' : lastMessage.files.length} ${attachment_text}`)}
-                {/* </span> */}
               </div>
               {unread_count > 0 && (
                 <span className={styles['chat-list-item__unread']}>

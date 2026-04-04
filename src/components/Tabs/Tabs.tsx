@@ -55,6 +55,7 @@ export function Tabs() {
 
   const mainNavRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLDivElement>(null);
+  const indicatorInnerRef = useRef<HTMLDivElement>(null);
   const tabButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const [isDraggingIndicator, setIsDraggingIndicator] = useState(false);
@@ -75,6 +76,7 @@ export function Tabs() {
   const tabbarArmedWillAnimateRef = useRef(false);
   const tabbarArmedTransitionPendingRef = useRef(false);
   const tabbarPressedRef = useRef(false);
+  // Placeholder until `useLayoutEffect` snaps to `activeTab` before first paint.
   const [indicatorX, setIndicatorX] = useState(0);
   const indicatorXRef = useRef(0);
   const [visualIndicatorX, setVisualIndicatorX] = useState(0);
@@ -124,7 +126,8 @@ export function Tabs() {
     if (!isSnapping && !isArmedMove) return;
 
     const container = mainNavRef.current;
-    const indicator = indicatorRef.current;
+    const indicator =
+      indicatorInnerRef.current ?? indicatorRef.current;
     if (!container || !indicator) return;
 
     const tick = () => {
@@ -206,7 +209,7 @@ export function Tabs() {
 
     setTabLayout(next);
 
-    const ind = indicatorRef.current;
+    const ind = indicatorInnerRef.current ?? indicatorRef.current;
     if (ind) {
       const r = ind.getBoundingClientRect();
       setIndicatorSize({ width: r.width, height: r.height });
@@ -223,7 +226,8 @@ export function Tabs() {
       indicatorRef.current?.getBoundingClientRect().width ||
       0;
 
-    // `indicatorX` is the center position (since we translateX(-50%)).
+    // `indicatorX` is the center X in container space; the pill is centered with
+    // translate(calc(indicatorX - 50%), -50%) on the outer shell.
     const min = indicatorW ? indicatorW / 2 : 0;
     const max = indicatorW ? c.width - indicatorW / 2 : c.width;
     return clamp(rawX, min, max);
@@ -289,7 +293,10 @@ export function Tabs() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
-  // Also resnap on resize/layout changes.
+  // Resnap on real window resizes only. Initial layout + indicator position are
+  // handled in the `activeTab` useLayoutEffect (`measureTabLayout` + snap without
+  // animation on first run). Calling snap here on mount duplicated work and, with
+  // `indicatorInitializedRef` already true, fired a spurious animated snap.
   useEffect(() => {
     const onResize = () => {
       if (isDraggingRef.current) return;
@@ -298,8 +305,6 @@ export function Tabs() {
       measureTabLayout();
     };
     window.addEventListener('resize', onResize);
-    // Ensure layout vars exist on mount.
-    onResize();
     return () => window.removeEventListener('resize', onResize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
@@ -483,7 +488,7 @@ export function Tabs() {
       tabbarArmedTabIdRef.current = null;
       const willAnimate = tabbarArmedWillAnimateRef.current;
       tabbarArmedWillAnimateRef.current = false;
-      // If the indicator already finished its `left` transition while the pointer
+      // If the indicator already finished its move transition while the pointer
       // was held down, drop the scale immediately on release.
       if (!willAnimate || !tabbarArmedTransitionPendingRef.current) {
         setIsArmedMove(false);
@@ -537,9 +542,11 @@ export function Tabs() {
   const onIndicatorTransitionEnd: React.TransitionEventHandler<
     HTMLDivElement
   > = (e) => {
-    if (e.propertyName !== 'left') return;
-    // Pointer-down reposition also animates `left`, but `pendingSettledTabRef`
-    // still points at the previous snap — would wrongly restore gray on the old tab.
+    if (e.target !== e.currentTarget) return;
+    if (e.propertyName !== 'transform') return;
+    // Pointer-down reposition also animates the outer shell transform, but
+    // `pendingSettledTabRef` may still point at the previous snap — would wrongly
+    // restore gray on the old tab.
     const wasSnapTransition = isSnappingRef.current;
     stopSnapping();
     tabbarArmedTransitionPendingRef.current = false;
@@ -643,14 +650,12 @@ export function Tabs() {
           ref={indicatorRef}
           className={`${styles['drag-indicator']} ${
             disableIndicatorTransition ? styles['drag-indicator--no-anim'] : ''
-          } ${
-            !isDraggingIndicator && !isSnapping && indicatorSettledTab
-              ? styles['drag-indicator--active']
-              : ''
           } ${isDraggingIndicator ? styles['drag-indicator--dragging'] : ''} ${
             isSnapping || isArmedMove ? styles['drag-indicator--moving'] : ''
           }`}
-          style={{ left: `${indicatorX}px` }}
+          style={
+            { '--indicator-x': `${indicatorX}px` } as React.CSSProperties
+          }
           onPointerDown={onIndicatorPointerDown}
           onPointerMove={onIndicatorPointerMove}
           onPointerUp={onIndicatorPointerUp}
@@ -662,7 +667,12 @@ export function Tabs() {
           aria-valuemax={tabOrder.length - 1}
           aria-valuenow={tabOrder.indexOf(activeTab)}
           tabIndex={0}
-        />
+        >
+          <div
+            ref={indicatorInnerRef}
+            className={styles['drag-indicator__surface']}
+          />
+        </div>
         {tabs.map((tab) =>
           (() => {
             const isTabLogicallyActive = activeTab === tab.id;

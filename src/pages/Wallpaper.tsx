@@ -109,6 +109,7 @@ const Wallpaper: React.FC<Props> = ({
           />
         ) : (
           <img
+            decoding='async'
             src={activeWallpaper.url}
             alt='Wallpaper'
             className='wallpaper'
@@ -131,6 +132,7 @@ const Wallpaper: React.FC<Props> = ({
     >
       {activeWallpaper.type === 'photo' && (
         <img
+          decoding='async'
           src={activeWallpaper.url}
           alt='Wallpaper'
           className='wallpaper'
