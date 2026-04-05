@@ -102,7 +102,7 @@ const videos = [
 const defaultWallpapers: WallpaperSetting[] = [
   ...photos.map((file, i) => ({
     id: `default-${i}`,
-    url: `../DefaultWallpapers/${file}`,
+    url: `../DefaultWallpapers/photo/${file}`,
     type: 'photo',
   })),
   ...videos.map((file, i) => ({

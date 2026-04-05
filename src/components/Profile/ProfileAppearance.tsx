@@ -236,11 +236,11 @@ export default function ProfileAppearance() {
                         src={wall.url || ''}
                         className={`${styles.wallpaperThumbnail}`}
                         onClick={() => handleSelectWallpaper(wall)}
-                        autoPlay
+                        // autoPlay
                         muted
                         loop
                         playsInline
-                        preload='none'
+                        preload='metadata'
                       />
                     ) : (
                       <img
@@ -253,12 +253,14 @@ export default function ProfileAppearance() {
                         decoding='async'
                       />
                     )}
-                    <div
-                      className={styles.removeWallpaper}
-                      onClick={removeWallpaper.bind(null, wall.id as string)}
-                    >
-                      {crossIcon}
-                    </div>
+                    {!String(wall.id).startsWith('default-') && (
+                      <div
+                        className={styles.removeWallpaper}
+                        onClick={removeWallpaper.bind(null, wall.id as string)}
+                      >
+                        {crossIcon}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
