@@ -57,6 +57,9 @@ const MessageInput: React.FC<SendAreaProps> = ({
     'idle' | 'compressing' | 'uploading' | 'streaming'
   >('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [perFileUploadProgress, setPerFileUploadProgress] = useState<number[]>(
+    [],
+  );
   const uploadProgressFloorRef = useRef(0);
 
   const fileSendPhaseRef = useRef(fileSendPhase);
@@ -249,6 +252,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
       }
 
       setFiles(prepared);
+      setPerFileUploadProgress(new Array(prepared.length).fill(0));
       console.info(
         '[SendArea] sending files',
         prepared.map((f) => ({
@@ -276,6 +280,23 @@ const MessageInput: React.FC<SendAreaProps> = ({
             clamped,
           );
           setUploadProgress(uploadProgressFloorRef.current);
+          // Upload finished, but backend may still be compressing video.
+          if (clamped >= 100 && fileSendPhaseRef.current === 'uploading') {
+            fileSendPhaseRef.current = 'compressing';
+            setFileSendPhase('compressing');
+          }
+        };
+        const applyFilePercent = (fileIndex: number, percent: number) => {
+          if (chatIdRef.current !== uploadChatId) return;
+          const clamped = Math.min(100, Math.max(0, percent));
+          setPerFileUploadProgress((prev) => {
+            if (fileIndex < 0) return prev;
+            if (fileIndex >= prev.length) return prev;
+            if (clamped <= (prev[fileIndex] ?? 0)) return prev;
+            const next = [...prev];
+            next[fileIndex] = clamped;
+            return next;
+          });
         };
 
         if (shouldUseChunkedVideoUpload(prepared)) {
@@ -284,6 +305,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
             chatId,
             textMessage,
             applyUploadPercent,
+            applyFilePercent,
           );
         } else {
           const formData = new FormData();
@@ -300,6 +322,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
           setFileSendPhase('idle');
           uploadProgressFloorRef.current = 0;
           setUploadProgress(0);
+          setPerFileUploadProgress([]);
           streamingChatIdRef.current = null;
           streamingChatTypeRef.current = null;
           skipStreamingAfterUploadRef.current = false;
@@ -308,6 +331,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
 
         uploadProgressFloorRef.current = 0;
         setUploadProgress(0);
+        setPerFileUploadProgress([]);
 
         if (skipStreamingAfterUploadRef.current) {
           skipStreamingAfterUploadRef.current = false;
@@ -315,6 +339,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
           setFileSendPhase('idle');
           streamingChatIdRef.current = null;
           streamingChatTypeRef.current = null;
+          setPerFileUploadProgress([]);
           return true;
         }
 
@@ -332,6 +357,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
         streamingChatTypeRef.current = null;
         uploadProgressFloorRef.current = 0;
         setUploadProgress(0);
+        setPerFileUploadProgress([]);
         return false;
       }
     },
@@ -343,6 +369,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
       setFileSendPhase('idle');
       uploadProgressFloorRef.current = 0;
       setUploadProgress(0);
+      setPerFileUploadProgress([]);
     });
     fileSendPhaseRef.current = 'idle';
     skipStreamingAfterUploadRef.current = false;
@@ -378,7 +405,13 @@ const MessageInput: React.FC<SendAreaProps> = ({
       if (!wsChatMatchesUpload(data.chat_id)) return;
 
       const phase = fileSendPhaseRef.current;
-      if (phase !== 'uploading' && phase !== 'streaming') return;
+      if (
+        phase !== 'uploading' &&
+        phase !== 'compressing' &&
+        phase !== 'streaming'
+      ) {
+        return;
+      }
 
       const msg = data.data as unknown as Message;
       const chatKind = streamingChatTypeRef.current;
@@ -387,7 +420,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
 
       if (!shouldEnd) return;
 
-      if (phase === 'uploading') {
+      if (phase === 'uploading' || phase === 'compressing') {
         skipStreamingAfterUploadRef.current = true;
         return;
       }
@@ -400,12 +433,18 @@ const MessageInput: React.FC<SendAreaProps> = ({
       if (!wsChatMatchesUpload(data.chat_id)) return;
 
       const phase = fileSendPhaseRef.current;
-      if (phase !== 'uploading' && phase !== 'streaming') return;
+      if (
+        phase !== 'uploading' &&
+        phase !== 'compressing' &&
+        phase !== 'streaming'
+      ) {
+        return;
+      }
 
       const msg = data.data as unknown as Message;
       if (msg.is_own) return;
 
-      if (phase === 'uploading') {
+      if (phase === 'uploading' || phase === 'compressing') {
         skipStreamingAfterUploadRef.current = true;
         return;
       }
@@ -791,6 +830,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
                   isCompressing={fileSendPhase === 'compressing'}
                   isUploading={fileSendPhase === 'uploading'}
                   uploadProgress={uploadProgress}
+                  perFileUploadProgress={perFileUploadProgress}
                 />
               )}
               {fileSendPhase === 'streaming' && (

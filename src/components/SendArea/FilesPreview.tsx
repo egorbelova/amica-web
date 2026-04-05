@@ -12,6 +12,7 @@ interface FilesPreviewProps {
   isCompressing?: boolean;
   isUploading?: boolean;
   uploadProgress?: number;
+  perFileUploadProgress?: number[];
 }
 
 const crossIcon = <Icon name='Cross' />;
@@ -30,6 +31,7 @@ const FilesPreview: React.FC<FilesPreviewProps> = ({
   isCompressing = false,
   isUploading = false,
   uploadProgress = 0,
+  perFileUploadProgress = [],
 }) => {
   const { t } = useTranslation();
   const isBusy = isCompressing || isUploading;
@@ -82,6 +84,10 @@ const FilesPreview: React.FC<FilesPreviewProps> = ({
           const source = previewSources[index];
           const fileType = source?.kind ?? getFileKind(file);
           const previewUrl = source?.url ?? null;
+          const itemProgress =
+            perFileUploadProgress[index] != null
+              ? perFileUploadProgress[index]
+              : uploadProgress;
 
           return (
             <div
@@ -130,15 +136,15 @@ const FilesPreview: React.FC<FilesPreviewProps> = ({
                   <span className={styles['file-preview-upload-overlay__text']}>
                     {isCompressing
                       ? t('sendArea.fileItemCompressing')
-                      : uploadProgress > 0
-                        ? `${uploadProgress}%`
+                      : itemProgress > 0
+                        ? `${itemProgress}%`
                         : t('sendArea.fileItemUploading')}
                   </span>
-                  {!isCompressing && uploadProgress > 0 && (
+                  {!isCompressing && itemProgress > 0 && (
                     <div className={styles['file-preview-upload-overlay__track']}>
                       <div
                         className={styles['file-preview-upload-overlay__bar']}
-                        style={{ width: `${uploadProgress}%` }}
+                        style={{ width: `${itemProgress}%` }}
                       />
                     </div>
                   )}

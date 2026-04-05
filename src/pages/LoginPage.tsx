@@ -100,6 +100,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
             autoComplete='email'
             required
             placeholder={t('login.email')}
+            inputMode='email'
           />
         </fieldset>
         <fieldset className={styles['form']}>

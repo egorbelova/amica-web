@@ -21,8 +21,11 @@ let chunkWsListenerAttached = false;
 class InflightBytesLimiter {
   private inFlight = 0;
   private queue: Array<{ bytes: number; resolve: () => void }> = [];
+  private readonly maxBytes: number;
 
-  constructor(private readonly maxBytes: number) {}
+  constructor(maxBytes: number) {
+    this.maxBytes = maxBytes;
+  }
 
   async acquire(bytes: number): Promise<() => void> {
     const wanted = Math.max(1, bytes);
@@ -186,7 +189,11 @@ function getDeclaredMediaKind(file: File): MediaKind {
   ) {
     return 'image';
   }
-  if (['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac'].some((ext) => name.endsWith(ext))) {
+  if (
+    ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac'].some((ext) =>
+      name.endsWith(ext),
+    )
+  ) {
     return 'audio';
   }
   return 'file';
@@ -194,7 +201,8 @@ function getDeclaredMediaKind(file: File): MediaKind {
 
 export function shouldUseChunkedVideoUpload(files: File[]): boolean {
   return files.some(
-    (f) => f.type.startsWith('video/') && f.size >= VIDEO_CHUNK_UPLOAD_MIN_BYTES,
+    (f) =>
+      f.type.startsWith('video/') && f.size >= VIDEO_CHUNK_UPLOAD_MIN_BYTES,
   );
 }
 
@@ -215,7 +223,9 @@ async function uploadSingleFileChunks(
   chatId: number,
   onByteProgress: (loadedInThisFile: number) => void,
 ): Promise<string> {
-  const inFlightLimiter = new InflightBytesLimiter(CHUNK_UPLOAD_MAX_INFLIGHT_BYTES);
+  const inFlightLimiter = new InflightBytesLimiter(
+    CHUNK_UPLOAD_MAX_INFLIGHT_BYTES,
+  );
   const initRes = await apiFetch('/api/messages/chunk/init/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -302,6 +312,7 @@ export async function uploadMessageFilesChunked(
   chatId: number,
   messageText: string,
   onProgress?: (percent: number) => void,
+  onFileProgress?: (fileIndex: number, percent: number) => void,
 ): Promise<unknown> {
   console.info(
     '[chunked upload] start',
@@ -315,19 +326,29 @@ export async function uploadMessageFilesChunked(
   const totalBytes = files.reduce((s, f) => s + f.size, 0);
   const perFileLoaded = new Array<number>(files.length).fill(0);
 
-  const uploadIds = await Promise.all(
-    files.map((file, idx) =>
-      uploadSingleFileChunks(file, chatId, (loadedInThisFile) => {
+  const uploadIds: string[] = [];
+  for (let idx = 0; idx < files.length; idx += 1) {
+    const file = files[idx];
+    const uploadId = await uploadSingleFileChunks(
+      file,
+      chatId,
+      (loadedInThisFile) => {
         perFileLoaded[idx] = loadedInThisFile;
+        onFileProgress?.(
+          idx,
+          Math.min(
+            100,
+            Math.round((loadedInThisFile / Math.max(1, file.size)) * 100),
+          ),
+        );
         if (onProgress && totalBytes > 0) {
           const sumLoaded = perFileLoaded.reduce((a, b) => a + b, 0);
-          onProgress(
-            Math.min(100, Math.round((sumLoaded / totalBytes) * 100)),
-          );
+          onProgress(Math.min(100, Math.round((sumLoaded / totalBytes) * 100)));
         }
-      }),
-    ),
-  );
+      },
+    );
+    uploadIds.push(uploadId);
+  }
 
   console.info('[chunked upload] upload_ids', uploadIds);
 
@@ -360,7 +381,9 @@ async function uploadSingleFileChunksWs(
   chatId: number,
   onByteProgress: (loadedInThisFile: number) => void,
 ): Promise<string> {
-  const inFlightLimiter = new InflightBytesLimiter(CHUNK_UPLOAD_MAX_INFLIGHT_BYTES);
+  const inFlightLimiter = new InflightBytesLimiter(
+    CHUNK_UPLOAD_MAX_INFLIGHT_BYTES,
+  );
   const initRaw = (await chunkWsRpc('message_chunk_init', {
     chat_id: chatId,
     filename: file.name,
@@ -374,7 +397,11 @@ async function uploadSingleFileChunksWs(
     chunk_size: number;
   };
 
-  if (!initRaw.upload_id || initRaw.chunk_count == null || !initRaw.chunk_size) {
+  if (
+    !initRaw.upload_id ||
+    initRaw.chunk_count == null ||
+    !initRaw.chunk_size
+  ) {
     throw new Error('Invalid chunk init WS response');
   }
 
@@ -420,6 +447,7 @@ export async function uploadMessageFilesChunkedViaWs(
   chatId: number,
   messageText: string,
   onProgress?: (percent: number) => void,
+  onFileProgress?: (fileIndex: number, percent: number) => void,
 ): Promise<unknown> {
   console.info(
     '[chunked upload][ws] start',
@@ -433,19 +461,29 @@ export async function uploadMessageFilesChunkedViaWs(
   const totalBytes = files.reduce((s, f) => s + f.size, 0);
   const perFileLoaded = new Array<number>(files.length).fill(0);
 
-  const uploadIds = await Promise.all(
-    files.map((file, idx) =>
-      uploadSingleFileChunksWs(file, chatId, (loadedInThisFile) => {
+  const uploadIds: string[] = [];
+  for (let idx = 0; idx < files.length; idx += 1) {
+    const file = files[idx];
+    const uploadId = await uploadSingleFileChunksWs(
+      file,
+      chatId,
+      (loadedInThisFile) => {
         perFileLoaded[idx] = loadedInThisFile;
+        onFileProgress?.(
+          idx,
+          Math.min(
+            100,
+            Math.round((loadedInThisFile / Math.max(1, file.size)) * 100),
+          ),
+        );
         if (onProgress && totalBytes > 0) {
           const sumLoaded = perFileLoaded.reduce((a, b) => a + b, 0);
-          onProgress(
-            Math.min(100, Math.round((sumLoaded / totalBytes) * 100)),
-          );
+          onProgress(Math.min(100, Math.round((sumLoaded / totalBytes) * 100)));
         }
-      }),
-    ),
-  );
+      },
+    );
+    uploadIds.push(uploadId);
+  }
 
   console.info('[chunked upload][ws] upload_ids', uploadIds);
 
@@ -468,6 +506,7 @@ export async function uploadMessageFilesChunkedPreferWs(
   chatId: number,
   messageText: string,
   onProgress?: (percent: number) => void,
+  onFileProgress?: (fileIndex: number, percent: number) => void,
 ): Promise<unknown> {
   if (websocketManager.isConnected()) {
     try {
@@ -476,10 +515,17 @@ export async function uploadMessageFilesChunkedPreferWs(
         chatId,
         messageText,
         onProgress,
+        onFileProgress,
       );
     } catch (e) {
       console.warn('[chunked upload] WS failed, falling back to HTTP', e);
     }
   }
-  return uploadMessageFilesChunked(files, chatId, messageText, onProgress);
+  return uploadMessageFilesChunked(
+    files,
+    chatId,
+    messageText,
+    onProgress,
+    onFileProgress,
+  );
 }
