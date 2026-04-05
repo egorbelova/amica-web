@@ -3,6 +3,7 @@ import { websocketManager } from '@/utils/websocket-manager';
 import type { WebSocketMessage } from '@/utils/websocket-manager';
 
 const CHUNK_WS_TIMEOUT_MS = 120_000;
+const CHUNK_UPLOAD_MAX_INFLIGHT_BYTES = 24 * 1024 * 1024;
 
 let chunkWsRequestSeq = 0;
 
@@ -17,21 +18,44 @@ const chunkWsPending = new Map<
 
 let chunkWsListenerAttached = false;
 
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const r = reader.result;
-      if (typeof r !== 'string') {
-        reject(new Error('read failed'));
+class InflightBytesLimiter {
+  private inFlight = 0;
+  private queue: Array<{ bytes: number; resolve: () => void }> = [];
+
+  constructor(private readonly maxBytes: number) {}
+
+  async acquire(bytes: number): Promise<() => void> {
+    const wanted = Math.max(1, bytes);
+    await new Promise<void>((resolve) => {
+      if (this.inFlight + wanted <= this.maxBytes) {
+        this.inFlight += wanted;
+        resolve();
         return;
       }
-      const comma = r.indexOf(',');
-      resolve(comma >= 0 ? r.slice(comma + 1) : r);
+      this.queue.push({ bytes: wanted, resolve });
+    });
+    return () => {
+      this.inFlight = Math.max(0, this.inFlight - wanted);
+      while (this.queue.length > 0) {
+        const next = this.queue[0];
+        if (this.inFlight + next.bytes > this.maxBytes) break;
+        this.queue.shift();
+        this.inFlight += next.bytes;
+        next.resolve();
+      }
     };
-    reader.onerror = () => reject(new Error('FileReader error'));
-    reader.readAsDataURL(blob);
-  });
+  }
+}
+
+function makeChunkBinaryFrame(
+  requestId: number,
+  payload: Uint8Array,
+): Uint8Array {
+  const frame = new Uint8Array(4 + payload.byteLength);
+  const dv = new DataView(frame.buffer);
+  dv.setUint32(0, requestId, false);
+  frame.set(payload, 4);
+  return frame;
 }
 
 function ensureChunkWsResponseListener(): void {
@@ -66,7 +90,7 @@ function ensureChunkWsResponseListener(): void {
 }
 
 function chunkWsRpc(
-  type: 'message_chunk_init' | 'message_chunk_part' | 'message_chunk_complete',
+  type: 'message_chunk_init' | 'message_chunk_complete' | 'message_chunk_part',
   payload: Record<string, unknown>,
 ): Promise<unknown> {
   ensureChunkWsResponseListener();
@@ -86,6 +110,51 @@ function chunkWsRpc(
       clearTimeout(timer);
       chunkWsPending.delete(request_id);
       reject(new Error('WebSocket not connected'));
+    }
+  });
+}
+
+async function chunkWsPartBinaryRpc(
+  uploadId: string,
+  chunkIndex: number,
+  blob: Blob,
+): Promise<void> {
+  ensureChunkWsResponseListener();
+  const request_id = ++chunkWsRequestSeq;
+  const raw = new Uint8Array(await blob.arrayBuffer());
+  const frame = makeChunkBinaryFrame(request_id, raw);
+
+  await new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      chunkWsPending.delete(request_id);
+      reject(new Error('Chunk WS timeout'));
+    }, CHUNK_WS_TIMEOUT_MS);
+    chunkWsPending.set(request_id, {
+      resolve: () => resolve(),
+      reject,
+      timer,
+    });
+
+    const sentMeta = websocketManager.sendMessage({
+      type: 'message_chunk_part',
+      request_id,
+      data: {
+        upload_id: uploadId,
+        chunk_index: chunkIndex,
+      },
+    } as unknown as WebSocketMessage);
+    if (!sentMeta) {
+      clearTimeout(timer);
+      chunkWsPending.delete(request_id);
+      reject(new Error('WebSocket not connected (part metadata)'));
+      return;
+    }
+
+    const sentBinary = websocketManager.sendBinary(frame);
+    if (!sentBinary) {
+      clearTimeout(timer);
+      chunkWsPending.delete(request_id);
+      reject(new Error('WebSocket not connected (part payload)'));
     }
   });
 }
@@ -146,6 +215,7 @@ async function uploadSingleFileChunks(
   chatId: number,
   onByteProgress: (loadedInThisFile: number) => void,
 ): Promise<string> {
+  const inFlightLimiter = new InflightBytesLimiter(CHUNK_UPLOAD_MAX_INFLIGHT_BYTES);
   const initRes = await apiFetch('/api/messages/chunk/init/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -190,6 +260,7 @@ async function uploadSingleFileChunks(
       const end = Math.min(start + chunk_size, file.size);
       const chunkLen = end - start;
       const blob = file.slice(start, end);
+      const release = await inFlightLimiter.acquire(chunkLen);
       const fd = new FormData();
       fd.append('upload_id', upload_id);
       fd.append('chunk_index', String(i));
@@ -198,6 +269,8 @@ async function uploadSingleFileChunks(
       const partRes = await apiFetch('/api/messages/chunk/part/', {
         method: 'POST',
         body: fd,
+      }).finally(() => {
+        release();
       });
 
       if (!partRes.ok) {
@@ -287,6 +360,7 @@ async function uploadSingleFileChunksWs(
   chatId: number,
   onByteProgress: (loadedInThisFile: number) => void,
 ): Promise<string> {
+  const inFlightLimiter = new InflightBytesLimiter(CHUNK_UPLOAD_MAX_INFLIGHT_BYTES);
   const initRaw = (await chunkWsRpc('message_chunk_init', {
     chat_id: chatId,
     filename: file.name,
@@ -320,12 +394,10 @@ async function uploadSingleFileChunksWs(
       const end = Math.min(start + chunk_size, file.size);
       const chunkLen = end - start;
       const blob = file.slice(start, end);
-      const chunk_b64 = await blobToBase64(blob);
+      const release = await inFlightLimiter.acquire(chunkLen);
 
-      await chunkWsRpc('message_chunk_part', {
-        upload_id,
-        chunk_index: i,
-        chunk_b64,
+      await chunkWsPartBinaryRpc(upload_id, i, blob).finally(() => {
+        release();
       });
 
       bytesUploadedThisFile += chunkLen;
@@ -340,7 +412,7 @@ async function uploadSingleFileChunksWs(
 }
 
 /**
- * Same as {@link uploadMessageFilesChunked} but uses WebSocket (512 KiB base64 chunks).
+ * Same as {@link uploadMessageFilesChunked} but uses WebSocket binary chunks.
  * Falls back to HTTP if the socket is closed or any step fails.
  */
 export async function uploadMessageFilesChunkedViaWs(

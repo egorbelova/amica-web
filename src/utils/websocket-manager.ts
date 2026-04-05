@@ -32,6 +32,7 @@ export interface WebSocketMessageData {
 
 export interface WebSocketMessage {
   type: string;
+  request_id?: number;
   chat_id?: number;
   cursor?: number;
   cursor_newer?: number;
@@ -464,6 +465,17 @@ class WebSocketManager {
   public sendMessage(message: WebSocketMessage): boolean {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(message));
+      return true;
+    }
+    if (this.socket?.readyState !== WebSocket.CONNECTING) {
+      console.error('WebSocket not open', this.socket?.readyState);
+    }
+    return false;
+  }
+
+  public sendBinary(payload: ArrayBuffer | Uint8Array): boolean {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(payload);
       return true;
     }
     if (this.socket?.readyState !== WebSocket.CONNECTING) {
