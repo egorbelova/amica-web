@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, memo } from 'react';
 import styles from './RoomPage.module.scss';
 import { useSettings, useBlur } from '@/contexts/settings/context';
 
@@ -163,4 +163,4 @@ const Wallpaper: React.FC<Props> = ({
   );
 };
 
-export default Wallpaper;
+export default memo(Wallpaper);

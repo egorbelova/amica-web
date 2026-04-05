@@ -24,7 +24,7 @@ import { useTranslation } from '@/contexts/languageCore';
 import { useSearchContext } from '@/contexts/search/SearchContextCore';
 import {
   shouldUseChunkedVideoUpload,
-  uploadMessageFilesChunked,
+  uploadMessageFilesChunkedPreferWs,
 } from '@/lib/upload/chunkedMessageUpload';
 import { apiUpload } from '../../utils/apiFetch';
 import { Icon } from '../Icons/AutoIcons';
@@ -279,7 +279,7 @@ const MessageInput: React.FC<SendAreaProps> = ({
         };
 
         if (shouldUseChunkedVideoUpload(prepared)) {
-          await uploadMessageFilesChunked(
+          await uploadMessageFilesChunkedPreferWs(
             prepared,
             chatId,
             textMessage,

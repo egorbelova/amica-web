@@ -106,7 +106,7 @@ const Avatar = memo(function Avatar({
     const el = avatarRef.current;
     if (!el) return;
     const updateFont = () => {
-      const next = Math.round(el.clientWidth * 0.45);
+      const next = Math.round(el.clientWidth * 0.4);
       setFontSize((prev) => (prev === next ? prev : next));
     };
     updateFont();
