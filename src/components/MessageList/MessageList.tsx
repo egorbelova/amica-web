@@ -35,6 +35,7 @@ const PAGINATION_THRESHOLD_PX = 300;
 const MIN_MESSAGES_TO_TRIM = 40;
 const TRIM_DEBOUNCE_MS = 1000;
 const SELECTION_DRAG_THRESHOLD_PX = 8;
+const INCOMING_AUTO_SCROLL_THRESHOLD_PX = 50;
 
 function getDateKey(msg: MessageType): DateKey {
   const d = msg.date ?? '';
@@ -251,6 +252,14 @@ const MessageList: React.FC<MessageListProps> = ({
   const loadingOlderRef = useRef(loadingOlderMessages);
   const loadingNewerRef = useRef(loadingNewerMessages);
   const selectedChatIdRef = useRef(selectedChatId);
+  const prevAutoScrollChatIdRef = useRef<number | null>(selectedChatId);
+  const prevMessageOrderForAutoScrollRef = useRef<number[]>(
+    messages.map((message) => message.id),
+  );
+  const ownAutoScrollRafRef = useRef<number | null>(null);
+  const ownAutoScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   useEffect(() => {
     loadingOlderRef.current = loadingOlderMessages;
     loadingNewerRef.current = loadingNewerMessages;
@@ -258,6 +267,116 @@ const MessageList: React.FC<MessageListProps> = ({
   }, [loadingOlderMessages, loadingNewerMessages, selectedChatId]);
   const scrollContainerRef = jumpContainerRef;
   const mergedRef = containerRef;
+
+  const clearOwnAutoScrollTimers = useCallback(() => {
+    if (ownAutoScrollRafRef.current !== null) {
+      cancelAnimationFrame(ownAutoScrollRafRef.current);
+      ownAutoScrollRafRef.current = null;
+    }
+    if (ownAutoScrollTimeoutRef.current) {
+      clearTimeout(ownAutoScrollTimeoutRef.current);
+      ownAutoScrollTimeoutRef.current = null;
+    }
+  }, []);
+
+  const scheduleOwnScrollToBottom = useCallback(
+    (el: HTMLDivElement) => {
+      clearOwnAutoScrollTimers();
+      // Keep current offset so smooth animation remains visible.
+      ownAutoScrollRafRef.current = requestAnimationFrame(() => {
+        ownAutoScrollRafRef.current = null;
+        el.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        });
+        ownAutoScrollTimeoutRef.current = setTimeout(() => {
+          // Do not force-scroll if user already started scrolling up.
+          const stillNearBottom =
+            el.scrollTop >= -INCOMING_AUTO_SCROLL_THRESHOLD_PX;
+          if (stillNearBottom) {
+            // Fallback: ensure final exact bottom after smooth completes.
+            el.scrollTop = 0;
+          }
+          ownAutoScrollTimeoutRef.current = null;
+        }, 260);
+      });
+    },
+    [clearOwnAutoScrollTimers],
+  );
+
+  useLayoutEffect(() => {
+    const currentChatId = selectedChatId ?? null;
+    const prevChatId = prevAutoScrollChatIdRef.current;
+
+    const refreshAutoScrollRefs = () => {
+      prevAutoScrollChatIdRef.current = currentChatId;
+      prevMessageOrderForAutoScrollRef.current = messages.map(
+        (message) => message.id,
+      );
+    };
+
+    if (currentChatId == null || currentChatId !== prevChatId) {
+      refreshAutoScrollRefs();
+      return;
+    }
+
+    const prevOrder = prevMessageOrderForAutoScrollRef.current;
+    const currentOrder = messages.map((message) => message.id);
+    if (currentOrder.length <= prevOrder.length) {
+      refreshAutoScrollRefs();
+      return;
+    }
+
+    // Autoscroll should react only to items appended at the end.
+    // Prepended history pages must never pull the user to bottom.
+    const addedCount = currentOrder.length - prevOrder.length;
+    const prevStartsAt = currentOrder.findIndex(
+      (_, idx) =>
+        idx + prevOrder.length <= currentOrder.length &&
+        prevOrder.every((id, offset) => currentOrder[idx + offset] === id),
+    );
+    const isPureAppend = prevStartsAt === 0;
+    const isPurePrepend =
+      prevStartsAt > 0 && prevStartsAt + prevOrder.length === currentOrder.length;
+    if (!isPureAppend) {
+      // For prepend (pagination up) or mixed reshapes, skip autoscroll.
+      // This avoids jumps to 0 while loading history.
+      if (isPurePrepend || prevStartsAt === -1) {
+        refreshAutoScrollRefs();
+        return;
+      }
+      refreshAutoScrollRefs();
+      return;
+    }
+
+    const appendedMessages = messages.slice(messages.length - addedCount);
+    const ownNewMessages = appendedMessages.filter((message) => message.is_own);
+    const incomingAppended = appendedMessages.filter(
+      (message) => !message.is_own,
+    );
+
+    const el = scrollContainerRef.current;
+    if (el) {
+      const nearBottom = el.scrollTop >= -INCOMING_AUTO_SCROLL_THRESHOLD_PX;
+      if (ownNewMessages.length > 0) {
+        scheduleOwnScrollToBottom(el);
+      } else if (incomingAppended.length > 0 && nearBottom) {
+        el.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        });
+      }
+    }
+
+    refreshAutoScrollRefs();
+  }, [messages, selectedChatId, scrollContainerRef, scheduleOwnScrollToBottom]);
+
+  useEffect(() => {
+    return () => {
+      clearOwnAutoScrollTimers();
+    };
+  }, [clearOwnAutoScrollTimers]);
+
   const messagesRef = useRef(messages);
   const messagesByIdRef = useRef(new Map<string, MessageType>());
   const isSelectionModeRef = useRef(isSelectionMode);
@@ -741,7 +860,10 @@ const MessageList: React.FC<MessageListProps> = ({
             lastScrollTopRef.current = el.scrollTop;
           } else {
             const delta = el.scrollTop - lastScrollTopRef.current;
-            if (delta < 0) lastScrollDirectionRef.current = 'up';
+            if (delta < 0) {
+              lastScrollDirectionRef.current = 'up';
+              clearOwnAutoScrollTimers();
+            }
             else if (delta > 0) lastScrollDirectionRef.current = 'down';
             const scrollingDown = el.scrollTop > lastScrollTopRef.current;
             lastScrollTopRef.current = el.scrollTop;
@@ -807,6 +929,7 @@ const MessageList: React.FC<MessageListProps> = ({
     getTopVisibleAnchor,
     clearScheduledTrim,
     scheduleTrimAfterScrollEnd,
+    clearOwnAutoScrollTimers,
     scrollContainerRef,
   ]);
 

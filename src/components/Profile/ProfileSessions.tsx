@@ -1,7 +1,6 @@
 import styles from './Profile.module.scss';
 import { useTranslation } from '@/contexts/languageCore';
-import { useEffect, useState, useCallback } from 'react';
-import { apiFetch } from '@/utils/apiFetch';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useUser } from '@/contexts/UserContextCore';
 import { Dropdown } from '../Dropdown/Dropdown';
 import {
@@ -20,6 +19,8 @@ const SESSION_LIFETIME_KEYS: Record<number, string> = {
   90: 'sessions.months3',
   180: 'sessions.months6',
 };
+
+const SESSIONS_LOAD_TIMEOUT_MS = 20_000;
 
 export default function ProfileSessions() {
   const { t, locale } = useTranslation();
@@ -51,49 +52,106 @@ export default function ProfileSessions() {
   );
   const [savingLifetime, setSavingLifetime] = useState(false);
 
+  const sessionsRequestIdRef = useRef(0);
+  const loadSessionsTimeoutRef = useRef<number | null>(null);
+
+  const clearLoadSessionsTimeout = useCallback(() => {
+    if (loadSessionsTimeoutRef.current != null) {
+      window.clearTimeout(loadSessionsTimeoutRef.current);
+      loadSessionsTimeoutRef.current = null;
+    }
+  }, []);
+
   const loadSessions = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await apiFetch('/api/active-sessions/');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: Session[] = await res.json();
-      setSessions(data.sort((a) => (a.is_current ? -1 : 1)));
       setError(null);
+      await websocketManager.connect();
+      await websocketManager.waitForConnection();
+
+      const requestId = ++sessionsRequestIdRef.current;
+      clearLoadSessionsTimeout();
+      loadSessionsTimeoutRef.current = window.setTimeout(() => {
+        loadSessionsTimeoutRef.current = null;
+        if (sessionsRequestIdRef.current === requestId) {
+          setLoading(false);
+          setError(t('sessions.loadError'));
+          setSessions([]);
+        }
+      }, SESSIONS_LOAD_TIMEOUT_MS);
+
+      const sent = websocketManager.sendMessage({
+        type: 'get_active_sessions',
+        request_id: requestId,
+      });
+      if (!sent) {
+        clearLoadSessionsTimeout();
+        throw new Error('WebSocket not ready');
+      }
     } catch (err) {
       console.error(err);
+      clearLoadSessionsTimeout();
       setError(t('sessions.loadError'));
       setSessions([]);
-    } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, clearLoadSessionsTimeout]);
 
   const handleWSMessage = useCallback(
     (data: WebSocketMessage) => {
       if (!data.type) return;
       switch (data.type) {
-        case 'session_created':
+        case 'active_sessions': {
+          if (data.request_id !== sessionsRequestIdRef.current) return;
+          clearLoadSessionsTimeout();
+          const list = (data.sessions ?? []) as Session[];
+          setSessions(list.sort((a) => (a.is_current ? -1 : 1)));
+          setError(null);
+          setLoading(false);
+          break;
+        }
+        case 'error':
+          if (
+            data.code === 'active_sessions' &&
+            data.request_id === sessionsRequestIdRef.current
+          ) {
+            clearLoadSessionsTimeout();
+            setError(t('sessions.loadError'));
+            setSessions([]);
+            setLoading(false);
+          }
+          break;
+        case 'session_created': {
+          const sess = data.session;
+          if (!sess?.jti) break;
           setSessions((prev) => [
-            ...prev.filter((s) => s.jti !== data.session.jti),
-            data.session,
+            ...prev.filter((s) => s.jti !== sess.jti),
+            sess as Session,
           ]);
           break;
-        case 'session_updated':
+        }
+        case 'session_updated': {
+          const sess = data.session;
+          if (!sess?.jti) break;
           setSessions((prev) =>
-            prev.map((s) => (s.jti === data.session.jti ? data.session : s)),
+            prev.map((s) => (s.jti === sess.jti ? (sess as Session) : s)),
           );
           break;
-        case 'session_deleted':
-          setSessions((prev) => prev.filter((s) => s.jti !== data.session.jti));
+        }
+        case 'session_deleted': {
+          const jti = data.session?.jti;
+          if (!jti) break;
+          setSessions((prev) => prev.filter((s) => s.jti !== jti));
           break;
+        }
         case 'session_lifetime_updated':
-          setSessionLifetime(data.days);
+          setSessionLifetime(data.days!);
           if (user)
-            setUser({ ...user, preferred_session_lifetime_days: data.days });
+            setUser({ ...user, preferred_session_lifetime_days: data.days! });
           break;
       }
     },
-    [user, setUser],
+    [user, setUser, t, clearLoadSessionsTimeout],
   );
 
   useEffect(() => {
@@ -101,13 +159,14 @@ export default function ProfileSessions() {
     if (!websocketManager.isConnected()) {
       websocketManager.connect();
     }
-    return () => websocketManager.off('message', handleWSMessage);
-  }, [handleWSMessage]);
+    return () => {
+      websocketManager.off('message', handleWSMessage);
+      clearLoadSessionsTimeout();
+    };
+  }, [handleWSMessage, clearLoadSessionsTimeout]);
 
   useEffect(() => {
     loadSessions();
-    // const interval = setInterval(loadSessions, 30_000);
-    // return () => clearInterval(interval);
   }, [loadSessions]);
 
   const updateSessionLifetime = async (value: number) => {
@@ -123,25 +182,17 @@ export default function ProfileSessions() {
     setSavingLifetime(false);
   };
 
-  const revokeSession = async (jti: string) => {
-    try {
-      const res = await apiFetch(`/api/active-sessions/${jti}/`, {
-        method: 'DELETE',
-      });
-      if (res.ok) setSessions((prev) => prev.filter((s) => s.jti !== jti));
-    } catch (err) {
-      console.error('Failed to revoke session', err);
-    }
+  const revokeSession = (jti: string) => {
+    websocketManager.sendMessage({
+      type: 'revoke_session',
+      jti,
+    });
   };
 
-  const revokeOtherSessions = async () => {
-    try {
-      await apiFetch('/api/active-sessions/others/', { method: 'DELETE' });
-      loadSessions();
-    } catch (err) {
-      console.error('Failed to revoke other sessions', err);
-    }
+  const revokeOtherSessions = () => {
+    websocketManager.sendMessage({ type: 'revoke_other_sessions' });
   };
+
   if (loading) {
     return (
       <div className={styles.section}>

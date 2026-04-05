@@ -33,6 +33,11 @@ export interface WebSocketMessageData {
 export interface WebSocketMessage {
   type: string;
   request_id?: number;
+  /** get_active_sessions / error(active_sessions) correlation */
+  code?: string;
+  /** revoke_session target */
+  jti?: string;
+  sessions?: Session[];
   chat_id?: number;
   cursor?: number;
   cursor_newer?: number;
@@ -121,8 +126,10 @@ class WebSocketManager {
   private socket: WebSocket | null = null;
   private connectPromise: Promise<void> | null = null;
   private reconnectAttempts = 0;
-  private readonly maxReconnectAttempts = 5;
   private readonly reconnectDelay = 1000;
+  /** Cap exponential backoff so reconnects keep retrying indefinitely without huge gaps. */
+  private readonly maxReconnectDelay = 60_000;
+  private readonly pingIntervalMs = 25_000;
   private pingInterval: number | null = null;
   private reconnectTimeout: number | null = null;
   private isManualDisconnect = false;
@@ -252,6 +259,7 @@ class WebSocketManager {
           this.socket.onopen = () => {
             this.reconnectAttempts = 0;
             this.emit('connected', null);
+            this.startPingInterval();
 
             const t = getAccessToken();
             if (t) {
@@ -262,6 +270,7 @@ class WebSocketManager {
           this.socket.onmessage = (e: MessageEvent) => this.handleMessage(e);
 
           this.socket.onclose = (e: CloseEvent) => {
+            this.cleanupPing();
             console.log(
               `WebSocket closed. Code: ${e.code}, Reason: ${e.reason}`,
             );
@@ -431,36 +440,35 @@ class WebSocketManager {
   }
 
   private attemptReconnection(): void {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
+    this.reconnectAttempts++;
+    const delay = Math.min(
+      this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
+      this.maxReconnectDelay,
+    );
 
-      const delay =
-        this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
+    console.log(
+      `Reconnecting in ${delay}ms (Attempt ${this.reconnectAttempts})`,
+    );
 
-      console.log(
-        `Reconnecting in ${delay}ms (Attempt ${this.reconnectAttempts})`,
-      );
-
-      this.reconnectTimeout = window.setTimeout(() => {
-        this.connect();
-      }, delay);
-    } else {
-      console.error('Max reconnection attempts reached');
-      this.emit('error', new Error('Max reconnection attempts reached'));
-    }
+    this.reconnectTimeout = window.setTimeout(() => {
+      this.connect();
+    }, delay);
   }
 
-  // private startPingInterval() {
-  //   this.cleanupPing();
-  //   this.sendPing();
-  //   this.pingInterval = window.setInterval(() => this.sendPing(), 30_000);
-  // }
+  private startPingInterval() {
+    this.cleanupPing();
+    this.sendPing();
+    this.pingInterval = window.setInterval(
+      () => this.sendPing(),
+      this.pingIntervalMs,
+    );
+  }
 
-  // private sendPing() {
-  //   if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-  //     this.socket.send(JSON.stringify({ type: 'ping' }));
-  //   }
-  // }
+  private sendPing() {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify({ type: 'ping' }));
+    }
+  }
 
   public sendMessage(message: WebSocketMessage): boolean {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
