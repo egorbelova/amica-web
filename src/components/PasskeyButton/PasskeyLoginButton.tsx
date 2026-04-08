@@ -18,12 +18,15 @@ function bufferToBase64Url(buffer: ArrayBuffer): string {
 
 import { useMemo } from 'react';
 import { Icon } from '@/components/Icons/AutoIcons';
+import { clientBindingHeaders } from '@/utils/clientBinding';
+import { useUser } from '@/contexts/UserContextCore';
 
 interface PasskeyLoginButtonProps {
   styles?: Record<string, string>;
 }
 
 export function PasskeyLoginButton({ styles }: PasskeyLoginButtonProps) {
+  const { loginWithPasskey } = useUser();
   const passkeyIcon = useMemo(
     () => <Icon name='Passkey' className={styles?.['passkey-icon']} />,
     [styles],
@@ -33,6 +36,7 @@ export function PasskeyLoginButton({ styles }: PasskeyLoginButtonProps) {
       const startRes = await fetch('/api/passkey/auth/start/', {
         method: 'POST',
         credentials: 'include',
+        headers: clientBindingHeaders(),
       });
 
       if (!startRes.ok) {
@@ -75,19 +79,10 @@ export function PasskeyLoginButton({ styles }: PasskeyLoginButtonProps) {
         },
       };
 
-      const finishRes = await fetch('/api/passkey/auth/finish/', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      if (finishRes.ok) {
-        await finishRes.json();
-        window.location.reload();
-      } else {
-        const err = await finishRes.json();
-        console.error('Auth finish error:', err);
+      try {
+        await loginWithPasskey(body);
+      } catch (e) {
+        console.error('Passkey login failed:', e);
       }
     } catch (e) {
       console.error('Login failed:', e);

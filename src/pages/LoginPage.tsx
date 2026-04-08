@@ -14,6 +14,14 @@ interface LoginPageProps {
   onShowSignup: () => void;
 }
 
+/** Match Django's normalize_email: lowercase domain only (local part unchanged). */
+function normalizeLoginIdentifier(value: string): string {
+  const t = value.trim();
+  const at = t.lastIndexOf('@');
+  if (at < 0) return t;
+  return `${t.slice(0, at + 1)}${t.slice(at + 1).toLowerCase()}`;
+}
+
 const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<LoginFormData>({
@@ -21,6 +29,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
     password: '',
   });
   const [error, setError] = useState<string>('');
+  const [emailVerifiedNotice] = useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).get('verified') === '1';
+    } catch {
+      return false;
+    }
+  });
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
@@ -30,15 +45,25 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
     usernameRef.current?.focus();
   }, []);
 
+  useEffect(() => {
+    if (!emailVerifiedNotice) return;
+    try {
+      const path = window.location.pathname || '/';
+      window.history.replaceState({}, '', path);
+    } catch {
+      /* ignore */
+    }
+  }, [emailVerifiedNotice]);
+
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
-
-      const normalizedValue = value.toLowerCase();
+      const next =
+        name === 'password' ? value : normalizeLoginIdentifier(value);
 
       setFormData((prev) => ({
         ...prev,
-        [name]: normalizedValue,
+        [name]: next,
       }));
 
       if (error) setError('');
@@ -87,9 +112,24 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
           className={styles['login-logo']}
         /> */}
         <h4 className={styles['login-title']}>{t('login.signIn')}</h4>
+        {emailVerifiedNotice ? (
+          <div
+            style={{
+              marginBottom: 12,
+              padding: '10px 12px',
+              borderRadius: 8,
+              background: 'rgba(34,197,94,0.15)',
+              color: 'var(--color-text-primary, #fff)',
+              fontSize: 14,
+              lineHeight: 1.4,
+            }}
+            role='status'
+          >
+            {t('login.emailVerifiedBanner')}
+          </div>
+        ) : null}
 
         <fieldset className={styles['form']}>
-          {/* <legend className={styles['form-label']}>Email</legend> */}
           <input
             ref={usernameRef}
             name='username'

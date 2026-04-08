@@ -1,4 +1,5 @@
 import { useUser } from '../../contexts/UserContextCore';
+import { clientBindingHeaders } from '@/utils/clientBinding';
 import styles from './PasskeyButton.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 
@@ -23,12 +24,16 @@ function bufferToBase64Url(buffer: ArrayBuffer): string {
 }
 
 export default function PasskeyRegisterButton() {
-  const { user } = useUser();
+  const { user, applyDeviceChallenge } = useUser();
   const handleRegister = async () => {
     try {
       const startRes = await fetch('/api/passkey/register/start/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...clientBindingHeaders(),
+        },
         body: JSON.stringify({ email: user?.email }),
       });
 
@@ -75,17 +80,30 @@ export default function PasskeyRegisterButton() {
 
       const finishRes = await fetch('/api/passkey/register/finish/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...clientBindingHeaders(),
+        },
         body: JSON.stringify(body),
       });
 
+      const finishData = await finishRes.json();
       if (!finishRes.ok) {
-        const err = await finishRes.json();
-        console.error('Finish registration error:', err);
+        console.error('Finish registration error:', finishData);
         return;
       }
-
-      await finishRes.json();
+      if (
+        finishData.needs_device_confirmation &&
+        finishData.challenge_id &&
+        finishData.code
+      ) {
+        applyDeviceChallenge({
+          challenge_id: finishData.challenge_id,
+          code: finishData.code,
+        });
+        return;
+      }
     } catch (e) {
       console.error('Registration failed:', e);
     }

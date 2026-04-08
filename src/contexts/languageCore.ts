@@ -1,4 +1,6 @@
 import { createContext, useContext } from 'react';
+import { getLastUserId } from '@/utils/chatStateStorage';
+import { getLangStorageKey } from './langStorageKey';
 
 const localeModules = import.meta.glob('/src/locales/*.ts', {
   eager: true,
@@ -33,6 +35,53 @@ export type LanguageContextType = {
 };
 
 export const LanguageContext = createContext<LanguageContextType | null>(null);
+
+export { getLangStorageKey } from './langStorageKey';
+
+function getNested(obj: Messages, keys: string[]): unknown {
+  let acc: unknown = obj;
+  for (const key of keys) {
+    if (
+      acc &&
+      typeof acc === 'object' &&
+      key in (acc as Record<string, unknown>)
+    ) {
+      acc = (acc as Record<string, unknown>)[key];
+    } else {
+      return undefined;
+    }
+  }
+  return acc;
+}
+
+/**
+ * Resolve a message using the same locale storage rules as LanguageProvider.
+ * For copy used outside the React language tree (e.g. UserContext handlers).
+ */
+export function tSync(
+  path: LocaleKeys<Messages>,
+  options?: { userId?: number | null },
+): string {
+  if (typeof window === 'undefined') {
+    return path;
+  }
+  try {
+    const uid = options?.userId ?? getLastUserId();
+    const storageKey = getLangStorageKey(uid);
+    const savedLang = localStorage.getItem(storageKey) as string | null;
+    const localeKey: Locale =
+      savedLang && savedLang in locales ? (savedLang as Locale) : 'en';
+    const messages = locales[localeKey] ?? locales.en;
+    const keys = path.split('.');
+    const current = getNested(messages, keys);
+    if (typeof current === 'string') return current;
+    const fallback = getNested(locales.en, keys);
+    if (typeof fallback === 'string') return fallback;
+  } catch {
+    /* ignore */
+  }
+  return path;
+}
 
 export const useTranslation = () => {
   const context = useContext(LanguageContext);

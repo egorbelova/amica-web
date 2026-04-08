@@ -4,6 +4,7 @@ import { useTranslation } from '@/contexts/languageCore';
 import { Icon } from '@/components/Icons/AutoIcons';
 import styles from './LoginPage.module.scss';
 import Button from '@/components/ui/button/Button';
+import { clientBindingHeaders } from '@/utils/clientBinding';
 
 interface SignUpPageProps {
   onShowLogin: () => void;
@@ -11,7 +12,7 @@ interface SignUpPageProps {
 
 const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
   const { t } = useTranslation();
-  const { signupWithCredentials } = useUser();
+  const { signupWithCredentials, ingestSuccessfulAuthPayload } = useUser();
   const usernameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -24,6 +25,10 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [verifyEmailSent, setVerifyEmailSent] = useState<string | null>(null);
+  const [verifyOtpId, setVerifyOtpId] = useState<string | null>(null);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSubmitting, setOtpSubmitting] = useState(false);
 
   useEffect(() => {
     usernameRef.current?.focus();
@@ -49,9 +54,20 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
       e.preventDefault();
       setLoading(true);
       setError(null);
+      setVerifyEmailSent(null);
+      setVerifyOtpId(null);
+      setOtpCode('');
 
       try {
-        await signupWithCredentials(form.username, form.email, form.password);
+        const result = await signupWithCredentials(
+          form.username,
+          form.email,
+          form.password,
+        );
+        if (result.needsEmailVerification) {
+          setVerifyEmailSent(result.email ?? form.email);
+          setVerifyOtpId(result.emailVerificationOtpId ?? null);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -77,6 +93,41 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
 
   const handleLoginClick = useCallback(() => onShowLogin(), [onShowLogin]);
 
+  const handleVerifyOtp = useCallback(async () => {
+    const digits = otpCode.replace(/\D/g, '');
+    if (digits.length !== 6) return;
+    if (!verifyOtpId) {
+      setError(t('signUp.missingOtpId'));
+      return;
+    }
+    setOtpSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/verify-email-otp/', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...clientBindingHeaders(),
+        },
+        body: JSON.stringify({
+          otp_id: verifyOtpId,
+          code: digits,
+        }),
+      });
+      const data = (await res.json()) as Record<string, unknown>;
+      if (!res.ok) {
+        setError(String(data.error || 'Verification failed'));
+        return;
+      }
+      ingestSuccessfulAuthPayload(data, 'Verification failed');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Verification failed');
+    } finally {
+      setOtpSubmitting(false);
+    }
+  }, [verifyOtpId, otpCode, t, ingestSuccessfulAuthPayload]);
+
   return (
     <div className={styles['login-wrapper']}>
       <div className={styles['login-top-fill']} />
@@ -96,17 +147,62 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
             style={{ transform: 'rotate(180deg)', height: 24, width: 24 }}
           />
         </Button>
-        <h4 className={styles['login-title']}>{t('signUp.title')}</h4>
-        <fieldset className={styles['form']}>
-          {/* <legend className={styles['form-label']}>Username</legend> */}
-          {/* <legend className={styles['form-label-placeholder']}>Username</legend> */}
+        <h4 className={styles['login-title']}>
+          {verifyEmailSent ? t('signUp.signUpDoneTitle') : t('signUp.title')}
+        </h4>
+        {verifyEmailSent ? (
+          <>
+            <p
+              style={{
+                margin: '0 0 12px',
+                fontSize: 14,
+                lineHeight: 1.45,
+                opacity: 0.9,
+              }}
+              role='status'
+            >
+              {t('signUp.checkEmail')} <strong>{verifyEmailSent}</strong>
+            </p>
+            <fieldset className={styles['form']}>
+              <input
+                type='text'
+                inputMode='numeric'
+                autoComplete='one-time-code'
+                maxLength={8}
+                value={otpCode}
+                onChange={(e) =>
+                  setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))
+                }
+                disabled={otpSubmitting}
+                placeholder={t('signUp.otpPlaceholder')}
+                aria-label={t('signUp.otpPlaceholder')}
+              />
+            </fieldset>
+            {error && verifyEmailSent ? (
+              <div style={{ color: 'red', margin: '8px 0 0', fontSize: 14 }}>
+                {error}
+              </div>
+            ) : null}
+            <button
+              type='button'
+              className={styles['next-button']}
+              disabled={
+                otpSubmitting || otpCode.replace(/\D/g, '').length !== 6
+              }
+              onClick={() => void handleVerifyOtp()}
+            >
+              {otpSubmitting ? '…' : t('signUp.verifyCode')}
+            </button>
+          </>
+        ) : null}
+        {/* <fieldset className={styles['form']} hidden={!!verifyEmailSent}>
           <input
             ref={usernameRef}
             name='profile_name'
             value={form.username}
             onChange={handleChange}
             onKeyPress={(e) => handleKeyPress(e, emailRef)}
-            disabled={loading}
+            disabled={loading || !!verifyEmailSent}
             autoComplete='off'
             data-1p-ignore
             data-lpignore='true'
@@ -117,8 +213,8 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
             required
             placeholder={t('signUp.username')}
           />
-        </fieldset>
-        <fieldset className={styles['form']}>
+        </fieldset> */}
+        <fieldset className={styles['form']} hidden={!!verifyEmailSent}>
           {/* <legend className={styles['form-label']}>Email</legend> */}
           {/* <legend className={styles['form-label-placeholder']}>Email</legend> */}
           <input
@@ -128,7 +224,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
             value={form.email}
             onChange={handleChange}
             onKeyPress={(e) => handleKeyPress(e, passwordRef)}
-            disabled={loading}
+            disabled={loading || !!verifyEmailSent}
             autoComplete='off'
             data-1p-ignore
             data-lpignore='true'
@@ -140,7 +236,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
             placeholder={t('signUp.email')}
           />
         </fieldset>
-        <fieldset className={styles['form']}>
+        <fieldset className={styles['form']} hidden={!!verifyEmailSent}>
           {/* <legend className={styles['form-label']}>Password</legend> */}
           {/* <legend className={styles['form-label-placeholder']}>Password</legend> */}
           <input
@@ -149,7 +245,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
             type='password'
             value={form.password}
             onChange={handleChange}
-            disabled={loading}
+            disabled={loading || !!verifyEmailSent}
             autoComplete='new-password'
             data-1p-ignore
             data-lpignore='true'
@@ -160,11 +256,18 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
             placeholder={t('signUp.password')}
           />
         </fieldset>
-        {error && <div style={{ color: 'red', margin: '8px 0' }}>{error}</div>}
+        {error && !verifyEmailSent ? (
+          <div style={{ color: 'red', margin: '8px 0' }}>{error}</div>
+        ) : null}
         <button
           type='submit'
           className={styles['next-button']}
-          disabled={loading || !form.username || !form.email || !form.password}
+          style={{
+            display: verifyEmailSent ? 'none' : undefined,
+          }}
+          disabled={
+            loading || !!verifyEmailSent || !form.email || !form.password
+          }
         >
           {loading ? t('signUp.creatingAccount') : t('signUp.title')}
         </button>

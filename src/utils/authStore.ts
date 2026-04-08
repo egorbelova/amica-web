@@ -1,3 +1,5 @@
+import { clientBindingHeaders } from './clientBinding';
+
 export type TokenListener = (token: string | null) => void;
 export type UnauthorizedListener = () => void;
 
@@ -104,6 +106,7 @@ async function refreshTokenViaHttp(): Promise<void> {
   const res = await fetch('/api/refresh_token/', {
     method: 'POST',
     credentials: 'include',
+    headers: clientBindingHeaders(),
   });
 
   if (res.status === 401) {

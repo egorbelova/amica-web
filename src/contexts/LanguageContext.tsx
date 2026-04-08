@@ -3,6 +3,7 @@ import {
   useState,
   useCallback,
   useMemo,
+  useContext,
   type ReactNode,
   startTransition,
 } from 'react';
@@ -13,12 +14,9 @@ import {
   type Messages,
   type LocaleKeys,
 } from './languageCore';
-import { useUser } from './UserContextCore';
+import { getLangStorageKey } from './langStorageKey';
+import { UserContext } from './UserContextCore';
 import { getLastUserId } from '@/utils/chatStateStorage';
-
-function getLangStorageKey(userId: number | null | undefined): string {
-  return userId != null ? `app-lang-${userId}` : 'app-lang';
-}
 
 function getNested(obj: Messages, keys: string[]): unknown {
   let acc: unknown = obj;
@@ -37,8 +35,9 @@ function getNested(obj: Messages, keys: string[]): unknown {
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const { user } = useUser();
-  const storageKey = getLangStorageKey(user?.id ?? getLastUserId());
+  const userCtx = useContext(UserContext);
+  const userId = userCtx?.user?.id ?? getLastUserId();
+  const storageKey = getLangStorageKey(userId);
   const browserLang = navigator.language.split('-')[0] as Locale;
   const savedLang = localStorage.getItem(storageKey) as Locale | null;
   const defaultLang =

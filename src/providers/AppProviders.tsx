@@ -4,7 +4,6 @@ import { MessagesProvider } from '../contexts/MessagesContext';
 import { ChatProvider } from '../contexts/ChatContext';
 import { AudioProvider } from '../contexts/AudioContext.tsx';
 import { AuthProvider } from '../contexts/AuthContext';
-import { LanguageProvider } from '../contexts/LanguageContext';
 import { SettingsProvider } from '@/contexts/settings/Settings';
 import { SearchProvider } from '@/contexts/search/SearchContext';
 import { JumpProvider } from '@/contexts/JumpContext';
@@ -46,7 +45,6 @@ const AppProvidersComponent = composeProviders(
   PageStackProvider,
   AuthProvider,
   UserProvider,
-  LanguageProvider,
   SettingsProvider,
   GlobalSearchProvider,
   ChatProvider,

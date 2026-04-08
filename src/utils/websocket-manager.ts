@@ -3,8 +3,29 @@ import {
   getAccessToken,
   setAccessToken,
 } from './authStore';
+import { getClientBindingId } from './clientBinding';
 import type { Session } from '@/types';
 import { startTransition } from 'react';
+
+function wsReadNested(msg: Record<string, unknown>, key: string): unknown {
+  if (Object.prototype.hasOwnProperty.call(msg, key) && msg[key] !== undefined) {
+    return msg[key];
+  }
+  const inner = msg.data;
+  if (inner != null && typeof inner === 'object' && !Array.isArray(inner)) {
+    return (inner as Record<string, unknown>)[key];
+  }
+  return undefined;
+}
+
+function wsTruthyFlag(v: unknown): boolean {
+  if (v === true || v === 1) return true;
+  if (typeof v === 'string') {
+    const s = v.trim().toLowerCase();
+    return s === 'true' || s === '1' || s === 'yes' || s === 'on';
+  }
+  return false;
+}
 
 export interface WebSocketMessageData {
   id?: number | string;
@@ -119,6 +140,7 @@ interface WebSocketEventMap {
       chat?: unknown;
     },
   ) => void;
+  device_login_pending: (data: { challenge_id?: string }) => void;
 }
 
 class WebSocketManager {
@@ -227,6 +249,15 @@ class WebSocketManager {
           this.socket = null;
         }
 
+        try {
+          const mod = await import('./clientBinding');
+          if (typeof mod.bootstrapClientBinding === 'function') {
+            await mod.bootstrapClientBinding();
+          }
+        } catch {
+          /* ignore */
+        }
+
         const token: string | null = getAccessToken();
 
         const ws_protocol =
@@ -242,15 +273,17 @@ class WebSocketManager {
           ws_port = 8000;
         }
 
+        const cb = getClientBindingId();
+        const qsParts: string[] = [];
+        if (token) qsParts.push(`token=${encodeURIComponent(token)}`);
+        if (cb) qsParts.push(`client_binding=${encodeURIComponent(cb)}`);
+        const qs = qsParts.length ? `?${qsParts.join('&')}` : '';
+
         let url: string;
         if (ws_port) {
-          url = token
-            ? `${ws_protocol}${ws_host}:${ws_port}/ws/socket-server/?token=${token}`
-            : `${ws_protocol}${ws_host}:${ws_port}/ws/socket-server/`;
+          url = `${ws_protocol}${ws_host}:${ws_port}/ws/socket-server/${qs}`;
         } else {
-          url = token
-            ? `${ws_protocol}${ws_host}/ws/socket-server/?token=${token}`
-            : `${ws_protocol}${ws_host}/ws/socket-server/`;
+          url = `${ws_protocol}${ws_host}/ws/socket-server/${qs}`;
         }
 
         try {
@@ -425,13 +458,22 @@ class WebSocketManager {
               this.emit('group_members_updated', data);
             }
             break;
+          case 'device_login_pending':
+            this.emit('device_login_pending', data);
+            break;
         }
       };
-      if (
+      // RPC-style responses must run synchronously so requestSignup/requestLogin
+      // resolve in the same turn as the WebSocket frame (startTransition can reorder
+      // or delay emits and break Promise handlers).
+      const runSwitchSync =
         data.type === 'chat_created' ||
         data.type === 'chat_message' ||
-        data.type === 'chat_deleted'
-      ) {
+        data.type === 'chat_deleted' ||
+        data.type === 'login_response' ||
+        data.type === 'signup_response' ||
+        data.type === 'refresh_token_response';
+      if (runSwitchSync) {
         runSwitch();
       } else {
         startTransition(runSwitch);
@@ -727,7 +769,16 @@ class WebSocketManager {
     username: string,
     email: string,
     password: string,
-  ): Promise<{ access: string; refresh: string; user: unknown }> {
+  ): Promise<
+    | { kind: 'session'; access: string; refresh: string; user: unknown }
+    | {
+        kind: 'verify_email';
+        user_id: number;
+        username: string;
+        email: string;
+        email_verification_otp_id: string;
+      }
+  > {
     return new Promise((resolve, reject) => {
       const timeoutId = window.setTimeout(() => {
         this.off('signup_response', handleResponse);
@@ -741,6 +792,11 @@ class WebSocketManager {
           refresh?: string;
           user?: unknown;
           error?: string;
+          needs_email_verification?: boolean;
+          user_id?: number;
+          username?: string;
+          email?: string;
+          email_verification_otp_id?: string;
         },
       ) => {
         if (data.type !== 'signup_response') return;
@@ -751,8 +807,40 @@ class WebSocketManager {
           reject(new Error(data.error));
           return;
         }
+        const raw = data as unknown as Record<string, unknown>;
+        const needsVerify =
+          wsTruthyFlag(wsReadNested(raw, 'needs_email_verification')) ||
+          wsTruthyFlag(wsReadNested(raw, 'needsEmailVerification'));
+        const otpRaw =
+          wsReadNested(raw, 'email_verification_otp_id') ??
+          wsReadNested(raw, 'emailVerificationOtpId');
+        const otpId =
+          otpRaw != null && otpRaw !== '' ? String(otpRaw).trim() : '';
+        const userIdRaw = wsReadNested(raw, 'user_id');
+        const accessRaw = wsReadNested(raw, 'access');
+        const noAccess =
+          accessRaw == null ||
+          accessRaw === '' ||
+          (typeof accessRaw === 'string' && accessRaw.trim() === '');
+        const inferredEmailVerify =
+          otpId !== '' &&
+          noAccess &&
+          userIdRaw != null &&
+          String(userIdRaw).trim() !== '' &&
+          !Number.isNaN(Number(userIdRaw));
+        if (needsVerify || inferredEmailVerify) {
+          resolve({
+            kind: 'verify_email',
+            user_id: Number(userIdRaw),
+            username: String(wsReadNested(raw, 'username') ?? ''),
+            email: String(wsReadNested(raw, 'email') ?? ''),
+            email_verification_otp_id: otpId,
+          });
+          return;
+        }
         if (data.access && data.refresh && data.user) {
           resolve({
+            kind: 'session',
             access: data.access,
             refresh: data.refresh,
             user: data.user,
@@ -774,12 +862,18 @@ class WebSocketManager {
 
       this.on('signup_response', handleResponse);
       this.on('message', handleError);
-      this.sendMessage({
+      const sent = this.sendMessage({
         type: 'signup',
         username,
         email,
         password,
       } as WebSocketMessage);
+      if (!sent) {
+        window.clearTimeout(timeoutId);
+        this.off('signup_response', handleResponse);
+        this.off('message', handleError);
+        reject(new Error('WebSocket not connected'));
+      }
     });
   }
 }
