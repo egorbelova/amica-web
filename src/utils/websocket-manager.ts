@@ -29,6 +29,8 @@ function wsTruthyFlag(v: unknown): boolean {
 export interface WebSocketMessageData {
   id?: number | string;
   user_id?: number;
+  user_ids?: number[];
+  username?: string;
   type?: string;
   chat_id?: number;
   message_id?: number;
@@ -137,6 +139,20 @@ interface WebSocketEventMap {
       members?: unknown;
       users_count?: number;
       chat?: unknown;
+    },
+  ) => void;
+  group_renamed: (
+    data: WebSocketMessage & { chat_id?: number; name?: string },
+  ) => void;
+  update_username_response: (
+    data: WebSocketMessage & { user?: unknown; error?: string },
+  ) => void;
+  rename_group_response: (
+    data: WebSocketMessage & {
+      ok?: boolean;
+      error?: string;
+      chat_id?: number;
+      name?: string;
     },
   ) => void;
   device_login_pending: (data: {
@@ -462,6 +478,17 @@ class WebSocketManager {
               this.emit('group_members_updated', data);
             }
             break;
+          case 'group_renamed':
+            if (data.chat_id !== undefined) {
+              this.emit('group_renamed', data);
+            }
+            break;
+          case 'update_username_response':
+            this.emit('update_username_response', data);
+            break;
+          case 'rename_group_response':
+            this.emit('rename_group_response', data);
+            break;
           case 'device_login_pending':
             this.emit('device_login_pending', data);
             break;
@@ -565,6 +592,29 @@ class WebSocketManager {
       type: 'add_group_member',
       chat_id: chatId,
       data: { user_id: userId },
+    });
+  }
+
+  public sendAddGroupMembers(chatId: number, userIds: number[]) {
+    return this.sendMessage({
+      type: 'add_group_member',
+      chat_id: chatId,
+      data: { user_ids: userIds },
+    });
+  }
+
+  public sendRenameGroup(chatId: number, name: string) {
+    return this.sendMessage({
+      type: 'rename_group',
+      chat_id: chatId,
+      data: { name },
+    });
+  }
+
+  public sendUpdateUsername(username: string) {
+    return this.sendMessage({
+      type: 'update_username',
+      data: { username },
     });
   }
 

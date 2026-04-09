@@ -4,6 +4,7 @@ import {
   refreshTokenIfNeeded,
   handleUnauthorized,
 } from './authStore';
+import { resolveApiUrl } from './resolveApiUrl';
 export interface ApiError extends Error {
   status?: number;
   data?: unknown;
@@ -67,7 +68,7 @@ export async function apiFetch(
   const isFormData = options.body instanceof FormData;
   if (isFormData) headers.delete('Content-Type');
 
-  const response = await fetchWithRetry(`${API_BASE_URL}${url}`, {
+  const response = await fetchWithRetry(resolveApiUrl(url), {
     ...options,
     credentials: 'include',
     headers,
@@ -149,7 +150,7 @@ export async function apiUpload(
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${API_BASE_URL}${url}`);
+    xhr.open('POST', resolveApiUrl(url));
     xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.withCredentials = true;
 
@@ -180,7 +181,7 @@ export async function apiUpload(
     };
 
     xhr.onerror = () =>
-      reject(new Error(`Network error: ${API_BASE_URL}${url}`));
+      reject(new Error(`Network error: ${resolveApiUrl(url)}`));
     xhr.ontimeout = () => reject(new Error('Timeout'));
 
     xhr.send(formData);

@@ -7,6 +7,7 @@ import {
   memo,
 } from 'react';
 import { getAccessTokenOrThrow, refreshTokenIfNeeded } from '@/utils/authStore';
+import { resolveApiUrl } from '@/utils/resolveApiUrl';
 
 interface JWTVideoProps {
   url: string;
@@ -27,10 +28,12 @@ const JWTVideoInner = forwardRef<HTMLVideoElement, JWTVideoProps>(
       let cancelled = false;
       (async () => {
         try {
+          const base = resolveApiUrl(url);
+          if (!base) return;
           await refreshTokenIfNeeded();
           const token = await getAccessTokenOrThrow();
-          const separator = url.includes('?') ? '&' : '?';
-          const next = `${url}${separator}token=${encodeURIComponent(token)}`;
+          const separator = base.includes('?') ? '&' : '?';
+          const next = `${base}${separator}token=${encodeURIComponent(token)}`;
           if (cancelled) {
             return;
           }
@@ -57,6 +60,21 @@ const JWTVideoInner = forwardRef<HTMLVideoElement, JWTVideoProps>(
       if (!playing && !video.paused) video.pause();
     }, [playing, signedUrl]);
 
+    useEffect(() => {
+      const video = videoRef.current;
+      if (!video || !signedUrl) return;
+      const nudgeFirstFrame = () => {
+        if (playing) return;
+        try {
+          if (video.currentTime === 0) video.currentTime = 0.001;
+        } catch {
+          /* seek may throw before metadata */
+        }
+      };
+      video.addEventListener('loadeddata', nudgeFirstFrame);
+      return () => video.removeEventListener('loadeddata', nudgeFirstFrame);
+    }, [signedUrl, playing]);
+
     return (
       <video
         ref={videoRef}
@@ -65,7 +83,7 @@ const JWTVideoInner = forwardRef<HTMLVideoElement, JWTVideoProps>(
         muted={muted}
         controlsList='nodownload'
         loop
-        preload='none'
+        preload='metadata'
         style={{
           width: '100%',
           height: '100%',

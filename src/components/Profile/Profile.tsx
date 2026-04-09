@@ -9,6 +9,8 @@ import type { SubTab } from '@/contexts/settings/types';
 import { usePageStack } from '@/contexts/useStackHistory';
 import { TabContent } from './ActiveProfileTab';
 import Button from '@/components/ui/button/Button';
+import { ProfileAccountSaveProvider } from './ProfileAccountSaveContext';
+import ProfileSubpageHeader from './ProfileSubpageHeader';
 
 const languageIcon = <Icon name='Language' />;
 const privacyIcon = <Icon name='Privacy' />;
@@ -17,7 +19,6 @@ const sessionsIcon = <Icon name='Sessions' />;
 const arrowBackIcon = (
   <Icon name='Arrow' style={{ transform: 'rotate(180deg)' }} />
 );
-const fullscreenIcon = <Icon name='Fullscreen' />;
 const arrowNavIcon = <Icon name='Arrow' className={styles.arrow} />;
 
 const SWIPE_DISTANCE_RATIO = 0.5; // >50% of page width
@@ -121,8 +122,6 @@ export default function Profile() {
     pushProfilePage,
     popProfilePage,
     settingsFullWindow,
-    setSettingsFullWindow,
-    isResizingPermitted,
   } = useSettings();
   const { current } = usePageStack();
 
@@ -568,31 +567,7 @@ export default function Profile() {
         </div>
       );
     }
-    return (
-      <div className={styles.pageHeader}>
-        <Button
-          key={`header-back-${tabId}`}
-          onClick={handleBack}
-          className={styles.close}
-        >
-          {arrowBackIcon}
-        </Button>
-        <span className={styles.pageHeaderTitle}>
-          {t(`profileTabs.${tabId}`)}
-        </span>
-        {isResizingPermitted && !settingsFullWindow ? (
-          <Button
-            key={`header-maximize-${tabId}`}
-            className={styles.maximize}
-            onClick={() => setSettingsFullWindow(true)}
-          >
-            {fullscreenIcon}
-          </Button>
-        ) : (
-          <span className={styles.pageHeaderSpacer} aria-hidden />
-        )}
-      </div>
-    );
+    return null;
   };
 
   return (
@@ -682,14 +657,18 @@ export default function Profile() {
                 ))}
               </nav>
             </div>
-            {displayedStack.map((tabId, i) => (
-              <div key={`${tabId}-${i}`} className={styles.page}>
-                {renderPageHeader(tabId)}
-                <div className={styles.settingsContainer}>
-                  <TabContent tabId={tabId} />
+            {displayedStack.map((tabId, i) =>
+              tabId != null ? (
+                <div key={`${tabId}-${i}`} className={styles.page}>
+                  <ProfileAccountSaveProvider>
+                    <ProfileSubpageHeader tabId={tabId} onBack={handleBack} />
+                    <div className={styles.settingsContainer}>
+                      <TabContent tabId={tabId} />
+                    </div>
+                  </ProfileAccountSaveProvider>
                 </div>
-              </div>
-            ))}
+              ) : null,
+            )}
           </div>
         </div>
       )}

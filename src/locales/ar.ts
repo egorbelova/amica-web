@@ -151,6 +151,8 @@ export default {
     deviceLoginHint: 'Open Amica on your trusted device and enter this code:',
     deviceLoginWaiting: 'Waiting for confirmation…',
     deviceLoginCancel: 'Cancel',
+    deviceLoginResend: 'Resend notification',
+    deviceLoginResendFailed: 'Could not resend. Try again.',
     useRecoveryCodeButton: 'Use a recovery (backup) code instead',
     trustedDeviceRequestTitle: 'New sign-in attempt',
     trustedDeviceRequestIntro:

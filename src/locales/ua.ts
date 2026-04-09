@@ -153,6 +153,8 @@ export default {
     deviceLoginOtpLabel: 'Одноразовий код',
     deviceLoginWaiting: 'Після перевірки вхід завершиться автоматично…',
     deviceLoginCancel: 'Скасувати',
+    deviceLoginResend: 'Надіслати сповіщення знову',
+    deviceLoginResendFailed: 'Не вдалося надіслати. Спробуйте ще раз.',
     useRecoveryCodeButton: 'Увійти з резервним кодом',
     trustedDeviceRequestTitle: 'Спроба входу',
     trustedDeviceRequestIntro:

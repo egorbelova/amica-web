@@ -108,6 +108,8 @@ export default {
     trustedSessionsEmpty:
       'No active sessions currently show as trusted. Check Active sessions or sign in from your usual browser.',
     trustedSessionsTerminateOthers: 'End other trusted sessions',
+    username: 'Username',
+    usernameInvalid: 'Enter a username (1–64 characters).',
     signOut: 'Sign Out',
     languageDescription: 'Select your preferred language.',
     privacyDescription:
@@ -193,6 +195,8 @@ export default {
     deviceLoginOtpLabel: 'One-time code',
     deviceLoginWaiting: 'After you submit, we finish signing you in…',
     deviceLoginCancel: 'Cancel',
+    deviceLoginResend: 'Resend notification',
+    deviceLoginResendFailed: 'Could not resend. Try again.',
     useRecoveryCodeButton: 'Use a recovery (backup) code instead',
     trustedDeviceRequestTitle: 'New sign-in attempt',
     trustedDeviceRequestIntro:
@@ -329,6 +333,7 @@ export default {
     wsSendFailed: 'Could not send. Check your connection.',
     joinGroupFailed: 'Could not join the group.',
     createGroupTimeout: 'Could not create the group. Try again.',
+    avatarDeleteFailed: 'Could not delete this avatar.',
   },
   sidebar: {
     members: 'Members',
@@ -352,6 +357,7 @@ export default {
     newGroupNamePlaceholder: 'Group name',
     createGroupButton: 'Create',
     membersCount: 'members',
+    deleteRollerAvatar: 'Delete',
   },
   aria: {
     tabSelector: 'Tab selector',

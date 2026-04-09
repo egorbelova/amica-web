@@ -5,6 +5,8 @@ import React, {
   memo,
   useLayoutEffect,
 } from 'react';
+import type { DisplayMedia } from '@/types';
+import { deleteDisplayMediaById } from '@/utils/deleteDisplayMedia';
 import {
   useChatMeta,
   useSelectedChat,
@@ -21,6 +23,8 @@ import MembersList from './MembersList';
 import MediaGrid from './MediaGrid';
 import AudioGrid from './AudioGrid';
 import InterlocutorEditForm from './InterlocutorEditForm';
+import { websocketManager } from '@/utils/websocket-manager';
+import type { WebSocketMessage } from '@/utils/websocket-manager';
 import styles from './SideBarMedia.module.scss';
 import {
   useSideBarMediaData,
@@ -45,7 +49,8 @@ const FILTER_LABEL_KEYS: Record<string, string> = {
 const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   const { t } = useTranslation();
   const { formatLastSeen } = useFormatLastSeen();
-  const { addContact, deleteContact, saveContact } = useChatMeta();
+  const { addContact, deleteContact, saveContact, setChats, fetchChat } =
+    useChatMeta();
   const { selectedChat } = useSelectedChat();
   const { messages } = useChatMessages();
   const { showToast } = useToast();
@@ -99,6 +104,7 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     setIsAvatarRollerOpen,
     effectiveRollPosition,
     handleRollPositionChange,
+    setRollPosition,
   } = useAvatarRoller(
     chatId,
     selectedChat?.media?.length ?? 0,
@@ -178,14 +184,40 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
   const handleEditClick = useCallback(() => {
     if (interlocutorEditVisible) {
       const canSave = effectiveNameLength > 0 && effectiveNameLength <= 64;
-      if (canSave) {
-        handleSaveContact(interlocutor?.contact_id, editValue);
-        setInterlocutorEditVisible(false);
+      if (!canSave) return;
+      if (selectedChat?.type === 'G' && selectedChat.id != null) {
+        const cid = selectedChat.id;
+        const proposedName = editValue.trim();
+        const handleResp = (
+          data: WebSocketMessage & {
+            ok?: boolean;
+            chat_id?: number;
+            error?: string;
+          },
+        ) => {
+          if (data.type !== 'rename_group_response') return;
+          websocketManager.off('rename_group_response', handleResp);
+          if (data.ok && data.chat_id === cid) {
+            setInterlocutorEditVisible(false);
+          } else if (!data.ok) {
+            showToast(data.error ?? t('toast.wsSendFailed'));
+          }
+        };
+        websocketManager.on('rename_group_response', handleResp);
+        if (!websocketManager.sendRenameGroup(cid, proposedName)) {
+          websocketManager.off('rename_group_response', handleResp);
+          showToast(t('toast.wsSendFailed'));
+        }
+        return;
       }
+      handleSaveContact(interlocutor?.contact_id, editValue);
+      setInterlocutorEditVisible(false);
+    } else if (selectedChat?.type === 'G') {
+      onInterlocutorEdit();
     } else if (selectedChat?.members?.[0]?.is_contact) {
       onInterlocutorEdit();
-    } else {
-      addContact(selectedChat!.members[0].id);
+    } else if (selectedChat?.members?.[0]) {
+      addContact(selectedChat.members[0].id);
     }
   }, [
     interlocutorEditVisible,
@@ -197,6 +229,8 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     setInterlocutorEditVisible,
     onInterlocutorEdit,
     addContact,
+    showToast,
+    t,
   ]);
 
   const handleDeleteContact = useCallback(
@@ -252,15 +286,51 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     mediaRectsRef.current = nextRects;
   }, [selectedChat, activeTab, currentColumns, filteredMediaFiles]);
 
+  const handleRollerMediaDelete = useCallback(
+    async (media: DisplayMedia) => {
+      if (!selectedChat) return;
+      try {
+        await deleteDisplayMediaById(media.id);
+        setChats((prev) =>
+          prev.map((c) => {
+            if (c.id !== selectedChat.id) return c;
+            const remaining = (c.media ?? []).filter((m) => m.id !== media.id);
+            const wasPrimary = c.primary_media?.id === media.id;
+            const primary_media = wasPrimary
+              ? (remaining[0] ?? c.primary_media)
+              : c.primary_media;
+            return { ...c, media: remaining, primary_media };
+          }),
+        );
+        setRollPosition(0);
+        void fetchChat(selectedChat.id);
+      } catch {
+        showToast(t('toast.avatarDeleteFailed'));
+      }
+    },
+    [
+      selectedChat,
+      setChats,
+      setRollPosition,
+      showToast,
+      t,
+      fetchChat,
+    ],
+  );
+
   if (!selectedChat) return null;
 
   const showEditButton =
-    selectedChat.type === 'D' &&
-    selectedChat.members != null &&
-    selectedChat.members.length > 0;
-  const editLabel = selectedChat.members?.[0]?.is_contact
-    ? t('sidebar.edit')
-    : t('sidebar.addToContacts');
+    (selectedChat.type === 'D' &&
+      selectedChat.members != null &&
+      selectedChat.members.length > 0) ||
+    selectedChat.type === 'G';
+  const editLabel =
+    selectedChat.type === 'G'
+      ? t('sidebar.edit')
+      : selectedChat.members?.[0]?.is_contact
+        ? t('sidebar.edit')
+        : t('sidebar.addToContacts');
 
   return (
     <div
@@ -304,6 +374,8 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
             effectiveRollPosition={effectiveRollPosition}
             onRollPositionChange={handleRollPositionChange}
             onAvatarRollerOpen={() => setIsAvatarRollerOpen(true)}
+            rollerActionsEnabled={interlocutorEditVisible}
+            onRollerMediaDelete={handleRollerMediaDelete}
           />
 
           <SideBarInfoSection

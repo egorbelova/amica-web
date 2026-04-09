@@ -2,6 +2,10 @@ import { useMemo, useState, useEffect, startTransition } from 'react';
 import type { Message, File } from '@/types';
 import type { DropdownItem } from '@/components/Dropdown/Dropdown';
 import type { IconName } from '@/components/Icons/AutoIcons';
+import {
+  isLikelyImageFile,
+  isLikelyVideoFile,
+} from '@/utils/mediaAttachmentKind';
 
 export type SideBarTab = 'members' | 'media' | 'audio';
 
@@ -14,7 +18,9 @@ export function useSideBarMediaData(
     () =>
       messages
         ?.flatMap((msg) => msg.files || [])
-        .filter((f: File) => f.category === 'image' || f.category === 'video')
+        .filter(
+          (f: File) => isLikelyImageFile(f) || isLikelyVideoFile(f),
+        )
         .reverse() || [],
     [messages],
   );
@@ -30,11 +36,11 @@ export function useSideBarMediaData(
 
   const [filterType, setFilterType] = useState<string>('All');
   const hasVideos = useMemo(
-    () => mediaFiles.some((f) => f.category === 'video'),
+    () => mediaFiles.some((f) => isLikelyVideoFile(f)),
     [mediaFiles],
   );
   const hasPhotos = useMemo(
-    () => mediaFiles.some((f) => f.category === 'image'),
+    () => mediaFiles.some((f) => isLikelyImageFile(f)),
     [mediaFiles],
   );
 
@@ -64,10 +70,10 @@ export function useSideBarMediaData(
     () =>
       mediaFiles.filter(
         (f: File) =>
-          (f.category === 'image' &&
+          (isLikelyImageFile(f) &&
             (effectiveFilterType === 'Photos' ||
               effectiveFilterType === 'All')) ||
-          (f.category === 'video' &&
+          (isLikelyVideoFile(f) &&
             (effectiveFilterType === 'Videos' ||
               effectiveFilterType === 'All')),
       ),

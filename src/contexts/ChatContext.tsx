@@ -805,6 +805,27 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   useEffect(() => {
+    const handleGroupRenamed = (
+      payload: WebSocketMessage & { chat_id?: number; name?: string },
+    ) => {
+      const chatId = payload.chat_id;
+      const name = payload.name;
+      if (chatId == null || name == null) return;
+      setChats((prev) =>
+        prev.map((c) => (c.id === chatId ? { ...c, name } : c)),
+      );
+      setTemporaryChat((prev) =>
+        prev?.id === chatId ? { ...prev, name } : prev,
+      );
+    };
+
+    websocketManager.on('group_renamed', handleGroupRenamed);
+    return () => {
+      websocketManager.off('group_renamed', handleGroupRenamed);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!user?.id || chats.length === 0) return;
     if (persistTimeoutRef.current) clearTimeout(persistTimeoutRef.current);
     persistTimeoutRef.current = setTimeout(() => {

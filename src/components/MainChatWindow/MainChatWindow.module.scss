@@ -206,12 +206,18 @@
   }
 }
 
+.settingsTopBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 20px 0;
+  flex-shrink: 0;
+}
+
 .minimize {
   top: 0;
-  // left: 10px;
-  // top: 10px;
   height: 30px !important;
   width: 45px !important;
-  margin-left: 20px;
-  margin-top: 20px;
+  margin-left: 0;
+  margin-top: 0;
 }

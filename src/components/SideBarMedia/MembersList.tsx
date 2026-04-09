@@ -106,14 +106,17 @@ const MembersList: React.FC<MembersListProps> = ({ chatId, members }) => {
   }, []);
 
   const handleSaveContacts = useCallback(() => {
-    for (const contact of selectedContacts) {
-      const uid = contact.user_id;
-      if (uid == null) continue;
-      const sent = websocketManager.sendAddGroupMember(chatId, uid);
-      if (!sent) {
-        showToast(t('toast.wsSendFailed'));
-        return;
-      }
+    const userIds = selectedContacts
+      .map((c) => c.user_id)
+      .filter((uid): uid is number => uid != null);
+    if (userIds.length === 0) {
+      closePicker();
+      return;
+    }
+    const sent = websocketManager.sendAddGroupMembers(chatId, userIds);
+    if (!sent) {
+      showToast(t('toast.wsSendFailed'));
+      return;
     }
     setSelectedContacts([]);
     closePicker();

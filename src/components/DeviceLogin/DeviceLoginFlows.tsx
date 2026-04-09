@@ -105,6 +105,9 @@ export function DeviceLoginPendingOverlay({
   onSubmitOtp,
   otpBusy,
   otpError,
+  onResend,
+  resendBusy,
+  resendError,
   onSubmitBackupCode,
   backupCodeBusy,
   backupCodeError,
@@ -115,6 +118,9 @@ export function DeviceLoginPendingOverlay({
   onSubmitOtp: (sixDigits: string) => void | Promise<void>;
   otpBusy?: boolean;
   otpError?: string | null;
+  onResend?: () => void | Promise<void>;
+  resendBusy?: boolean;
+  resendError?: string | null;
   onSubmitBackupCode?: (rawCode: string) => void | Promise<void>;
   backupCodeBusy?: boolean;
   backupCodeError?: string | null;
@@ -207,6 +213,25 @@ export function DeviceLoginPendingOverlay({
             {otpBusy ? '…' : t('login.deviceLoginSubmitCode')}
           </button>
           <p className={styles.waiting}>{t('login.deviceLoginWaiting')}</p>
+          {onResend ? (
+            <>
+              {resendError ? (
+                <p className={styles.error}>{resendError}</p>
+              ) : null}
+              <button
+                type='button'
+                disabled={
+                  Boolean(resendBusy) ||
+                  Boolean(otpBusy) ||
+                  Boolean(backupCodeBusy)
+                }
+                onClick={() => void onResend()}
+                className={`${styles.btn} ${styles.btnBlock} ${styles.btnLink}`}
+              >
+                {resendBusy ? '…' : t('login.deviceLoginResend')}
+              </button>
+            </>
+          ) : null}
           {onSubmitBackupCode ? (
             <>
               {!showBackupRecovery ? (

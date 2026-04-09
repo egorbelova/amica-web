@@ -114,6 +114,8 @@ export default {
     trustedSessionsEmpty:
       'Сейчас нет активных сессий с меткой доверенной. Проверьте активные сессии или войдите с привычного браузера.',
     trustedSessionsTerminateOthers: 'Завершить другие доверенные сессии',
+    username: 'Имя пользователя',
+    usernameInvalid: 'Укажите имя пользователя (1–64 символа).',
   },
   privacy: {},
   sessions: {
@@ -180,6 +182,8 @@ export default {
     deviceLoginOtpLabel: 'Одноразовый код',
     deviceLoginWaiting: 'После проверки вход завершится автоматически…',
     deviceLoginCancel: 'Отмена',
+    deviceLoginResend: 'Отправить уведомление снова',
+    deviceLoginResendFailed: 'Не удалось отправить. Попробуйте ещё раз.',
     useRecoveryCodeButton: 'Войти с резервным кодом',
     trustedDeviceRequestTitle: 'Попытка входа',
     trustedDeviceRequestIntro:
@@ -315,6 +319,7 @@ export default {
     wsSendFailed: 'Не удалось отправить. Проверьте соединение.',
     joinGroupFailed: 'Не удалось вступить в группу.',
     createGroupTimeout: 'Не удалось создать группу. Попробуйте снова.',
+    avatarDeleteFailed: 'Не удалось удалить аватар.',
   },
   sidebar: {
     members: 'Участники',
@@ -338,6 +343,7 @@ export default {
     newGroupNamePlaceholder: 'Название группы',
     createGroupButton: 'Создать',
     membersCount: 'участников',
+    deleteRollerAvatar: 'Удалить',
   },
   aria: {
     tabSelector: 'Выбор вкладки',

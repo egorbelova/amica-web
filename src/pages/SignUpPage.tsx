@@ -42,7 +42,9 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
           : name === 'profile_email'
             ? 'email'
             : name;
-      setForm((prev) => ({ ...prev, [stateKey]: value }));
+      const next =
+        stateKey === 'email' ? value.trim().toLowerCase() : value;
+      setForm((prev) => ({ ...prev, [stateKey]: next }));
       if (error) setError(null);
     },
     [error],
@@ -228,10 +230,12 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
             data-lpignore='true'
             spellCheck={false}
             inputMode='email'
+            autoCapitalize='none'
             aria-autocomplete='none'
             role='textbox'
             required
             placeholder={t('signUp.email')}
+            style={{ textTransform: 'lowercase' }}
           />
         </fieldset>
         <fieldset className={styles['form']} hidden={!!verifyEmailSent}>

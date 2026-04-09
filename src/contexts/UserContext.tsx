@@ -126,6 +126,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   >(null);
   const [deviceOtpBusy, setDeviceOtpBusy] = useState(false);
   const [deviceOtpError, setDeviceOtpError] = useState<string | null>(null);
+  const [deviceResendBusy, setDeviceResendBusy] = useState(false);
+  const [deviceResendError, setDeviceResendError] = useState<string | null>(
+    null,
+  );
   const { showWarning } = useWarning();
 
   const [state, setState] = useState<UserState>({
@@ -378,6 +382,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       if (data.needs_device_confirmation && typeof data.challenge_id === 'string') {
         setDeviceBackupCodeError(null);
         setDeviceOtpError(null);
+        setDeviceResendError(null);
         setPasswordLoginNeedsTotp(false);
         const td = data.trusted_device;
         setPendingDeviceLogin({
@@ -414,6 +419,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     setPendingDeviceLogin(null);
     setDeviceBackupCodeError(null);
     setDeviceOtpError(null);
+    setDeviceResendError(null);
   }, []);
 
   const submitDeviceLoginOtp = useCallback(
@@ -454,6 +460,33 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     },
     [pendingDeviceLogin?.challengeId],
   );
+
+  const resendDeviceLoginNotify = useCallback(async () => {
+    const challengeId = pendingDeviceLogin?.challengeId;
+    if (!challengeId) return;
+    setDeviceResendBusy(true);
+    setDeviceResendError(null);
+    try {
+      const res = await fetch('/api/device-login/resend/', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ challenge_id: challengeId }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setDeviceResendError(
+          String(data.error || tSync('login.deviceLoginResendFailed')),
+        );
+      }
+    } catch {
+      setDeviceResendError(tSync('login.deviceLoginResendFailed'));
+    } finally {
+      setDeviceResendBusy(false);
+    }
+  }, [pendingDeviceLogin?.challengeId]);
 
   const dismissPendingBackupCodes = useCallback(() => {
     setPendingBackupCodes(null);
@@ -506,6 +539,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const applyDeviceChallenge = useCallback(
     (r: { challenge_id: string; trusted_device?: string }) => {
       setDeviceOtpError(null);
+      setDeviceResendError(null);
       setDeviceBackupCodeError(null);
       const td = r.trusted_device;
       setPendingDeviceLogin({
@@ -987,6 +1021,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
             onSubmitOtp={submitDeviceLoginOtp}
             otpBusy={deviceOtpBusy}
             otpError={deviceOtpError}
+            onResend={resendDeviceLoginNotify}
+            resendBusy={deviceResendBusy}
+            resendError={deviceResendError}
             onSubmitBackupCode={submitDeviceLoginBackupCode}
             backupCodeBusy={deviceBackupCodeBusy}
             backupCodeError={deviceBackupCodeError}

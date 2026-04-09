@@ -6,6 +6,10 @@ export function useAvatarRoller(
   hasPrimaryMedia: boolean,
   sidebarRef: React.RefObject<HTMLDivElement | null>,
   interlocutorEditVisible: boolean,
+  /** When false, only tap-to-cycle works. */
+  enableScrollGestures = true,
+  wheelTargetRef?: React.RefObject<HTMLElement | null>,
+  wheelTargetKey = 0,
 ) {
   const [isOpen, setIsOpen] = useState(false);
   const [rollPosition, setRollPosition] = useState(0);
@@ -42,7 +46,9 @@ export function useAvatarRoller(
   }, [interlocutorEditVisible, isOpen, mediaCount]);
 
   useEffect(() => {
-    const sidebar = sidebarRef.current;
+    if (!enableScrollGestures) return;
+    const sidebar =
+      (wheelTargetRef && wheelTargetRef.current) || sidebarRef.current;
     if (!sidebar || interlocutorEditVisible || !hasPrimaryMedia) return;
 
     let touchStartY = 0;
@@ -97,10 +103,13 @@ export function useAvatarRoller(
       sidebar.removeEventListener('touchend', handleTouchEnd);
     };
   }, [
+    enableScrollGestures,
     isOpen,
     setOpen,
     setPosition,
     sidebarRef,
+    wheelTargetRef,
+    wheelTargetKey,
     hasPrimaryMedia,
     interlocutorEditVisible,
   ]);

@@ -21,6 +21,8 @@ import styles from './MainChatWindow.module.scss';
 import { useSettings } from '@/contexts/settings/context';
 import { usePageStack } from '@/contexts/useStackHistory';
 import { ActiveProfileTab } from '@/components/Profile/ActiveProfileTab';
+import { ProfileAccountSaveProvider } from '@/components/Profile/ProfileAccountSaveContext';
+import { ProfileAccountSaveHeaderButton } from '@/components/Profile/ProfileSubpageHeader';
 import { Icon } from '../Icons/AutoIcons';
 import Button from '../ui/button/Button';
 import AppearanceMenu from './AppearanceMenu';
@@ -524,14 +526,21 @@ const MainChatWindow: React.FC = () => {
 
       {current === 'profile' && settingsFullWindow && activeProfileTab && (
         <div className={styles.settingsContainer}>
-          <Button
-            key='main-chat-window-minimize-button'
-            onClick={handleMinimizeSettings}
-            className={styles.minimize}
-          >
-            {fullscreenExitIcon}
-          </Button>
-          <ActiveProfileTab />
+          <ProfileAccountSaveProvider>
+            <div className={styles.settingsTopBar}>
+              <Button
+                key='main-chat-window-minimize-button'
+                onClick={handleMinimizeSettings}
+                className={styles.minimize}
+              >
+                {fullscreenExitIcon}
+              </Button>
+              {activeProfileTab === 'account' && (
+                <ProfileAccountSaveHeaderButton />
+              )}
+            </div>
+            <ActiveProfileTab />
+          </ProfileAccountSaveProvider>
         </div>
       )}
       {displayedChat &&

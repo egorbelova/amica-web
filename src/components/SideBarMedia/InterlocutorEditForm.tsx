@@ -52,14 +52,16 @@ const InterlocutorEditForm: React.FC<InterlocutorEditFormProps> = ({
             onChange={onValueChange}
           />
         )}
-        <Button
-          key='sidebar-media-delete-button'
-          className={`${styles.button} ${styles.delete}`}
-          type='button'
-          onClick={() => onDelete(contactId)}
-        >
-          {t('sidebar.deleteFromContacts')}
-        </Button>
+        {chatType === 'D' && (
+          <Button
+            key='sidebar-media-delete-button'
+            className={`${styles.button} ${styles.delete}`}
+            type='button'
+            onClick={() => onDelete(contactId)}
+          >
+            {t('sidebar.deleteFromContacts')}
+          </Button>
+        )}
       </div>
     </div>
   );

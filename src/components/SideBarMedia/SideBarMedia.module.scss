@@ -94,7 +94,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px 0 20px;
+  padding: 20px 20px 0 20px;
   z-index: 999;
 
   h3 {
@@ -338,9 +338,12 @@
     padding: 0.1em 0;
   }
 
-  --avatar-scaling-duration: 0.3s;
-
   &__avatar-container {
+    /* Scoped here so Profile (same classes, no .sidebar ancestor) still resolves vars */
+    --avatar-scaling-duration: 0.3s;
+    --avatar-roll-duration: 0.38s;
+    --avatar-roll-ease: cubic-bezier(0.23, 1, 0.32, 1);
+
     display: flex;
     justify-content: center;
     align-items: center;
@@ -349,12 +352,13 @@
     transition-property: margin-top;
     gap: 20px;
     position: relative;
-    min-height: 100px;
     margin-top: calc(40px + var(--sat));
+    min-height: 100px;
     flex-shrink: 0;
     z-index: 98;
 
     &--roller {
+      overflow: hidden;
       margin-top: 0;
     }
   }
@@ -368,8 +372,13 @@
     aspect-ratio: 1 / 1;
     border-radius: 50%;
 
-    transition-duration: var(--avatar-scaling-duration);
-    transition-property: scale, width, height, border-radius, transform;
+    /* transform (translateX roll) needs its own timing — was sharing 0.3s with width and felt instant */
+    transition-property: transform, width, height, border-radius, scale;
+    transition-duration:
+      var(--avatar-roll-duration), var(--avatar-scaling-duration),
+      var(--avatar-scaling-duration), var(--avatar-scaling-duration),
+      var(--avatar-scaling-duration);
+    transition-timing-function: var(--avatar-roll-ease);
     scale: 1;
 
     &:active {
@@ -388,6 +397,7 @@
       border-radius: 0;
       width: 100%;
       aspect-ratio: 1 / 1;
+      will-change: transform;
 
       &:active {
         border-radius: 50px;
@@ -437,6 +447,20 @@
       opacity: 0;
       pointer-events: none;
     }
+  }
+
+  &__avatar-slot {
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    position: relative;
+    touch-action: manipulation;
+    border-radius: inherit;
+    overflow: hidden;
+    align-self: stretch;
+    display: flex;
+    min-height: 0;
   }
 }
 

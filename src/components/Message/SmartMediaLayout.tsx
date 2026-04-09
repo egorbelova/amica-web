@@ -10,6 +10,11 @@ import Reel from './Reel';
 import type { File } from '@/types';
 import type { Message } from '@/types';
 import DocumentLayout from './DocumentLayout';
+import {
+  isLikelyImageFile,
+  isLikelyVideoFile,
+  isMediaGridAttachmentFile,
+} from '@/utils/mediaAttachmentKind';
 
 interface Props {
   files: File[];
@@ -26,13 +31,7 @@ function SmartMediaLayoutInner({ files, items }: InnerProps) {
   const windowWidth = useSharedWindowInnerWidth();
 
   const mediaFiles = useMemo(
-    () =>
-      files.filter(
-        (f) =>
-          f.category !== 'audio' &&
-          f.category !== 'document' &&
-          f.category !== 'other',
-      ),
+    () => files.filter(isMediaGridAttachmentFile),
     [files],
   );
 
@@ -43,7 +42,12 @@ function SmartMediaLayoutInner({ files, items }: InnerProps) {
 
   const documentFiles = useMemo(
     () =>
-      files.filter((f) => f.category === 'document' || f.category === 'other'),
+      files.filter((f) => {
+        if (f.category === 'document') return true;
+        if (f.category === 'other')
+          return !isLikelyVideoFile(f) && !isLikelyImageFile(f);
+        return false;
+      }),
     [files],
   );
 
@@ -114,7 +118,7 @@ function SmartMediaLayoutInner({ files, items }: InnerProps) {
                 playing={false}
               />
             )} */}
-            {layout[0].file.category === 'image' && (
+            {isLikelyImageFile(layout[0].file) && (
               <ProgressiveImage
                 small={layout[0].file.thumbnail_small_url || null}
                 full={layout[0].file.thumbnail_small_url || ''}
@@ -141,14 +145,14 @@ function SmartMediaLayoutInner({ files, items }: InnerProps) {
                   height: item.height,
                 }}
               >
-                {item.file.category === 'video' && (
+                {isLikelyVideoFile(item.file) && (
                   <VideoLayout
-                    full={item.file.file_url}
+                    full={item.file.file_url ?? ''}
                     has_audio={item.file.has_audio || false}
                   />
                 )}
 
-                {item.file.category === 'image' && (
+                {isLikelyImageFile(item.file) && (
                   <ProgressiveImage
                     small={item.file.thumbnail_small_url || null}
                     full={item.file.thumbnail_medium_url || ''}

@@ -15,12 +15,9 @@ interface LoginPageProps {
   onShowSignup: () => void;
 }
 
-/** Match Django's normalize_email: lowercase domain only (local part unchanged). */
-function normalizeLoginIdentifier(value: string): string {
-  const t = value.trim();
-  const at = t.lastIndexOf('@');
-  if (at < 0) return t;
-  return `${t.slice(0, at + 1)}${t.slice(at + 1).toLowerCase()}`;
+/** Email field: trim and lowercase (display + submitted value). */
+function normalizeEmailInput(value: string): string {
+  return value.trim().toLowerCase();
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
@@ -76,7 +73,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
         dismissPasswordLoginTotp();
       }
       const next =
-        name === 'password' ? value : normalizeLoginIdentifier(value);
+        name === 'password' ? value : normalizeEmailInput(value);
 
       setFormData((prev) => ({
         ...prev,
@@ -187,6 +184,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
             required
             placeholder={t('login.email')}
             inputMode='email'
+            autoCapitalize='none'
+            spellCheck={false}
+            style={{ textTransform: 'lowercase' }}
           />
         </fieldset>
         <fieldset className={styles['form']}>
