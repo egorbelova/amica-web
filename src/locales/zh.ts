@@ -7,6 +7,8 @@ export default {
     edit: '编辑',
     select: '选择',
     undo: '撤销',
+    copy: 'Copy',
+    copied: 'Copied!',
   },
   tipsMenu: {
     appearance: '外观',

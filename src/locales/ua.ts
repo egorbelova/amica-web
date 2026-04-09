@@ -7,6 +7,8 @@ export default {
     edit: 'Редагувати',
     select: 'Обрати',
     undo: 'Скасувати',
+    copy: 'Copy',
+    copied: 'Copied!',
   },
   tipsMenu: {
     appearance: 'Оформлення',

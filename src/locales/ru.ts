@@ -7,6 +7,8 @@ export default {
     edit: 'Изменить',
     select: 'Выбрать',
     undo: 'Отменить',
+    copy: 'Копировать',
+    copied: 'Скопировано',
   },
   tipsMenu: {
     appearance: 'Оформление',
@@ -97,6 +99,8 @@ export default {
     totpDisableError: 'Не удалось отключить.',
     totpInvalidCode: 'Неверный код.',
     totpWrongPassword: 'Неверный пароль.',
+    totpCopySecret: 'Копировать секретный ключ',
+    totpCopyAuthenticatorLink: 'Копировать ссылку для приложения',
     trustedDeviceTitle: 'Доверенное устройство',
     trustedDeviceBodyHas:
       'Вход с нового браузера или устройства может потребовать подтверждения здесь. В активных сессиях доверенное устройство отмечено значком.',
@@ -196,6 +200,7 @@ export default {
     trustedDeviceIpLabel: 'Приблизительный IP нового устройства',
     trustedDeviceLocationLabel: 'Приблизительное местоположение',
     trustedDeviceUaLabel: 'Браузер на новом устройстве',
+    copySignInCode: 'Копировать код входа',
     deviceOtpInvalid: 'Неверный или просроченный код.',
     deviceOtpWrongClient: 'Эта сессия не совпадает с устройством, с которого начали вход.',
     deviceOtpFailed: 'Не удалось проверить код.',
@@ -226,9 +231,6 @@ export default {
       'Введите 6-значный код из приложения-аутентификатора и войдите снова.',
     invalidTotp: 'Неверный код аутентификатора.',
     totpLabel: 'Код аутентификатора',
-    totpContinueOAuth: 'Продолжить с кодом',
-    totpOAuthHint:
-      'Для аккаунта включён аутентификатор. Введите текущий 6-значный код.',
   },
   signUp: {
     title: 'Регистрация',

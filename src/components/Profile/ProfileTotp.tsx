@@ -3,6 +3,7 @@ import { useTranslation } from '@/contexts/languageCore';
 import { apiJson, type ApiError } from '@/utils/apiFetch';
 import { useUser } from '@/contexts/UserContextCore';
 import Button from '@/components/ui/button/Button';
+import { CopyTextButton } from '@/components/ui/CopyTextButton';
 import styles from './Profile.module.scss';
 
 export default function ProfileTotp() {
@@ -153,17 +154,53 @@ export default function ProfileTotp() {
       ) : inSetup ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {setupUri ? (
-            <a href={setupUri} className={styles.backupCodesDescription}>
-              {t('profile.totpOpenAuthenticatorLink')}
-            </a>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: 6,
+              }}
+            >
+              <a href={setupUri} className={styles.backupCodesDescription}>
+                {t('profile.totpOpenAuthenticatorLink')}
+              </a>
+              <CopyTextButton
+                text={setupUri}
+                label={t('profile.totpCopyAuthenticatorLink')}
+                copiedLabel={t('buttons.copied')}
+                className={styles.totpCopyButton}
+                disabled={busy}
+              />
+            </div>
           ) : null}
           {setupSecret ? (
-            <p
-              className={styles.backupCodesCount}
-              style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: 6,
+              }}
             >
-              {setupSecret}
-            </p>
+              <p
+                className={styles.backupCodesCount}
+                style={{
+                  fontFamily: 'monospace',
+                  wordBreak: 'break-all',
+                  margin: 0,
+                }}
+              >
+                {setupSecret}
+              </p>
+              <CopyTextButton
+                text={setupSecret}
+                label={t('profile.totpCopySecret')}
+                copiedLabel={t('buttons.copied')}
+                className={styles.totpCopyButton}
+                disabled={busy}
+              />
+            </div>
           ) : null}
           <input
             inputMode='numeric'

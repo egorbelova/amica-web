@@ -7,6 +7,8 @@ export default {
     edit: '編集',
     select: '選択',
     undo: '元に戻す',
+    copy: 'Copy',
+    copied: 'Copied!',
   },
   tipsMenu: {
     appearance: '外観',

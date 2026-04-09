@@ -82,8 +82,16 @@
   color: var(--color-text-secondary);
 }
 
-.codeBlock {
+.codeBlockWrap {
   margin: 14px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.codeBlock {
+  margin: 0;
   padding: 14px 16px;
   border-radius: 24px;
   border: 1px solid rgb(80, 80, 80);
@@ -94,6 +102,29 @@
   letter-spacing: 0.25em;
   text-align: center;
   color: var(--messageMainColor, #fff);
+}
+
+.copySignInCode {
+  align-self: center;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--surface-border, rgba(127, 127, 127, 0.4));
+  background: transparent;
+  color: var(--messageMainColor, #fff);
+  font-family: 'SFProRounded', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 }
 
 .deviceLine {

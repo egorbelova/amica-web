@@ -43,14 +43,22 @@ export interface UserContextType extends UserState {
     email?: string;
     emailVerificationOtpId?: string;
   }>;
-  loginWithGoogle: (idToken: string, totpCode?: string) => Promise<void>;
-  loginWithPasskey: (passkeyData: unknown, totpCode?: string) => Promise<void>;
+  /** `totp_required` → pending second factor; `invalid_totp` when verifying code. */
+  loginWithGoogle: (
+    idToken: string,
+    totpCode?: string,
+  ) => Promise<'success' | 'totp_required' | 'invalid_totp'>;
+  loginWithPasskey: (
+    passkeyData: unknown,
+    totpCode?: string,
+  ) => Promise<'success' | 'totp_required' | 'invalid_totp'>;
   /** After Google/Passkey returned totp_required, submit the 6-digit code. */
   pendingTotpSecondFactor:
     | { kind: 'google'; accessToken: string }
     | { kind: 'passkey'; body: Record<string, unknown> }
     | null;
-  submitTotpSecondFactor: (code: string) => Promise<void>;
+  /** Returns true if the code was wrong (keep modal open). */
+  submitTotpSecondFactor: (code: string) => Promise<boolean>;
   dismissPendingTotpSecondFactor: () => void;
   /** Password login: server asked for authenticator code. */
   passwordLoginNeedsTotp: boolean;

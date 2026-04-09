@@ -7,6 +7,8 @@ export default {
     edit: '편집',
     select: '선택',
     undo: '실행 취소',
+    copy: 'Copy',
+    copied: 'Copied!',
   },
   tipsMenu: {
     appearance: '테마',

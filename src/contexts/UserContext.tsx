@@ -774,7 +774,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   );
 
   const loginWithGoogle = useCallback(
-    async (idToken: string, totpCode?: string) => {
+    async (
+      idToken: string,
+      totpCode?: string,
+    ): Promise<'success' | 'totp_required' | 'invalid_totp'> => {
       lastPasswordCredentialsRef.current = null;
       const res = await fetch('/api/google/', {
         method: 'POST',
@@ -798,24 +801,31 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
             kind: 'google',
             accessToken: idToken,
           });
-          return;
+          return 'totp_required';
         }
         if (data.error === 'invalid_totp') {
+          if (totpCode?.trim()) {
+            return 'invalid_totp';
+          }
           setState((prev) => ({
             ...prev,
             error: tSync('login.invalidTotp'),
           }));
-          return;
+          return 'invalid_totp';
         }
         throw new Error(String(data.error || 'Google login failed'));
       }
       ingestSuccessfulAuthPayload(data, 'Google login failed');
+      return 'success';
     },
     [ingestSuccessfulAuthPayload],
   );
 
   const loginWithPasskey = useCallback(
-    async (passkeyData: unknown, totpCode?: string) => {
+    async (
+      passkeyData: unknown,
+      totpCode?: string,
+    ): Promise<'success' | 'totp_required' | 'invalid_totp'> => {
       lastPasswordCredentialsRef.current = null;
       const payload =
         typeof passkeyData === 'object' && passkeyData !== null
@@ -844,18 +854,22 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
               : {};
           pendingTotpSecondFactorRef.current = { kind: 'passkey', body: b };
           setPendingTotpSecondFactor({ kind: 'passkey', body: b });
-          return;
+          return 'totp_required';
         }
         if (data.error === 'invalid_totp') {
+          if (totpCode?.trim()) {
+            return 'invalid_totp';
+          }
           setState((prev) => ({
             ...prev,
             error: tSync('login.invalidTotp'),
           }));
-          return;
+          return 'invalid_totp';
         }
         throw new Error(String(data.error || 'Passkey login failed'));
       }
       ingestSuccessfulAuthPayload(data, 'Passkey login failed');
+      return 'success';
     },
     [ingestSuccessfulAuthPayload],
   );
@@ -870,17 +884,21 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const submitTotpSecondFactor = useCallback(
-    async (code: string) => {
+    async (code: string): Promise<boolean> => {
       const p = pendingTotpSecondFactorRef.current;
-      if (!p) return;
-      pendingTotpSecondFactorRef.current = null;
-      setPendingTotpSecondFactor(null);
+      if (!p) return false;
       setState((prev) => ({ ...prev, error: null }));
-      if (p.kind === 'google') {
-        await loginWithGoogle(p.accessToken, code);
-      } else {
-        await loginWithPasskey(p.body, code);
+      const out =
+        p.kind === 'google'
+          ? await loginWithGoogle(p.accessToken, code)
+          : await loginWithPasskey(p.body, code);
+      if (out === 'success') {
+        pendingTotpSecondFactorRef.current = null;
+        setPendingTotpSecondFactor(null);
+        return false;
       }
+      if (out === 'invalid_totp') return true;
+      return false;
     },
     [loginWithGoogle, loginWithPasskey],
   );

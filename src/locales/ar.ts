@@ -7,6 +7,8 @@ export default {
     edit: 'تعديل',
     select: 'تحديد',
     undo: 'تراجع',
+    copy: 'Copy',
+    copied: 'Copied!',
   },
   tipsMenu: {
     appearance: 'المظهر',

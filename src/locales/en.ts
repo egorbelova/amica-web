@@ -7,6 +7,8 @@ export default {
     edit: 'Edit',
     select: 'Select',
     undo: 'Undo',
+    copy: 'Copy',
+    copied: 'Copied!',
   },
   tipsMenu: {
     appearance: 'Appearance',
@@ -91,6 +93,8 @@ export default {
     totpDisableError: 'Could not turn off authenticator.',
     totpInvalidCode: 'That code is not valid.',
     totpWrongPassword: 'Wrong password.',
+    totpCopySecret: 'Copy secret key',
+    totpCopyAuthenticatorLink: 'Copy setup link',
     trustedDeviceTitle: 'Trusted device',
     trustedDeviceBodyHas:
       'Sign-ins from new browsers or devices may need your approval on this device first. Under Active sessions, the trusted device shows a badge.',
@@ -209,6 +213,7 @@ export default {
     trustedDeviceIpLabel: 'Approximate IP of the new device',
     trustedDeviceLocationLabel: 'Approximate location',
     trustedDeviceUaLabel: 'Browser / app on the new device',
+    copySignInCode: 'Copy sign-in code',
     deviceOtpInvalid: 'That code is wrong or expired. Try again.',
     deviceOtpWrongClient:
       'This session does not match the device that started sign-in.',
@@ -240,9 +245,6 @@ export default {
       'Enter the 6-digit code from your authenticator app, then sign in again.',
     invalidTotp: 'Invalid authenticator code.',
     totpLabel: 'Authenticator code',
-    totpContinueOAuth: 'Continue with code',
-    totpOAuthHint:
-      'Your account uses an authenticator app. Enter the current 6-digit code.',
   },
   signUp: {
     title: 'Sign Up',

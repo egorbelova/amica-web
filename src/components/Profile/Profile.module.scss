@@ -109,6 +109,29 @@
   color: var(--color-text);
 }
 
+.totpCopyButton {
+  align-self: flex-start;
+  padding: 6px 12px;
+  margin-top: 4px;
+  border-radius: 16px;
+  border: 1px solid var(--surface-border, rgba(127, 127, 127, 0.35));
+  background: transparent;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
 .backupCodesButton {
   align-self: stretch;
   cursor: pointer;

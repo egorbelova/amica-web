@@ -7,6 +7,8 @@ export default {
     edit: 'Bearbeiten',
     select: 'Auswählen',
     undo: 'Rückgängig',
+    copy: 'Copy',
+    copied: 'Copied!',
   },
   tipsMenu: {
     appearance: 'Darstellung',

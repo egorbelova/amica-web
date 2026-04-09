@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { useTranslation, tSync } from '@/contexts/languageCore';
 import warningStyles from '@/components/Warning/Warning.module.scss';
+import { CopyTextButton } from '@/components/ui/CopyTextButton';
 import styles from './DeviceLoginFlows.module.scss';
 
 /** Trusted device: sign-in attempt — browser/OS with versions, IP, approximate location. */
@@ -58,12 +59,22 @@ export function TrustedDeviceLoginWarningBody({
 }) {
   const loc = [requestCity, requestCountry].filter(Boolean).join(', ');
   const hasMeta = Boolean(device || requestIp || loc);
+  const codeDigits = code.replace(/\D/g, '');
   return (
     <>
       <p style={{ margin: '0 0 8px' }}>
         {tSync('login.trustedDeviceWarningIntro')}
       </p>
-      <div className={warningStyles.codeBlock}>{code}</div>
+      <div className={warningStyles.codeBlockWrap}>
+        <div className={warningStyles.codeBlock}>{code}</div>
+        <CopyTextButton
+          text={codeDigits}
+          label={tSync('login.copySignInCode')}
+          copiedLabel={tSync('buttons.copied')}
+          className={warningStyles.copySignInCode}
+          disabled={codeDigits.length !== 6}
+        />
+      </div>
       {hasMeta ? (
         <div className={warningStyles.meta}>
           {device ? (
