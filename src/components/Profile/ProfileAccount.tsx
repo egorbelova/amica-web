@@ -40,15 +40,13 @@ export default function ProfileAccount() {
   const profileId = user?.profile?.id ?? 0;
   const displayName = user?.username || '';
 
-  useEffect(() => {
-    setUsernameDraft(user?.username ?? '');
-  }, [user?.username]);
-
   useLayoutEffect(() => {
+    const bumpKey = () =>
+      queueMicrotask(() => setWheelTargetKey((k) => k + 1));
     const start = avatarLayoutRef.current;
     if (!start) {
       wheelTargetRef.current = null;
-      setWheelTargetKey((k) => k + 1);
+      bumpKey();
       return;
     }
     let p: HTMLElement | null = start.parentElement;
@@ -56,13 +54,13 @@ export default function ProfileAccount() {
       const { overflowY } = getComputedStyle(p);
       if (overflowY === 'auto' || overflowY === 'scroll') {
         wheelTargetRef.current = p;
-        setWheelTargetKey((k) => k + 1);
+        bumpKey();
         return;
       }
       p = p.parentElement;
     }
     wheelTargetRef.current = start;
-    setWheelTargetKey((k) => k + 1);
+    bumpKey();
   }, [chatIdKey]);
 
   const {
@@ -84,8 +82,10 @@ export default function ProfileAccount() {
 
   useEffect(() => {
     if (!usernameEditing) return;
-    setIsAvatarRollerOpen(false);
-    setRollPosition(0);
+    queueMicrotask(() => {
+      setIsAvatarRollerOpen(false);
+      setRollPosition(0);
+    });
   }, [usernameEditing, setIsAvatarRollerOpen, setRollPosition]);
 
   const enterUsernameEdit = useCallback(() => {

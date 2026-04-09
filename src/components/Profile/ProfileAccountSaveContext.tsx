@@ -1,3 +1,5 @@
+/* Context module exports hooks + provider; not a components-only file. */
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useContext,

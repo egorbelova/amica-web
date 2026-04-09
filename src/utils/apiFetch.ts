@@ -10,8 +10,6 @@ export interface ApiError extends Error {
   data?: unknown;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
-
 let onUnauthorizedHandler: (() => void) | null = null;
 
 export const setApiFetchUnauthorizedHandler = (callback: () => void) => {

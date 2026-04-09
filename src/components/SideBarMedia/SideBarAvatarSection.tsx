@@ -201,7 +201,7 @@ const SideBarAvatarSection: React.FC<SideBarAvatarSectionProps> = ({
         },
       },
     ];
-  }, [menuMedia, onRollerMediaDelete, closeMenu, t]);
+  }, [menuMedia, onRollerMediaDelete, t]);
 
   return (
     <div
