@@ -64,6 +64,31 @@
   color: var(--color-text-secondary);
 }
 
+.requestDeviceBlock {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--surface-border, rgba(127, 127, 127, 0.35));
+  background: rgba(127, 127, 127, 0.06);
+}
+
+.requestDeviceIntro {
+  margin: 0 0 6px;
+  line-height: 1.4;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.requestDeviceName {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--messageMainColor, #fff);
+  font-family: 'SFProRounded', sans-serif;
+  word-break: break-word;
+}
+
 .code {
   font-size: 2rem;
   letter-spacing: 0.35em;
@@ -91,6 +116,15 @@
   margin: 0 0 12px;
   font-size: 0.875rem;
   color: var(--color-danger-text);
+}
+
+/* Isolate from page login <form>; Safari respects autocomplete=off on the form. */
+.otpIsolationForm {
+  margin: 0;
+  padding: 0;
+  border: none;
+  width: 100%;
+  min-width: 0;
 }
 
 .otpInput {
@@ -169,5 +203,23 @@
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+}
+
+.btnLink {
+  border: none;
+  background: transparent;
+  color: #4d8ddb;
+  cursor: pointer;
+  height: auto;
+  min-height: 40px;
+  padding: 8px 4px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  &:hover {
+    opacity: 0.88;
   }
 }

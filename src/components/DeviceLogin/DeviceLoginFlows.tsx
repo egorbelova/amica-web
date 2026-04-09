@@ -1,23 +1,132 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { useTranslation } from '@/contexts/languageCore';
-import { clientBindingHeaders } from '@/utils/clientBinding';
-import { getAccessTokenOrThrow } from '@/utils/authStore';
+import React, { useCallback, useState } from 'react';
+import { useTranslation, tSync } from '@/contexts/languageCore';
+import warningStyles from '@/components/Warning/Warning.module.scss';
 import styles from './DeviceLoginFlows.module.scss';
 
-export function DeviceLoginPendingOverlay({
+/** First step on trusted device: sign-in request details (no OTP yet). */
+export function TrustedDeviceLoginRequestBody({
+  ip,
+  city,
+  country,
+  device,
+}: {
+  ip: string;
+  city: string;
+  country: string;
+  device: string;
+}) {
+  const hasLocation = Boolean(city || country);
+  const locationLine = `${city ? `${city}, ` : ''}${country || ''}`.trim();
+
+  return (
+    <>
+      <p style={{ margin: '0 0 12px', lineHeight: 1.45 }}>
+        {tSync('login.trustedDeviceRequestIntro')}
+      </p>
+      {ip || device || hasLocation ? (
+        <div className={warningStyles.meta}>
+          {device ? (
+            <span className={warningStyles.deviceLine}>{device}</span>
+          ) : null}
+          {ip ? (
+            <span className={warningStyles.subInfo}>
+              {tSync('sessions.ipAddress')} {ip}
+            </span>
+          ) : null}
+          {hasLocation ? (
+            <span className={warningStyles.subInfo}>{locationLine}</span>
+          ) : null}
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+export function TrustedDeviceLoginWarningBody({
   code,
-  onCancel,
-  onNoTrustedDevice,
-  noTrustedDeviceBusy,
-  noTrustedDeviceError,
+  ip,
+  city,
+  country,
+  device,
 }: {
   code: string;
+  ip: string;
+  city: string;
+  country: string;
+  device: string;
+}) {
+  const hasLocation = Boolean(city || country);
+  const locationLine = `${city ? `${city}, ` : ''}${country || ''}`.trim();
+
+  return (
+    <>
+      <p style={{ margin: '0 0 8px' }}>
+        {tSync('login.trustedDeviceWarningIntro')}
+      </p>
+      <div className={warningStyles.codeBlock}>{code}</div>
+      {ip || device || hasLocation ? (
+        <div className={warningStyles.meta}>
+          {device ? (
+            <span className={warningStyles.deviceLine}>{device}</span>
+          ) : null}
+          {ip ? (
+            <span className={warningStyles.subInfo}>
+              {tSync('sessions.ipAddress')} {ip}
+            </span>
+          ) : null}
+          {hasLocation ? (
+            <span className={warningStyles.subInfo}>{locationLine}</span>
+          ) : null}
+        </div>
+      ) : null}
+      <p style={{ margin: '12px 0 0', fontSize: '0.875rem' }}>
+        {tSync('login.trustedDeviceWarningFoot')}
+      </p>
+    </>
+  );
+}
+
+export function DeviceLoginPendingOverlay({
+  requestDevice,
+  onCancel,
+  onSubmitOtp,
+  otpBusy,
+  otpError,
+  onSubmitBackupCode,
+  backupCodeBusy,
+  backupCodeError,
+}: {
+  /** Parsed UA label (e.g. Safari on iOS) — same text as on the trusted-device alert. */
+  requestDevice?: string;
   onCancel: () => void;
-  onNoTrustedDevice?: () => void | Promise<void>;
-  noTrustedDeviceBusy?: boolean;
-  noTrustedDeviceError?: string | null;
+  onSubmitOtp: (sixDigits: string) => void | Promise<void>;
+  otpBusy?: boolean;
+  otpError?: string | null;
+  onSubmitBackupCode?: (rawCode: string) => void | Promise<void>;
+  backupCodeBusy?: boolean;
+  backupCodeError?: string | null;
 }) {
   const { t } = useTranslation();
+  const [otp, setOtp] = useState('');
+  const [backupInput, setBackupInput] = useState('');
+  const [showBackupRecovery, setShowBackupRecovery] = useState(false);
+  /** Safari: read-only until first focus so Keychain does not attach “use saved login” to this field. */
+  const [otpAutofillGuard, setOtpAutofillGuard] = useState(true);
+
+  const submitOtp = useCallback(() => {
+    const d = otp.replace(/\D/g, '');
+    if (d.length !== 6) return;
+    void onSubmitOtp(d);
+  }, [otp, onSubmitOtp]);
+
+  const submitBackup = useCallback(() => {
+    const raw = backupInput.trim();
+    if (!raw || !onSubmitBackupCode) return;
+    void onSubmitBackupCode(raw);
+  }, [backupInput, onSubmitBackupCode]);
+
+  const otpOk = otp.replace(/\D/g, '').length === 6;
+
   return (
     <div
       className={styles.overlay}
@@ -28,22 +137,98 @@ export function DeviceLoginPendingOverlay({
       <div className={styles.modal}>
         <div className={styles.body}>
           <h2 className={styles.title}>{t('login.deviceLoginTitle')}</h2>
+          <p className={styles.hint}>
+            {t('login.deviceLoginTrustedWhereHint')}
+          </p>
+          {requestDevice ? (
+            <div className={styles.requestDeviceBlock}>
+              <p className={styles.requestDeviceIntro}>
+                {t('login.deviceLoginRequestDeviceIntro')}
+              </p>
+              <p className={styles.requestDeviceName}>{requestDevice}</p>
+            </div>
+          ) : null}
           <p className={styles.hint}>{t('login.deviceLoginHint')}</p>
-          <div className={styles.code}>{code}</div>
+          <form
+            className={styles.otpIsolationForm}
+            autoComplete='off'
+            noValidate
+            onSubmit={(e) => e.preventDefault()}
+          >
+            <input
+              type='text'
+              name='amica_otp_entry'
+              id='amica-device-login-otp'
+              inputMode='numeric'
+              pattern='[0-9]*'
+              autoComplete='off'
+              autoCorrect='off'
+              autoCapitalize='off'
+              spellCheck={false}
+              maxLength={6}
+              value={otp}
+              disabled={otpBusy}
+              readOnly={otpAutofillGuard}
+              onFocus={() => setOtpAutofillGuard(false)}
+              onChange={(e) =>
+                setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))
+              }
+              placeholder='000000'
+              className={styles.otpInput}
+              aria-label={t('login.deviceLoginOtpLabel')}
+            />
+          </form>
+          {otpError ? <p className={styles.error}>{otpError}</p> : null}
+          <button
+            type='button'
+            disabled={otpBusy || !otpOk}
+            onClick={submitOtp}
+            className={`${styles.btn} ${styles.btnBlock} ${styles.btnPrimary}`}
+          >
+            {otpBusy ? '…' : t('login.deviceLoginSubmitCode')}
+          </button>
           <p className={styles.waiting}>{t('login.deviceLoginWaiting')}</p>
-          {onNoTrustedDevice ? (
+          {onSubmitBackupCode ? (
             <>
-              {noTrustedDeviceError ? (
-                <p className={styles.error}>{noTrustedDeviceError}</p>
-              ) : null}
-              <button
-                type='button'
-                disabled={noTrustedDeviceBusy}
-                onClick={() => void onNoTrustedDevice()}
-                className={`${styles.btn} ${styles.btnBlock} ${styles.btnSecondary}`}
-              >
-                {t('login.noTrustedDeviceLink')}
-              </button>
+              {!showBackupRecovery ? (
+                <button
+                  type='button'
+                  onClick={() => setShowBackupRecovery(true)}
+                  className={`${styles.btn} ${styles.btnBlock} ${styles.btnLink}`}
+                >
+                  {t('login.useRecoveryCodeButton')}
+                </button>
+              ) : (
+                <>
+                  <p className={styles.hint} style={{ marginTop: 16 }}>
+                    {t('login.useBackupCodeHint')}
+                  </p>
+                  <input
+                    type='text'
+                    autoComplete='off'
+                    spellCheck={false}
+                    value={backupInput}
+                    disabled={backupCodeBusy}
+                    onChange={(e) =>
+                      setBackupInput(e.target.value.toUpperCase())
+                    }
+                    placeholder={t('login.backupCodePlaceholder')}
+                    className={styles.otpInput}
+                    style={{ fontFamily: 'ui-monospace, monospace' }}
+                  />
+                  {backupCodeError ? (
+                    <p className={styles.error}>{backupCodeError}</p>
+                  ) : null}
+                  <button
+                    type='button'
+                    disabled={backupCodeBusy || !backupInput.trim()}
+                    onClick={submitBackup}
+                    className={`${styles.btn} ${styles.btnBlock} ${styles.btnSecondary}`}
+                  >
+                    {t('login.backupCodeSubmit')}
+                  </button>
+                </>
+              )}
             </>
           ) : null}
           <button
@@ -53,203 +238,6 @@ export function DeviceLoginPendingOverlay({
           >
             {t('login.deviceLoginCancel')}
           </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function TrustedDeviceConfirmModal({
-  challengeId,
-  onClose,
-}: {
-  challengeId: string;
-  onClose: () => void;
-}) {
-  const { t } = useTranslation();
-  const [code, setCode] = useState('');
-  const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
-  const submit = useCallback(async () => {
-    setError('');
-    setSubmitting(true);
-    try {
-      const token = await getAccessTokenOrThrow();
-      const res = await fetch('/api/device-login/confirm/', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-          ...clientBindingHeaders(),
-        },
-        body: JSON.stringify({ challenge_id: challengeId, code: code.trim() }),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setError(data.error || 'Invalid code');
-        return;
-      }
-      onClose();
-    } catch {
-      setError('Request failed');
-    } finally {
-      setSubmitting(false);
-    }
-  }, [challengeId, code, onClose]);
-
-  return (
-    <div className={styles.overlay} role='dialog' aria-modal='true'>
-      <div className={styles.modal}>
-        <div className={styles.body}>
-          <h2 className={styles.title}>{t('login.trustedConfirmTitle')}</h2>
-          <p className={styles.hint}>{t('login.trustedConfirmHint')}</p>
-          <input
-            type='text'
-            inputMode='numeric'
-            autoComplete='one-time-code'
-            maxLength={8}
-            value={code}
-            onChange={(e) =>
-              setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
-            }
-            placeholder='000000'
-            className={styles.otpInput}
-          />
-          {error ? <p className={styles.error}>{error}</p> : null}
-          <div className={styles.row}>
-            <button
-              type='button'
-              onClick={onClose}
-              className={`${styles.btn} ${styles.rowBtn} ${styles.btnSecondary}`}
-            >
-              {t('login.trustedConfirmDismiss')}
-            </button>
-            <button
-              type='button'
-              disabled={submitting || code.length < 6}
-              onClick={() => void submit()}
-              className={`${styles.btn} ${styles.rowBtn} ${styles.btnPrimary}`}
-            >
-              {t('login.trustedConfirmSubmit')}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function RecoveryCooldownOverlay({
-  tryAfterIso,
-  message,
-  onDismiss,
-}: {
-  tryAfterIso: string;
-  message?: string;
-  onDismiss: () => void;
-}) {
-  const { t } = useTranslation();
-  const formatted = useMemo(() => {
-    try {
-      return new Date(tryAfterIso).toLocaleString();
-    } catch {
-      return tryAfterIso;
-    }
-  }, [tryAfterIso]);
-
-  return (
-    <div
-      className={styles.overlay}
-      role='dialog'
-      aria-modal='true'
-      aria-live='polite'
-    >
-      <div className={styles.modal}>
-        <div className={styles.body}>
-          <h2 className={styles.title}>{t('login.recoveryCooldownTitle')}</h2>
-          <p className={styles.hint}>
-            {message || t('login.recoveryCooldownBody')}
-          </p>
-          <p className={styles.datetime}>{formatted}</p>
-          <button
-            type='button'
-            onClick={onDismiss}
-            className={`${styles.btn} ${styles.btnBlock} ${styles.btnPrimary}`}
-          >
-            {t('login.recoveryCooldownOk')}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function RecoveryEmailOtpModal({
-  onSubmit,
-  onCancel,
-  error,
-  submitting,
-}: {
-  onSubmit: (code: string) => Promise<void>;
-  onCancel: () => void;
-  error: string | null;
-  submitting: boolean;
-}) {
-  const { t } = useTranslation();
-  const [code, setCode] = useState('');
-  const [localError, setLocalError] = useState('');
-
-  const submit = useCallback(async () => {
-    setLocalError('');
-    const normalized = code.replace(/\D/g, '');
-    if (normalized.length !== 6) {
-      setLocalError(t('login.recoveryOtpInvalid'));
-      return;
-    }
-    await onSubmit(normalized);
-  }, [code, onSubmit, t]);
-
-  const displayError = error || localError;
-  const codeOk = code.replace(/\D/g, '').length >= 6;
-
-  return (
-    <div className={styles.overlay} role='dialog' aria-modal='true'>
-      <div className={styles.modal}>
-        <div className={styles.body}>
-          <h2 className={styles.title}>{t('login.recoveryOtpTitle')}</h2>
-          <p className={styles.hint}>{t('login.recoveryOtpBody')}</p>
-          <input
-            type='text'
-            inputMode='numeric'
-            autoComplete='one-time-code'
-            maxLength={8}
-            value={code}
-            onChange={(e) =>
-              setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
-            }
-            placeholder='000000'
-            className={styles.otpInput}
-          />
-          {displayError ? <p className={styles.error}>{displayError}</p> : null}
-          <div className={styles.row}>
-            <button
-              type='button'
-              onClick={onCancel}
-              className={`${styles.btn} ${styles.rowBtn} ${styles.btnSecondary}`}
-            >
-              {t('login.recoveryOtpCancel')}
-            </button>
-            <button
-              type='button'
-              disabled={submitting || !codeOk}
-              onClick={() => void submit()}
-              className={`${styles.btn} ${styles.rowBtn} ${styles.btnPrimary}`}
-            >
-              {t('login.recoveryOtpSubmit')}
-            </button>
-          </div>
         </div>
       </div>
     </div>

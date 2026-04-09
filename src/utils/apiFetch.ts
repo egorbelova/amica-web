@@ -4,8 +4,6 @@ import {
   refreshTokenIfNeeded,
   handleUnauthorized,
 } from './authStore';
-import { clientBindingHeaders } from './clientBinding';
-
 export interface ApiError extends Error {
   status?: number;
   data?: unknown;
@@ -64,7 +62,6 @@ export async function apiFetch(
   }
 
   const headers = new Headers(options.headers || {});
-  Object.entries(clientBindingHeaders()).forEach(([k, v]) => headers.set(k, v));
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
   const isFormData = options.body instanceof FormData;
@@ -81,9 +78,6 @@ export async function apiFetch(
       await refreshTokenIfNeeded();
       const newToken = await getAccessTokenOrThrow();
       const newHeaders = new Headers(options.headers || {});
-      Object.entries(clientBindingHeaders()).forEach(([k, v]) =>
-        newHeaders.set(k, v),
-      );
       if (newToken) newHeaders.set('Authorization', `Bearer ${newToken}`);
       if (isFormData) newHeaders.delete('Content-Type');
 
@@ -157,8 +151,6 @@ export async function apiUpload(
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${API_BASE_URL}${url}`);
     xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-    const binding = clientBindingHeaders();
-    Object.entries(binding).forEach(([k, v]) => xhr.setRequestHeader(k, v));
     xhr.withCredentials = true;
 
     if (onProgress) {

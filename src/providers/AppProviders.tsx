@@ -9,6 +9,7 @@ import { SearchProvider } from '@/contexts/search/SearchContext';
 import { JumpProvider } from '@/contexts/JumpContext';
 import { ToastProvider } from '@/contexts/toast/ToastContext';
 import { SnackbarProvider } from '@/contexts/snackbar/SnackbarContext';
+import { WarningProvider } from '@/contexts/warning/WarningContext';
 
 import { PageStackProvider } from '@/contexts/useStackHistory';
 
@@ -42,6 +43,7 @@ const GlobalSearchProvider: React.FC<{ children: React.ReactNode }> = ({
 const AppProvidersComponent = composeProviders(
   ToastProvider,
   SnackbarProvider,
+  WarningProvider,
   PageStackProvider,
   AuthProvider,
   UserProvider,

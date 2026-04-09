@@ -3,7 +3,6 @@ import {
   getAccessToken,
   setAccessToken,
 } from './authStore';
-import { getClientBindingId } from './clientBinding';
 import type { Session } from '@/types';
 import { startTransition } from 'react';
 
@@ -140,7 +139,14 @@ interface WebSocketEventMap {
       chat?: unknown;
     },
   ) => void;
-  device_login_pending: (data: { challenge_id?: string }) => void;
+  device_login_pending: (data: {
+    challenge_id?: string;
+    request_ip?: string;
+    request_user_agent?: string;
+    request_city?: string;
+    request_country?: string;
+    request_device?: string;
+  }) => void;
 }
 
 class WebSocketManager {
@@ -273,10 +279,8 @@ class WebSocketManager {
           ws_port = 8000;
         }
 
-        const cb = getClientBindingId();
         const qsParts: string[] = [];
         if (token) qsParts.push(`token=${encodeURIComponent(token)}`);
-        if (cb) qsParts.push(`client_binding=${encodeURIComponent(cb)}`);
         const qs = qsParts.length ? `?${qsParts.join('&')}` : '';
 
         let url: string;

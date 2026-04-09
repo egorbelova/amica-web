@@ -234,13 +234,18 @@ export default function ProfileSessions() {
         <div className={styles.sessionsList}>
           {sessions.map((session) => (
             <div key={session.jti} className={styles.sessionItem}>
-              <span>
-                {session.is_current && (
+              <div className={styles.sessionLabels}>
+                {session.is_current ? (
                   <span className={styles.currentLabel}>
                     {t('sessions.thisDevice')}
                   </span>
-                )}
-              </span>
+                ) : null}
+                {session.is_trusted ? (
+                  <span className={styles.trustedBadge}>
+                    {t('sessions.trustedDeviceBadge')}
+                  </span>
+                ) : null}
+              </div>
 
               <div
                 className={`${styles.sessionInfo} ${

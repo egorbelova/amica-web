@@ -62,6 +62,23 @@ export default {
   },
   profile: {
     settings: 'Settings',
+    backupCodesTitle: 'Backup codes',
+    backupCodesDescription:
+      'One-time codes to sign in if you lose your trusted device. Generating new codes invalidates all previous codes.',
+    backupCodesUnused: 'Unused codes: {count}',
+    regenerateBackupCodes: 'Generate new codes',
+    regenerateBackupCodesConfirm:
+      'This will invalidate your current codes. Only continue if you can save the new list.',
+    backupCodesRegenerateWarningTitle: 'Generate new backup codes?',
+    backupCodesRegenerateCancel: 'Cancel',
+    backupCodesRegenerateConfirm: 'Generate',
+    backupCodesRegenerateError:
+      'Could not generate codes. Open settings from your trusted device.',
+    trustedDeviceTitle: 'Trusted device',
+    trustedDeviceBodyHas:
+      'Sign-ins from new browsers or devices may need your approval on this device first. Under Active sessions, the trusted device shows a badge.',
+    trustedDeviceBodyNone:
+      'Your first successful sign-in sets a trusted device. You will see which session is trusted under Active sessions.',
     signOut: 'Sign Out',
     languageDescription: 'Select your preferred language.',
     privacyDescription:
@@ -93,6 +110,7 @@ export default {
     saving: 'Saving…',
     noSessions: 'No active sessions',
     thisDevice: 'This device',
+    trustedDeviceBadge: 'Trusted device',
     ipAddress: 'IP address',
     created: 'Created',
     expires: 'Expires',
@@ -133,26 +151,60 @@ export default {
     backToLogin: 'Back to login',
     emailNotVerified: 'Confirm your email using the link we sent before you sign in.',
     emailVerifiedBanner: 'Your email is confirmed. You can sign in.',
-    deviceLoginTitle: 'Confirm on trusted device',
-    deviceLoginHint: 'Open Amica on your trusted device and enter this code:',
-    deviceLoginWaiting: 'Waiting for confirmation…',
+    deviceLoginTitle: 'Sign in from this device',
+    deviceLoginTrustedWhereHint:
+      'The code appears on another device or browser where you’re already signed in to Amica — open that app or tab and look for the security alert.',
+    deviceLoginRequestDeviceIntro:
+      'On your other device, this sign-in is labeled as:',
+    deviceLoginHint:
+      'Enter the 6-digit code from that screen below.',
+    deviceLoginSubmitCode: 'Submit code',
+    deviceLoginOtpLabel: 'One-time code',
+    deviceLoginWaiting: 'After you submit, we finish signing you in…',
     deviceLoginCancel: 'Cancel',
-    noTrustedDeviceLink: 'No access to my trusted device',
-    noTrustedDeviceNeedPassword: 'Use email and password sign-in to use recovery.',
-    noTrustedDeviceRequestFailed: 'Request failed. Try again.',
+    useRecoveryCodeButton: 'Use a recovery (backup) code instead',
+    trustedDeviceRequestTitle: 'New sign-in attempt',
+    trustedDeviceRequestIntro:
+      'Someone is signing in to your account from another device or browser. Allow only if this was you.',
+    trustedDeviceAllow: 'Allow',
+    trustedDeviceDecline: 'Decline',
+    trustedDeviceCodeTitle: 'Sign-in code',
+    trustedDeviceRevealFailedTitle: 'Could not load code',
+    trustedDeviceRevealFailedBody:
+      'Try again, or decline the request if you did not start a sign-in.',
+    deviceLoginRejected: 'The sign-in was declined or is no longer valid.',
+    trustedDeviceWarningTitle: 'New sign-in attempt',
+    trustedDeviceWarningIntro:
+      'If this was you, use this code on your other device. Do not share it with anyone.',
+    trustedDeviceWarningFoot:
+      'If you did not try to sign in, secure your account and change your password.',
+    trustedDeviceWarningDismiss: 'Got it',
+    trustedDeviceIpLabel: 'Approximate IP of the new device',
+    trustedDeviceUaLabel: 'Browser / app on the new device',
+    deviceOtpInvalid: 'That code is wrong or expired. Try again.',
+    deviceOtpWrongClient:
+      'This session does not match the device that started sign-in.',
+    deviceOtpFailed: 'Could not verify the code.',
+    useBackupCodeHint:
+      'Lost your trusted device? Enter a one-time backup code (from signup or account settings).',
+    backupCodePlaceholder: 'XXXX-XXXX-XXXX-XXXX',
+    backupCodeSubmit: 'Sign in with backup code',
+    backupCodeInvalid: 'That backup code is invalid or was already used.',
+    backupCodeNeedPassword:
+      'Sign in with email and password on this screen first, then use a backup code.',
+    backupCodesTitle: 'Save your backup codes',
+    backupCodesBody:
+      'Each code works once. Store them somewhere safe. You will not see them again.',
+    backupCodesSaved: 'I have saved them',
+    backupCodesCloseWarningTitle: 'Have you saved these codes?',
+    backupCodesCloseWarningBody:
+      'You will not be able to see them again. Only close this screen after you have stored them somewhere safe.',
+    backupCodesCloseWarningGoBack: 'Go back',
+    backupCodesCloseWarningConfirm: 'Close',
     trustedConfirmTitle: 'New device sign-in',
     trustedConfirmHint: 'Enter the 6-digit code shown on the new device.',
     trustedConfirmDismiss: 'Dismiss',
     trustedConfirmSubmit: 'Confirm',
-    recoveryCooldownTitle: 'Sign-in paused',
-    recoveryCooldownBody: 'We noted this sign-in without your trusted device. You can continue with an email code after the time below.',
-    recoveryCooldownOk: 'OK',
-    recoveryOtpTitle: 'Email verification code',
-    recoveryOtpBody: 'Enter the 6-digit code we sent to your email.',
-    recoveryOtpSubmit: 'Continue',
-    recoveryOtpCancel: 'Cancel',
-    recoveryOtpInvalid: 'Enter a 6-digit code.',
-    recoveryOtpFailed: 'Invalid or expired code.',
   },
   signUp: {
     title: 'Sign Up',

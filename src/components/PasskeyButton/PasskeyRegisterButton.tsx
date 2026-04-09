@@ -1,5 +1,4 @@
 import { useUser } from '../../contexts/UserContextCore';
-import { clientBindingHeaders } from '@/utils/clientBinding';
 import styles from './PasskeyButton.module.scss';
 import { Icon } from '../Icons/AutoIcons';
 
@@ -32,7 +31,6 @@ export default function PasskeyRegisterButton() {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          ...clientBindingHeaders(),
         },
         body: JSON.stringify({ email: user?.email }),
       });
@@ -83,7 +81,6 @@ export default function PasskeyRegisterButton() {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          ...clientBindingHeaders(),
         },
         body: JSON.stringify(body),
       });
@@ -93,14 +90,13 @@ export default function PasskeyRegisterButton() {
         console.error('Finish registration error:', finishData);
         return;
       }
-      if (
-        finishData.needs_device_confirmation &&
-        finishData.challenge_id &&
-        finishData.code
-      ) {
+      if (finishData.needs_device_confirmation && finishData.challenge_id) {
         applyDeviceChallenge({
-          challenge_id: finishData.challenge_id,
-          code: finishData.code,
+          challenge_id: finishData.challenge_id as string,
+          ...(typeof finishData.request_device === 'string' &&
+          finishData.request_device.trim()
+            ? { request_device: finishData.request_device.trim() }
+            : {}),
         });
         return;
       }

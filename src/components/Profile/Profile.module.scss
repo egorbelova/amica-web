@@ -78,6 +78,54 @@
   gap: 12px;
 }
 
+.backupCodesBlock {
+  width: 100%;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--surface-border, rgba(127, 127, 127, 0.25));
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.backupCodesHeading {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.backupCodesDescription {
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0;
+  opacity: 0.85;
+  color: var(--color-text);
+}
+
+.backupCodesCount {
+  font-size: 13px;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.backupCodesButton {
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--surface-border, rgba(127, 127, 127, 0.35));
+  background: var(--surface-bg, transparent);
+  color: var(--color-text);
+  cursor: pointer;
+  align-self: flex-start;
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.7;
+  }
+}
+
 .sessionsList {
   width: 100%;
 }
@@ -156,6 +204,54 @@
 }
 .languageFlag {
   height: 20px;
+}
+
+.sessionLabels {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px 4px;
+}
+
+.currentLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text, #fff);
+}
+
+.trustedBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(77, 141, 219, 0.25);
+  color: #9ec5f2;
+  border: 1px solid rgba(77, 141, 219, 0.45);
+}
+
+.trustedDeviceNote {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--surface-border, rgba(127, 127, 127, 0.35));
+  background: rgba(127, 127, 127, 0.06);
+  box-sizing: border-box;
+}
+
+.trustedDeviceNoteTitle {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.trustedDeviceNoteBody {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text);
+  opacity: 0.9;
 }
 
 .sessionItem {

@@ -31,7 +31,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
   const [error, setError] = useState<string>('');
   const [emailVerifiedNotice] = useState(() => {
     try {
-      return new URLSearchParams(window.location.search).get('verified') === '1';
+      return (
+        new URLSearchParams(window.location.search).get('verified') === '1'
+      );
     } catch {
       return false;
     }
@@ -39,7 +41,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
-  const { loginWithPassword, loading } = useUser();
+  const { loginWithPassword, loading, error: contextError, dismissAuthError } =
+    useUser();
 
   useEffect(() => {
     usernameRef.current?.focus();
@@ -67,8 +70,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
       }));
 
       if (error) setError('');
+      if (contextError) dismissAuthError();
     },
-    [error],
+    [error, contextError, dismissAuthError],
   );
 
   const handleLogin = useCallback(async () => {
@@ -80,14 +84,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
       }
     }
   }, [formData.username, formData.password, loginWithPassword]);
-
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      handleLogin();
-    },
-    [handleLogin],
-  );
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent) => {
@@ -105,7 +101,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
   return (
     <div className={styles['login-wrapper']}>
       <div className={styles['login-top-fill']} />
-      <form className={styles['login-form']} onSubmit={handleSubmit} noValidate>
+      <form
+        className={styles['login-form']}
+        noValidate
+        onSubmit={(e) => e.preventDefault()}
+      >
         {/* <img
           src='Images/512-transparent.png'
           alt='Amica'
@@ -158,11 +158,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
             placeholder={t('login.password')}
           />
         </fieldset>
-        {error && <div style={{ color: 'red', margin: '8px 0' }}>{error}</div>}
+        {(error || contextError) && (
+          <div style={{ color: 'red', margin: '8px 0' }}>
+            {error || contextError}
+          </div>
+        )}
         <button
-          type='submit'
+          type='button'
           className={styles['next-button']}
           disabled={loading || !formData.username || !formData.password}
+          onClick={() => void handleLogin()}
         >
           {loading ? t('login.loggingIn') : t('buttons.next')}
         </button>

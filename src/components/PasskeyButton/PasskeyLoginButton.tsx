@@ -18,7 +18,6 @@ function bufferToBase64Url(buffer: ArrayBuffer): string {
 
 import { useMemo } from 'react';
 import { Icon } from '@/components/Icons/AutoIcons';
-import { clientBindingHeaders } from '@/utils/clientBinding';
 import { useUser } from '@/contexts/UserContextCore';
 
 interface PasskeyLoginButtonProps {
@@ -36,7 +35,6 @@ export function PasskeyLoginButton({ styles }: PasskeyLoginButtonProps) {
       const startRes = await fetch('/api/passkey/auth/start/', {
         method: 'POST',
         credentials: 'include',
-        headers: clientBindingHeaders(),
       });
 
       if (!startRes.ok) {

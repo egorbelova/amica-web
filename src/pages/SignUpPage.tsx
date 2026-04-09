@@ -4,7 +4,6 @@ import { useTranslation } from '@/contexts/languageCore';
 import { Icon } from '@/components/Icons/AutoIcons';
 import styles from './LoginPage.module.scss';
 import Button from '@/components/ui/button/Button';
-import { clientBindingHeaders } from '@/utils/clientBinding';
 
 interface SignUpPageProps {
   onShowLogin: () => void;
@@ -108,7 +107,6 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onShowLogin }) => {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          ...clientBindingHeaders(),
         },
         body: JSON.stringify({
           otp_id: verifyOtpId,

@@ -23,14 +23,14 @@ import { UserContext } from './UserContextCore';
 import type { UserState, ApiResponse } from './UserContextCore';
 import type { File as FileType } from '@/types';
 import { setLastUserId, getLastUserId, deleteChatState } from '@/utils/chatStateStorage';
-import { clientBindingHeaders } from '@/utils/clientBinding';
 import { pollDeviceLoginUntilReady } from '@/utils/deviceLoginPoll';
 import {
   DeviceLoginPendingOverlay,
-  TrustedDeviceConfirmModal,
-  RecoveryCooldownOverlay,
-  RecoveryEmailOtpModal,
+  TrustedDeviceLoginRequestBody,
+  TrustedDeviceLoginWarningBody,
 } from '@/components/DeviceLogin/DeviceLoginFlows';
+import { useWarning } from '@/contexts/warning/WarningContextCore';
+import { BackupCodesSavedModal } from '@/components/DeviceLogin/BackupCodesModal';
 
 const USER_CACHE_KEY_PREFIX = 'amica-user-cache';
 
@@ -100,19 +100,16 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const lastPasswordCredentialsRef = useRef<{ u: string; p: string } | null>(
     null,
   );
-  const [recoveryCooldown, setRecoveryCooldown] = useState<{
-    tryAfter: string;
-    message?: string;
-  } | null>(null);
-  const [recoveryOtpPending, setRecoveryOtpPending] = useState<{
-    otpId: string;
-  } | null>(null);
-  const [recoveryOtpError, setRecoveryOtpError] = useState<string | null>(null);
-  const [recoveryOtpSubmitting, setRecoveryOtpSubmitting] = useState(false);
-  const [noTrustedDeviceBusy, setNoTrustedDeviceBusy] = useState(false);
-  const [noTrustedDeviceError, setNoTrustedDeviceError] = useState<string | null>(
+  const [pendingBackupCodes, setPendingBackupCodes] = useState<string[] | null>(
     null,
   );
+  const [deviceBackupCodeBusy, setDeviceBackupCodeBusy] = useState(false);
+  const [deviceBackupCodeError, setDeviceBackupCodeError] = useState<
+    string | null
+  >(null);
+  const [deviceOtpBusy, setDeviceOtpBusy] = useState(false);
+  const [deviceOtpError, setDeviceOtpError] = useState<string | null>(null);
+  const { showWarning } = useWarning();
 
   const [state, setState] = useState<UserState>({
     user: null,
@@ -121,11 +118,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   });
   const [pendingDeviceLogin, setPendingDeviceLogin] = useState<{
     challengeId: string;
-    code: string;
+    requestDevice?: string;
   } | null>(null);
-  const [trustedDeviceChallengeId, setTrustedDeviceChallengeId] = useState<
-    string | null
-  >(null);
 
   const fetchUser = useCallback(async () => {
     setState((prev) => ({
@@ -257,18 +251,22 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     (async () => {
       const cachedUser = getCachedUser();
       if (cachedUser) {
-        setState({ user: cachedUser, loading: false, error: null });
+        // Avoid flashing RoomPage before we know the refresh cookie is still valid.
+        setState({ user: null, loading: true, error: null });
         if (!websocketManager.isConnected()) {
           websocketManager.connect();
-        } else {
+        }
+        try {
+          await refreshTokenIfNeeded();
+        } catch {
+          setCachedUser(null);
+          setState({ user: null, loading: false, error: null });
+          return;
+        }
+        setState({ user: cachedUser, loading: false, error: null });
+        if (websocketManager.isConnected()) {
           fetchUser().catch(() => {});
         }
-        refreshTokenIfNeeded()
-          .then(() => {})
-          .catch(() => {
-            setCachedUser(null);
-            setState({ user: null, loading: false, error: null });
-          });
         return;
       }
 
@@ -357,30 +355,25 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       data: Record<string, unknown>,
       fallbackMessage = 'Unexpected auth response',
     ): 'session' | 'deferred' => {
-      if (data.recovery_cooldown && typeof data.try_after === 'string') {
-        setRecoveryCooldown({
-          tryAfter: data.try_after,
-          message:
-            typeof data.message === 'string' ? data.message : undefined,
-        });
-        return 'deferred';
-      }
-      if (data.needs_recovery_email_otp && data.otp_id != null) {
-        setRecoveryOtpPending({ otpId: String(data.otp_id) });
-        return 'deferred';
-      }
-      if (
-        data.needs_device_confirmation &&
-        typeof data.challenge_id === 'string' &&
-        typeof data.code === 'string'
-      ) {
+      if (data.needs_device_confirmation && typeof data.challenge_id === 'string') {
+        setDeviceBackupCodeError(null);
+        setDeviceOtpError(null);
+        const rd = data.request_device;
         setPendingDeviceLogin({
           challengeId: data.challenge_id,
-          code: data.code,
+          ...(typeof rd === 'string' && rd.trim()
+            ? { requestDevice: rd.trim() }
+            : {}),
         });
         return 'deferred';
       }
       if (data.access && data.user) {
+        if (
+          Array.isArray(data.backup_codes) &&
+          (data.backup_codes as unknown[]).length > 0
+        ) {
+          setPendingBackupCodes(data.backup_codes as string[]);
+        }
         handleLoginSuccess({
           access: data.access as string,
           refresh: data.refresh as string | undefined,
@@ -398,98 +391,106 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
 
   const dismissPendingDeviceLogin = useCallback(() => {
     setPendingDeviceLogin(null);
+    setDeviceBackupCodeError(null);
+    setDeviceOtpError(null);
   }, []);
 
-  const dismissRecoveryCooldown = useCallback(() => {
-    setRecoveryCooldown(null);
-  }, []);
-
-  const dismissRecoveryOtp = useCallback(() => {
-    setRecoveryOtpPending(null);
-    setRecoveryOtpError(null);
-  }, []);
-
-  const requestDeviceRecoveryNoAccess = useCallback(async () => {
-    const c = lastPasswordCredentialsRef.current;
-    if (!c) {
-      setNoTrustedDeviceError(tSync('login.noTrustedDeviceNeedPassword'));
-      return;
-    }
-    setNoTrustedDeviceBusy(true);
-    setNoTrustedDeviceError(null);
-    try {
-      const res = await fetch('/api/device-recovery/no-access/', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          ...clientBindingHeaders(),
-        },
-        body: JSON.stringify({ username: c.u, password: c.p }),
-      });
-      const data = (await res.json()) as Record<string, unknown>;
-      if (!res.ok) {
-        setNoTrustedDeviceError(String(data.error || 'Request failed'));
-        return;
-      }
-      setPendingDeviceLogin(null);
-      setRecoveryCooldown({
-        tryAfter: String(data.cooldown_until ?? ''),
-        message:
-          typeof data.message === 'string' ? data.message : undefined,
-      });
-    } catch {
-      setNoTrustedDeviceError(tSync('login.noTrustedDeviceRequestFailed'));
-    } finally {
-      setNoTrustedDeviceBusy(false);
-    }
-  }, []);
-
-  const submitRecoveryOtp = useCallback(
-    async (code: string) => {
-      if (!recoveryOtpPending) return;
-      setRecoveryOtpSubmitting(true);
-      setRecoveryOtpError(null);
+  const submitDeviceLoginOtp = useCallback(
+    async (digits: string) => {
+      const challengeId = pendingDeviceLogin?.challengeId;
+      if (!challengeId) return;
+      setDeviceOtpBusy(true);
+      setDeviceOtpError(null);
       try {
-        const res = await fetch('/api/device-recovery/verify-otp/', {
+        const res = await fetch('/api/device-login/submit-code/', {
           method: 'POST',
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            ...clientBindingHeaders(),
           },
           body: JSON.stringify({
-            otp_id: recoveryOtpPending.otpId,
-            code,
+            challenge_id: challengeId,
+            code: digits,
+          }),
+        });
+        const data = (await res.json()) as { error?: string };
+        if (!res.ok) {
+          if (data.error === 'Invalid code') {
+            setDeviceOtpError(tSync('login.deviceOtpInvalid'));
+          } else if (data.error === 'wrong_client') {
+            setDeviceOtpError(tSync('login.deviceOtpWrongClient'));
+          } else {
+            setDeviceOtpError(
+              String(data.error || tSync('login.deviceOtpFailed')),
+            );
+          }
+        }
+      } catch {
+        setDeviceOtpError(tSync('login.deviceOtpFailed'));
+      } finally {
+        setDeviceOtpBusy(false);
+      }
+    },
+    [pendingDeviceLogin?.challengeId],
+  );
+
+  const dismissPendingBackupCodes = useCallback(() => {
+    setPendingBackupCodes(null);
+  }, []);
+
+  const submitDeviceLoginBackupCode = useCallback(
+    async (rawCode: string) => {
+      const c = lastPasswordCredentialsRef.current;
+      if (!c) {
+        setDeviceBackupCodeError(tSync('login.backupCodeNeedPassword'));
+        return;
+      }
+      setDeviceBackupCodeBusy(true);
+      setDeviceBackupCodeError(null);
+      try {
+        const res = await fetch('/api/login/', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: c.u,
+            password: c.p,
+            backup_code: rawCode,
           }),
         });
         const data = (await res.json()) as Record<string, unknown>;
         if (!res.ok) {
-          setRecoveryOtpError(
-            String(data.error || tSync('login.recoveryOtpFailed')),
-          );
-          return;
+          if (data.error === 'invalid_backup_code') {
+            setDeviceBackupCodeError(tSync('login.backupCodeInvalid'));
+            return;
+          }
+          throw new Error(String(data.error || 'Login failed'));
         }
-        setRecoveryOtpPending(null);
-        handleLoginSuccess({
-          access: data.access as string,
-          user: data.user as User,
-          refresh: undefined,
-        });
-      } catch {
-        setRecoveryOtpError(tSync('login.recoveryOtpFailed'));
+        setPendingDeviceLogin(null);
+        ingestSuccessfulAuthPayload(data, 'Login failed');
+      } catch (e) {
+        setDeviceBackupCodeError(
+          e instanceof Error ? e.message : 'Login failed',
+        );
       } finally {
-        setRecoveryOtpSubmitting(false);
+        setDeviceBackupCodeBusy(false);
       }
     },
-    [recoveryOtpPending, handleLoginSuccess],
+    [ingestSuccessfulAuthPayload],
   );
 
   const applyDeviceChallenge = useCallback(
-    (r: { challenge_id: string; code: string }) => {
+    (r: { challenge_id: string; request_device?: string }) => {
+      setDeviceOtpError(null);
+      setDeviceBackupCodeError(null);
+      const rd = r.request_device;
       setPendingDeviceLogin({
         challengeId: r.challenge_id,
-        code: r.code,
+        ...(typeof rd === 'string' && rd.trim()
+          ? { requestDevice: rd.trim() }
+          : {}),
       });
     },
     [],
@@ -503,6 +504,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       .then((r) => {
         if (cancelled) return;
         setPendingDeviceLogin(null);
+        if (r.backup_codes?.length) {
+          setPendingBackupCodes(r.backup_codes);
+        }
         handleLoginSuccess({
           access: r.access,
           user: r.user as User,
@@ -515,10 +519,15 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       .catch((e) => {
         if (!cancelled) {
           setPendingDeviceLogin(null);
+          const msg =
+            e instanceof Error && e.message === 'DEVICE_LOGIN_REJECTED'
+              ? tSync('login.deviceLoginRejected')
+              : e instanceof Error
+                ? e.message
+                : 'Device confirmation failed';
           setState((prev) => ({
             ...prev,
-            error:
-              e instanceof Error ? e.message : 'Device confirmation failed',
+            error: msg,
           }));
         }
       });
@@ -530,28 +539,113 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     const uid = state.user?.id;
     if (!uid || uid === 0) return;
-    const onPending = (msg: { challenge_id?: string }) => {
-      if (msg.challenge_id) {
-        setTrustedDeviceChallengeId(msg.challenge_id);
-      }
+    const onPending = (msg: {
+      challenge_id?: string;
+      request_ip?: string;
+      request_user_agent?: string;
+      request_city?: string;
+      request_country?: string;
+      request_device?: string;
+    }) => {
+      const cid = msg.challenge_id;
+      if (!cid) return;
+
+      const deny = () => {
+        void apiJson('/api/device-login/trusted-decision/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ challenge_id: cid, decision: 'deny' }),
+        }).catch(() => {});
+      };
+
+      showWarning({
+        title: tSync('login.trustedDeviceRequestTitle'),
+        dismissLabel: tSync('login.trustedDeviceDecline'),
+        confirmLabel: tSync('login.trustedDeviceAllow'),
+        onDismissAction: deny,
+        body: (
+          <TrustedDeviceLoginRequestBody
+            ip={msg.request_ip || ''}
+            city={msg.request_city || ''}
+            country={msg.request_country || ''}
+            device={msg.request_device || ''}
+          />
+        ),
+        onConfirm: () => {
+          void (async () => {
+            try {
+              const data = await apiJson<{ code?: string }>(
+                '/api/device-login/trusted-decision/',
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    challenge_id: cid,
+                    decision: 'allow',
+                  }),
+                },
+              );
+              const code = (data.code || '').replace(/\D/g, '');
+              if (code.length === 6) {
+                queueMicrotask(() =>
+                  showWarning({
+                    title: tSync('login.trustedDeviceCodeTitle'),
+                    dismissLabel: tSync('login.trustedDeviceWarningDismiss'),
+                    body: (
+                      <TrustedDeviceLoginWarningBody
+                        code={code}
+                        ip={msg.request_ip || ''}
+                        city={msg.request_city || ''}
+                        country={msg.request_country || ''}
+                        device={msg.request_device || ''}
+                      />
+                    ),
+                  }),
+                );
+              } else {
+                queueMicrotask(() =>
+                  showWarning({
+                    title: tSync('login.trustedDeviceRevealFailedTitle'),
+                    dismissLabel: tSync('login.trustedDeviceWarningDismiss'),
+                    body: (
+                      <p style={{ margin: 0, lineHeight: 1.45 }}>
+                        {tSync('login.trustedDeviceRevealFailedBody')}
+                      </p>
+                    ),
+                  }),
+                );
+              }
+            } catch {
+              queueMicrotask(() =>
+                showWarning({
+                  title: tSync('login.trustedDeviceRevealFailedTitle'),
+                  dismissLabel: tSync('login.trustedDeviceWarningDismiss'),
+                  body: (
+                    <p style={{ margin: 0, lineHeight: 1.45 }}>
+                      {tSync('login.trustedDeviceRevealFailedBody')}
+                    </p>
+                  ),
+                }),
+              );
+            }
+          })();
+        },
+      });
     };
     websocketManager.on('device_login_pending', onPending);
     return () => {
       websocketManager.off('device_login_pending', onPending);
     };
-  }, [state.user?.id]);
+  }, [state.user?.id, showWarning]);
 
   const setUser = useCallback((user: User | null) => {
     setState((prev) => ({ ...prev, user }));
   }, []);
 
   const loginWithPassword = useCallback(
-    async (username: string, password: string) => {
+    async (username: string, password: string, backupCode?: string) => {
       lastPasswordCredentialsRef.current = { u: username, p: password };
-      setRecoveryCooldown(null);
-      setRecoveryOtpPending(null);
-      setRecoveryOtpError(null);
-      setNoTrustedDeviceError(null);
+      setDeviceBackupCodeError(null);
       setState((prev) => ({ ...prev, loading: true, error: null }));
       try {
         const res = await fetch('/api/login/', {
@@ -559,9 +653,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            ...clientBindingHeaders(),
           },
-          body: JSON.stringify({ username, password }),
+          body: JSON.stringify({
+            username,
+            password,
+            ...(backupCode ? { backup_code: backupCode } : {}),
+          }),
         });
         const data = (await res.json()) as Record<string, unknown>;
         if (!res.ok) {
@@ -576,10 +673,20 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
             }));
             return;
           }
+          if (backupCode && data.error === 'invalid_backup_code') {
+            throw new Error('INVALID_BACKUP');
+          }
           throw new Error(String(data.error || 'Login failed'));
         }
-        ingestSuccessfulAuthPayload(data, 'Login failed');
+        const outcome = ingestSuccessfulAuthPayload(data, 'Login failed');
+        if (outcome === 'deferred') {
+          setState((prev) => ({ ...prev, loading: false }));
+        }
       } catch (err) {
+        if (err instanceof Error && err.message === 'INVALID_BACKUP') {
+          setState((prev) => ({ ...prev, loading: false }));
+          throw err;
+        }
         const message = err instanceof Error ? err.message : 'Login failed';
         setState((prev) => ({
           ...prev,
@@ -587,8 +694,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
           error: message,
         }));
         throw err;
-      } finally {
-        setState((prev) => ({ ...prev, loading: false }));
       }
     },
     [ingestSuccessfulAuthPayload],
@@ -636,15 +741,11 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const loginWithGoogle = useCallback(
     async (idToken: string) => {
       lastPasswordCredentialsRef.current = null;
-      setRecoveryCooldown(null);
-      setRecoveryOtpPending(null);
-      setRecoveryOtpError(null);
       const res = await fetch('/api/google/', {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          ...clientBindingHeaders(),
         },
         body: JSON.stringify({ access_token: idToken }),
       });
@@ -660,15 +761,11 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const loginWithPasskey = useCallback(
     async (passkeyData: unknown) => {
       lastPasswordCredentialsRef.current = null;
-      setRecoveryCooldown(null);
-      setRecoveryOtpPending(null);
-      setRecoveryOtpError(null);
       const res = await fetch('/api/passkey/auth/finish/', {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          ...clientBindingHeaders(),
         },
         body: JSON.stringify(passkeyData),
       });
@@ -683,6 +780,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     },
     [ingestSuccessfulAuthPayload],
   );
+
+  const dismissAuthError = useCallback(() => {
+    setState((prev) => ({ ...prev, error: null }));
+  }, []);
 
   const logout = useCallback(async () => {
     const userId = state.user?.id ?? getLastUserId();
@@ -710,19 +811,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       loginWithGoogle,
       loginWithPasskey,
       logout,
+      dismissAuthError,
       pendingDeviceLogin,
       dismissPendingDeviceLogin,
       applyDeviceChallenge,
-      recoveryCooldown,
-      dismissRecoveryCooldown,
-      recoveryOtpPending,
-      dismissRecoveryOtp,
-      recoveryOtpError,
-      recoveryOtpSubmitting,
-      submitRecoveryOtp,
-      requestDeviceRecoveryNoAccess,
-      noTrustedDeviceBusy,
-      noTrustedDeviceError,
+      pendingBackupCodes,
+      dismissPendingBackupCodes,
       ingestSuccessfulAuthPayload,
     }),
     [
@@ -734,19 +828,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       loginWithGoogle,
       loginWithPasskey,
       logout,
+      dismissAuthError,
       pendingDeviceLogin,
       dismissPendingDeviceLogin,
       applyDeviceChallenge,
-      recoveryCooldown,
-      dismissRecoveryCooldown,
-      recoveryOtpPending,
-      dismissRecoveryOtp,
-      recoveryOtpError,
-      recoveryOtpSubmitting,
-      submitRecoveryOtp,
-      requestDeviceRecoveryNoAccess,
-      noTrustedDeviceBusy,
-      noTrustedDeviceError,
+      pendingBackupCodes,
+      dismissPendingBackupCodes,
       ingestSuccessfulAuthPayload,
     ],
   );
@@ -755,34 +842,22 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     <UserContext.Provider value={value}>
       <LanguageProvider>
         {children}
-        {recoveryCooldown ? (
-          <RecoveryCooldownOverlay
-            tryAfterIso={recoveryCooldown.tryAfter}
-            message={recoveryCooldown.message}
-            onDismiss={dismissRecoveryCooldown}
+        {pendingBackupCodes?.length ? (
+          <BackupCodesSavedModal
+            codes={pendingBackupCodes}
+            onDismiss={dismissPendingBackupCodes}
           />
         ) : null}
         {pendingDeviceLogin ? (
           <DeviceLoginPendingOverlay
-            code={pendingDeviceLogin.code}
+            requestDevice={pendingDeviceLogin.requestDevice}
             onCancel={dismissPendingDeviceLogin}
-            onNoTrustedDevice={requestDeviceRecoveryNoAccess}
-            noTrustedDeviceBusy={noTrustedDeviceBusy}
-            noTrustedDeviceError={noTrustedDeviceError}
-          />
-        ) : null}
-        {trustedDeviceChallengeId ? (
-          <TrustedDeviceConfirmModal
-            challengeId={trustedDeviceChallengeId}
-            onClose={() => setTrustedDeviceChallengeId(null)}
-          />
-        ) : null}
-        {recoveryOtpPending ? (
-          <RecoveryEmailOtpModal
-            onSubmit={submitRecoveryOtp}
-            onCancel={dismissRecoveryOtp}
-            error={recoveryOtpError}
-            submitting={recoveryOtpSubmitting}
+            onSubmitOtp={submitDeviceLoginOtp}
+            otpBusy={deviceOtpBusy}
+            otpError={deviceOtpError}
+            onSubmitBackupCode={submitDeviceLoginBackupCode}
+            backupCodeBusy={deviceBackupCodeBusy}
+            backupCodeError={deviceBackupCodeError}
           />
         ) : null}
       </LanguageProvider>

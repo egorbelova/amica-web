@@ -105,6 +105,8 @@ export interface User {
   contact_id?: number;
   /** Existing 1:1 chat id with current user (global user search) */
   dm_chat_id?: number | null;
+  /** Account has a trusted device fingerprint (new logins may require approval there). */
+  has_trusted_device?: boolean;
 }
 
 export interface Contact {
@@ -132,4 +134,6 @@ export interface Session {
   is_current: boolean;
   city: string | null;
   country: string | null;
+  /** Session fingerprint matches account trusted device (see Privacy & Security). */
+  is_trusted?: boolean;
 }
