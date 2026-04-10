@@ -113,7 +113,9 @@ export default function ProfileTotp() {
   return (
     <div className={styles.backupCodesBlock}>
       <h3 className={styles.backupCodesHeading}>{t('profile.totpTitle')}</h3>
-      <p className={styles.backupCodesDescription}>{t('profile.totpDescription')}</p>
+      <p className={styles.backupCodesDescription}>
+        {t('profile.totpDescription')}
+      </p>
 
       {message ? (
         <p className={styles.backupCodesCount} role='alert'>
@@ -123,7 +125,9 @@ export default function ProfileTotp() {
 
       {totpOn ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <p className={styles.backupCodesCount}>{t('profile.totpEnabledStatus')}</p>
+          <p className={styles.backupCodesCount}>
+            {t('profile.totpEnabledStatus')}
+          </p>
           <input
             type='password'
             autoComplete='current-password'
@@ -138,7 +142,9 @@ export default function ProfileTotp() {
             autoComplete='one-time-code'
             placeholder={t('profile.totpCodePlaceholder')}
             value={disableCode}
-            onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            onChange={(e) =>
+              setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))
+            }
             disabled={busy}
             style={{ padding: '8px 10px', borderRadius: 8 }}
           />
@@ -207,11 +213,16 @@ export default function ProfileTotp() {
             autoComplete='one-time-code'
             placeholder={t('profile.totpCodePlaceholder')}
             value={confirmCode}
-            onChange={(e) => setConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            onChange={(e) =>
+              setConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 6))
+            }
             disabled={busy}
             style={{ padding: '8px 10px', borderRadius: 8 }}
           />
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Button type='button' disabled={busy} onClick={cancelSetup}>
+              {t('buttons.cancel')}
+            </Button>
             <Button
               type='button'
               disabled={busy || confirmCode.length !== 6}
@@ -219,9 +230,6 @@ export default function ProfileTotp() {
               className={styles.backupCodesButton}
             >
               {busy ? '…' : t('profile.totpConfirmEnable')}
-            </Button>
-            <Button type='button' disabled={busy} onClick={cancelSetup}>
-              {t('buttons.cancel')}
             </Button>
           </div>
         </div>

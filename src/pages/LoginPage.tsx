@@ -72,8 +72,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
       if (name === 'username' || name === 'password') {
         dismissPasswordLoginTotp();
       }
-      const next =
-        name === 'password' ? value : normalizeEmailInput(value);
+      const next = name === 'password' ? value : normalizeEmailInput(value);
 
       setFormData((prev) => ({
         ...prev,
@@ -186,7 +185,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
             inputMode='email'
             autoCapitalize='none'
             spellCheck={false}
-            style={{ textTransform: 'lowercase' }}
           />
         </fieldset>
         <fieldset className={styles['form']}>
@@ -211,9 +209,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
         <button
           type='button'
           className={styles['next-button']}
-          disabled={
-            formDisabled || !formData.username || !formData.password
-          }
+          disabled={formDisabled || !formData.username || !formData.password}
           onClick={() => void handleLogin()}
         >
           {loginBusy ? t('login.loggingIn') : t('buttons.next')}

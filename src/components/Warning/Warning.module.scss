@@ -40,11 +40,9 @@
 @keyframes warn-slide-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -164,9 +162,9 @@
   height: 45px;
   padding: 0 16px;
   border-radius: 32px;
-  border: 1px solid var(--secondaryColor);
-  background: transparent;
-  color: var(--messageMainColor, #fff);
+  border: 1px solid var(--secondaryColor) !important;
+  background: transparent !important;
+  color: var(--messageMainColor, #fff) !important;
   font-family: 'SFProRounded', sans-serif;
   font-size: 1.125rem;
   font-weight: 500;
@@ -187,9 +185,9 @@
   height: 45px;
   padding: 0 16px;
   border-radius: 32px;
-  border: none;
-  background: var(--mainColor);
-  color: var(--input_submit_color, #fff);
+  border: none !important;
+  background: var(--mainColor) !important;
+  color: var(--input_submit_color, #fff) !important;
   font-family: 'SFProRounded', sans-serif;
   font-size: 1.125rem;
   font-weight: 500;

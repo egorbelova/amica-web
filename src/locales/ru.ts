@@ -67,6 +67,16 @@ export default {
     signOut: 'Выйти',
     languageDescription: 'Выберите предпочитаемый язык.',
     privacyDescription: 'Управление настройками конфиденциальности и безопасности, включая passkeys.',
+    passkeysTitle: 'Passkeys',
+    passkeysDescription:
+      'Вход без пароля с этого устройства или с аппаратного ключа. Удаляйте passkey, которыми больше не пользуетесь.',
+    passkeysEmpty: 'Passkeys пока нет.',
+    passkeysLoadError: 'Не удалось загрузить список passkeys.',
+    passkeyAdded: 'Добавлен {date}',
+    revokePasskey: 'Удалить',
+    revokePasskeyConfirmTitle: 'Удалить этот passkey?',
+    revokePasskeyConfirmBody:
+      'Вход с этим passkey станет невозможен. Новый можно добавить в любой момент.',
     appearance: 'Оформление',
     appearanceDescription: 'Настройте внешний вид и параметры.',
     autoplayVideos: 'Автовоспроизведение видео',
@@ -135,6 +145,9 @@ export default {
     lastActive: 'Последняя активность',
     terminate: 'Завершить',
     terminateOthers: 'Завершить другие сессии',
+    terminateOthersConfirmTitle: 'Завершить другие сессии?',
+    terminateOthersConfirmBody:
+      'На всех других устройствах произойдёт выход. Эта сессия останется активной.',
     week: '1 неделя',
     weeks2: '2 недели',
     month: '1 месяц',
@@ -170,6 +183,11 @@ export default {
     emailNotVerified: 'Подтвердите почту по ссылке из письма, затем войдите.',
     emailVerifiedBanner: 'Email подтверждён. Можно войти.',
     deviceLoginTitle: 'Вход с этого устройства',
+    deviceLoginEmailTitle: 'Проверьте почту',
+    deviceLoginEmailIntro:
+      'Мы отправили 6-значный код на адрес этой учётной записи. Письмо может прийти не сразу.',
+    deviceLoginEmailHint: 'Введите код из письма ниже.',
+    deviceLoginResendEmail: 'Отправить письмо снова',
     deviceLoginTrustedWhereHint:
       'Код показывается на том устройстве или во вкладке браузера, где вы уже вошли в Amica — откройте приложение и найдите предупреждение безопасности.',
     deviceLoginTrustedDeviceIntro:

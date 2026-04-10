@@ -67,6 +67,15 @@ export default {
     signOut: '退出登录',
     languageDescription: '选择您的首选语言。',
     privacyDescription: '管理隐私和安全设置，包括 passkeys。',
+    passkeysTitle: '通行密钥',
+    passkeysDescription:
+      '使用本设备或安全密钥免密码登录。可移除不再使用的通行密钥。',
+    passkeysEmpty: '暂无通行密钥。',
+    passkeysLoadError: '无法加载通行密钥。',
+    passkeyAdded: '添加于 {date}',
+    revokePasskey: '移除',
+    revokePasskeyConfirmTitle: '移除此通行密钥？',
+    revokePasskeyConfirmBody: '移除后将无法用其登录。可随时添加新的通行密钥。',
     appearance: '外观',
     appearanceDescription: '自定义外观和设置。',
     autoplayVideos: '自动播放视频',
@@ -106,6 +115,8 @@ export default {
     lastActive: '最后活动',
     terminate: '终止',
     terminateOthers: '终止其他会话',
+    terminateOthersConfirmTitle: '终止其他会话？',
+    terminateOthersConfirmBody: '其他所有设备将退出登录。本会话保持登录。',
     week: '1 周',
     weeks2: '2 周',
     month: '1 个月',
@@ -141,6 +152,11 @@ export default {
     emailNotVerified: 'Confirm your email using the link we sent before you sign in.',
     emailVerifiedBanner: 'Your email is confirmed. You can sign in.',
     deviceLoginTitle: 'Confirm on trusted device',
+    deviceLoginEmailTitle: 'Check your email',
+    deviceLoginEmailIntro:
+      'We sent a 6-digit code to this account’s email. It may take a minute.',
+    deviceLoginEmailHint: 'Enter the code from that email below.',
+    deviceLoginResendEmail: 'Resend email',
     deviceLoginTrustedWhereHint:
       'The code appears where you’re already signed in to Amica — another phone, tablet, or browser tab — in a security alert.',
     deviceLoginTrustedDeviceIntro:

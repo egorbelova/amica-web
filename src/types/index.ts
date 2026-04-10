@@ -139,3 +139,8 @@ export interface Session {
   /** Session fingerprint matches account trusted device (see Privacy & Security). */
   is_trusted?: boolean;
 }
+
+export interface PasskeyCredentialItem {
+  id: string;
+  created_at: string;
+}

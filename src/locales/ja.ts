@@ -67,6 +67,16 @@ export default {
     signOut: 'サインアウト',
     languageDescription: 'お好みの言語を選択してください。',
     privacyDescription: 'passkeysなどのプライバシーとセキュリティを管理します。',
+    passkeysTitle: 'パスキー',
+    passkeysDescription:
+      'このデバイスまたはセキュリティキーでパスワードなしでサインインします。不要になったパスキーは削除できます。',
+    passkeysEmpty: 'パスキーはまだありません。',
+    passkeysLoadError: 'パスキーを読み込めませんでした。',
+    passkeyAdded: '追加 {date}',
+    revokePasskey: '削除',
+    revokePasskeyConfirmTitle: 'このパスキーを削除しますか？',
+    revokePasskeyConfirmBody:
+      'このパスキーではサインインできなくなります。いつでも新しいパスキーを追加できます。',
     appearance: '外観',
     appearanceDescription: '外観と設定をカスタマイズ。',
     autoplayVideos: '動画を自動再生',
@@ -106,6 +116,9 @@ export default {
     lastActive: '最終アクティブ',
     terminate: '終了',
     terminateOthers: '他のセッションを終了',
+    terminateOthersConfirmTitle: '他のセッションを終了しますか？',
+    terminateOthersConfirmBody:
+      '他のすべてのデバイスからサインアウトします。このセッションは維持されます。',
     week: '1週間',
     weeks2: '2週間',
     month: '1か月',
@@ -141,6 +154,11 @@ export default {
     emailNotVerified: 'Confirm your email using the link we sent before you sign in.',
     emailVerifiedBanner: 'Your email is confirmed. You can sign in.',
     deviceLoginTitle: 'Confirm on trusted device',
+    deviceLoginEmailTitle: 'Check your email',
+    deviceLoginEmailIntro:
+      'We sent a 6-digit code to this account’s email. It may take a minute.',
+    deviceLoginEmailHint: 'Enter the code from that email below.',
+    deviceLoginResendEmail: 'Resend email',
     deviceLoginTrustedWhereHint:
       'The code appears where you’re already signed in to Amica — another phone, tablet, or browser tab — in a security alert.',
     deviceLoginTrustedDeviceIntro:

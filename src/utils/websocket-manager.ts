@@ -55,6 +55,7 @@ export interface WebSocketMessageData {
 export interface WebSocketMessage {
   type: string;
   request_id?: number;
+  challenge_id?: string;
   /** get_active_sessions / error(active_sessions) correlation */
   code?: string;
   /** revoke_session target */
@@ -162,6 +163,11 @@ interface WebSocketEventMap {
     request_city?: string;
     request_country?: string;
     request_device?: string;
+  }) => void;
+  device_login_status: (data: {
+    challenge_id?: string;
+    status?: string;
+    error?: string;
   }) => void;
 }
 
@@ -491,6 +497,9 @@ class WebSocketManager {
             break;
           case 'device_login_pending':
             this.emit('device_login_pending', data);
+            break;
+          case 'device_login_status':
+            this.emit('device_login_status', data);
             break;
         }
       };

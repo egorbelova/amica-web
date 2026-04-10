@@ -67,6 +67,16 @@ export default {
     signOut: 'تسجيل الخروج',
     languageDescription: 'اختر لغتك المفضلة.',
     privacyDescription: 'إدارة إعدادات الخصوصية والأمان مثل passkeys.',
+    passkeysTitle: 'مفاتيح المرور',
+    passkeysDescription:
+      'تسجيل الدخول بدون كلمة مرور باستخدام هذا الجهاز أو مفتاح أمان. أزل مفاتيح المرور التي لم تعد تستخدمها.',
+    passkeysEmpty: 'لا توجد مفاتيح مرور بعد.',
+    passkeysLoadError: 'تعذّر تحميل مفاتيح المرور.',
+    passkeyAdded: 'أُضيف في {date}',
+    revokePasskey: 'إزالة',
+    revokePasskeyConfirmTitle: 'إزالة مفتاح المرور هذا؟',
+    revokePasskeyConfirmBody:
+      'لن تتمكن من تسجيل الدخول به. يمكنك إضافة مفتاح جديد في أي وقت.',
     appearance: 'المظهر',
     appearanceDescription: 'تخصيص المظهر والإعدادات.',
     autoplayVideos: 'تشغيل الفيديو تلقائياً',
@@ -106,6 +116,9 @@ export default {
     lastActive: 'آخر نشاط',
     terminate: 'إنهاء',
     terminateOthers: 'إنهاء الجلسات الأخرى',
+    terminateOthersConfirmTitle: 'إنهاء الجلسات الأخرى؟',
+    terminateOthersConfirmBody:
+      'سيتم تسجيل الخروج من جميع الأجهزة الأخرى. تبقى هذه الجلسة نشطة.',
     week: 'أسبوع واحد',
     weeks2: 'أسبوعان',
     month: 'شهر واحد',
@@ -142,6 +155,11 @@ export default {
       'Confirm your email using the link we sent before you sign in.',
     emailVerifiedBanner: 'Your email is confirmed. You can sign in.',
     deviceLoginTitle: 'Confirm on trusted device',
+    deviceLoginEmailTitle: 'Check your email',
+    deviceLoginEmailIntro:
+      'We sent a 6-digit code to this account’s email. It may take a minute.',
+    deviceLoginEmailHint: 'Enter the code from that email below.',
+    deviceLoginResendEmail: 'Resend email',
     deviceLoginTrustedWhereHint:
       'The code appears where you’re already signed in to Amica — another phone, tablet, or browser tab — in a security alert.',
     deviceLoginTrustedDeviceIntro:

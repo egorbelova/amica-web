@@ -114,7 +114,25 @@ export function useWsActiveSessions(options?: UseWsActiveSessionsOptions) {
           break;
         }
         case 'session_lifetime_updated':
-          onLifetimeRef.current?.(data.days!);
+          {
+            const payload = data as WebSocketMessage & {
+              days?: number | string;
+              expires_at_by_jti?: Record<string, string>;
+            };
+            if (payload.expires_at_by_jti) {
+              setSessions((prev) =>
+                prev.map((session) => ({
+                  ...session,
+                  expires_at:
+                    payload.expires_at_by_jti?.[session.jti] ?? session.expires_at,
+                })),
+              );
+            }
+            const daysValue = Number(payload.days);
+            if (Number.isFinite(daysValue) && daysValue > 0) {
+              onLifetimeRef.current?.(daysValue);
+            }
+          }
           break;
       }
     },

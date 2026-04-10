@@ -67,6 +67,16 @@ export default {
     signOut: 'Se déconnecter',
     languageDescription: 'Sélectionnez votre langue préférée.',
     privacyDescription: 'Gérez confidentialité et sécurité, dont les passkeys.',
+    passkeysTitle: 'Passkeys',
+    passkeysDescription:
+      'Connexion sans mot de passe avec cet appareil ou une clé de sécurité. Retirez les passkeys dont vous n’avez plus besoin.',
+    passkeysEmpty: 'Aucun passkey pour l’instant.',
+    passkeysLoadError: 'Impossible de charger les passkeys.',
+    passkeyAdded: 'Ajouté le {date}',
+    revokePasskey: 'Retirer',
+    revokePasskeyConfirmTitle: 'Retirer ce passkey ?',
+    revokePasskeyConfirmBody:
+      'Vous ne pourrez plus vous connecter avec. Vous pourrez en ajouter un nouveau à tout moment.',
     appearance: 'Apparence',
     appearanceDescription: 'Personnalisez votre apparence et vos paramètres.',
     autoplayVideos: 'Lecture automatique des vidéos',
@@ -106,6 +116,9 @@ export default {
     lastActive: 'Dernière activité',
     terminate: 'Terminer',
     terminateOthers: 'Terminer les autres sessions',
+    terminateOthersConfirmTitle: 'Terminer les autres sessions ?',
+    terminateOthersConfirmBody:
+      'Tous les autres appareils seront déconnectés. Cette session reste active.',
     week: '1 semaine',
     weeks2: '2 semaines',
     month: '1 mois',
@@ -141,6 +154,11 @@ export default {
     emailNotVerified: 'Confirm your email using the link we sent before you sign in.',
     emailVerifiedBanner: 'Your email is confirmed. You can sign in.',
     deviceLoginTitle: 'Confirm on trusted device',
+    deviceLoginEmailTitle: 'Check your email',
+    deviceLoginEmailIntro:
+      'We sent a 6-digit code to this account’s email. It may take a minute.',
+    deviceLoginEmailHint: 'Enter the code from that email below.',
+    deviceLoginResendEmail: 'Resend email',
     deviceLoginTrustedWhereHint:
       'The code appears where you’re already signed in to Amica — another phone, tablet, or browser tab — in a security alert.',
     deviceLoginTrustedDeviceIntro:

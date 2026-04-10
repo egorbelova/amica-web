@@ -165,26 +165,80 @@
 }
 
 .backupCodesButton {
-  align-self: stretch;
-  cursor: pointer;
-  width: 100% !important;
-  min-height: 45px !important;
-  height: auto !important;
   background: var(--mainColor) !important;
   color: var(--input_submit_color, #fff) !important;
-  border: 1px solid var(--surface-border, rgba(255, 255, 255, 0.12)) !important;
-  box-shadow: var(--glass-shadow);
-  font-weight: 500;
-  font-size: 1rem !important;
-
-  &:hover {
-    filter: brightness(1.06);
-  }
+  flex: 1;
+  min-height: 30px;
+  width: 100% !important;
 
   &:disabled {
     cursor: not-allowed;
     opacity: 0.65;
   }
+}
+
+.passkeysBlock {
+  width: 100%;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--surface-border, rgba(127, 127, 127, 0.25));
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.passkeysHeading {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.passkeysDescription {
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0;
+  opacity: 0.85;
+  color: var(--color-text);
+}
+
+.passkeysError {
+  font-size: 13px;
+  margin: 0;
+  color: var(--dangerColor, #c44);
+}
+
+.passkeysMuted {
+  font-size: 13px;
+  margin: 0;
+  opacity: 0.75;
+  color: var(--color-text);
+}
+
+.passkeysList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.passkeysRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.passkeysLabel {
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.passkeysRevokeBtn {
+  height: 30px !important;
 }
 
 .sessionsList {
@@ -272,7 +326,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  padding: 0 4px 4px;
 }
 
 .currentLabel {
@@ -316,39 +369,83 @@
 }
 
 .sessionItem {
+  padding: 8px 0;
+}
+
+.sessionPreviewBtn {
+  width: 100%;
+  border-bottom: 1px solid var(--surface-border, rgba(127, 127, 127, 0.3));
+  padding: 12px 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  // border-bottom: #999 solid 1px;
-  padding: 8px 0;
+  text-align: left;
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  color: inherit;
+  cursor: pointer;
+}
 
-  .sessionInfo {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 15px;
+.currentSession {
+  border: none;
+}
 
-    &.currentSession {
-      border: 2px solid rgb(255, 255, 255);
-      border-radius: 36px;
-    }
+.device {
+  font-weight: 500;
+}
 
-    .device {
-      font-weight: 500;
-    }
-    .subInfo {
-      color: var(--secondaryColor);
-      font-size: 0.875rem;
-    }
+.warning__info-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.warning__info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.warning__sessionIllustration {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+
+  img {
+    width: min(140px, 100%);
+    height: auto;
+    object-fit: contain;
   }
+}
 
-  .revokeBtn {
-    cursor: pointer;
-    background-color: rgb(62, 118, 209);
-    color: #fff;
-    width: 100% !important;
-    height: 35px !important;
-  }
+.subInfoValue {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.subInfoLabel {
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--color-text);
+}
+
+.subInfo {
+  color: var(--secondaryColor);
+  font-size: 0.875rem;
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.revokeBtn {
+  cursor: pointer;
+  background: var(--mainColor) !important;
+  color: #fff;
+  width: 100% !important;
+  height: 35px !important;
 }
 
 .revokeAllBtn {
@@ -460,7 +557,8 @@
 .content {
   padding: calc(var(--sat) + 70px) 0px
     calc(
-      var(--main-navigation-height) + var(--new-wallpaper-height) + var(--sab)
+      var(--main-navigation-height) + var(--new-wallpaper-height) + var(--sab) +
+        20px
     )
     0px;
   width: 100%;
@@ -620,6 +718,7 @@
 
   &__title {
     font-size: 1.25rem;
+    font-family: 'SFProRounded', sans-serif;
     font-weight: 600;
   }
 
@@ -632,6 +731,12 @@
 .maximize {
   height: 30px !important;
   width: 45px !important;
+}
+
+.sessionLifetime {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .sessionLifetimeDropdown {

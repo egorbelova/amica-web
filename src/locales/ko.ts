@@ -67,6 +67,16 @@ export default {
     signOut: '로그아웃',
     languageDescription: '원하는 언어를 선택하세요.',
     privacyDescription: 'passkeys 등 개인정보 및 보안을 관리합니다.',
+    passkeysTitle: '패스키',
+    passkeysDescription:
+      '이 기기나 보안 키로 비밀번호 없이 로그인합니다. 더 이상 쓰지 않는 패스키는 제거하세요.',
+    passkeysEmpty: '등록된 패스키가 없습니다.',
+    passkeysLoadError: '패스키를 불러오지 못했습니다.',
+    passkeyAdded: '추가됨 {date}',
+    revokePasskey: '제거',
+    revokePasskeyConfirmTitle: '이 패스키를 제거할까요?',
+    revokePasskeyConfirmBody:
+      '이 패스키로는 더 이상 로그인할 수 없습니다. 언제든 새로 추가할 수 있습니다.',
     appearance: '테마',
     appearanceDescription: '테마와 설정을 맞춤 설정하세요.',
     autoplayVideos: '동영상 자동 재생',
@@ -106,6 +116,9 @@ export default {
     lastActive: '마지막 활동',
     terminate: '종료',
     terminateOthers: '다른 세션 종료',
+    terminateOthersConfirmTitle: '다른 세션을 종료할까요?',
+    terminateOthersConfirmBody:
+      '다른 모든 기기에서 로그아웃됩니다. 이 세션은 유지됩니다.',
     week: '1주',
     weeks2: '2주',
     month: '1개월',
@@ -141,6 +154,11 @@ export default {
     emailNotVerified: 'Confirm your email using the link we sent before you sign in.',
     emailVerifiedBanner: 'Your email is confirmed. You can sign in.',
     deviceLoginTitle: 'Confirm on trusted device',
+    deviceLoginEmailTitle: 'Check your email',
+    deviceLoginEmailIntro:
+      'We sent a 6-digit code to this account’s email. It may take a minute.',
+    deviceLoginEmailHint: 'Enter the code from that email below.',
+    deviceLoginResendEmail: 'Resend email',
     deviceLoginTrustedWhereHint:
       'The code appears where you’re already signed in to Amica — another phone, tablet, or browser tab — in a security alert.',
     deviceLoginTrustedDeviceIntro:

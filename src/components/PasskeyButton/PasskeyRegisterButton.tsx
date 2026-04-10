@@ -22,7 +22,13 @@ function bufferToBase64Url(buffer: ArrayBuffer): string {
     .replace(/=+$/, '');
 }
 
-export default function PasskeyRegisterButton() {
+type PasskeyRegisterButtonProps = {
+  onRegistered?: () => void;
+};
+
+export default function PasskeyRegisterButton({
+  onRegistered,
+}: PasskeyRegisterButtonProps) {
   const { user, applyDeviceChallenge } = useUser();
   const handleRegister = async () => {
     try {
@@ -42,7 +48,7 @@ export default function PasskeyRegisterButton() {
       }
 
       const options = await startRes.json();
-      const publicKey = {
+      const publicKey: PublicKeyCredentialCreationOptions = {
         challenge: base64UrlToUint8Array(options.challenge),
         rp: options.rp,
         user: {
@@ -55,6 +61,20 @@ export default function PasskeyRegisterButton() {
         authenticatorSelection: options.authenticatorSelection,
         attestation: options.attestation || 'none',
       };
+      const excluded = options.excludeCredentials as
+        | { id: string; type: string; transports?: string[] }[]
+        | undefined;
+      if (excluded?.length) {
+        publicKey.excludeCredentials = excluded.map((c) => ({
+          type: c.type as PublicKeyCredentialType,
+          id: base64UrlToUint8Array(c.id),
+          ...(c.transports?.length
+            ? {
+                transports: c.transports as AuthenticatorTransport[],
+              }
+            : {}),
+        }));
+      }
 
       const credential = (await navigator.credentials.create({
         publicKey,
@@ -91,6 +111,7 @@ export default function PasskeyRegisterButton() {
         return;
       }
       if (finishData.needs_device_confirmation && finishData.challenge_id) {
+        onRegistered?.();
         applyDeviceChallenge({
           challenge_id: finishData.challenge_id as string,
           ...(typeof finishData.trusted_device === 'string' &&
@@ -100,6 +121,7 @@ export default function PasskeyRegisterButton() {
         });
         return;
       }
+      onRegistered?.();
     } catch (e) {
       console.error('Registration failed:', e);
     }

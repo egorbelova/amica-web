@@ -1,8 +1,6 @@
-import PasskeyRegisterButton from '../PasskeyButton/PasskeyRegisterButton';
+import ProfilePasskeys from './ProfilePasskeys';
 import ProfileBackupCodes from './ProfileBackupCodes';
 import ProfileTotp from './ProfileTotp';
-import ProfileTrustedDeviceNote from './ProfileTrustedDeviceNote';
-import ProfileTrustedDevices from './ProfileTrustedDevices';
 import styles from './Profile.module.scss';
 import ProfileTabDescription from './ProfileTabDescription';
 import { useTranslation } from '@/contexts/languageCore';
@@ -17,9 +15,7 @@ export default function ProfilePrivacy() {
         iconName='Privacy'
         backgroundColor='#666'
       />
-      <ProfileTrustedDeviceNote />
-      <ProfileTrustedDevices />
-      <PasskeyRegisterButton />
+      <ProfilePasskeys />
       <ProfileTotp />
       <ProfileBackupCodes />
     </div>

@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import Button from '@/components/ui/button/Button';
 import styles from './Warning.module.scss';
 
 const AlertIcon = () => (
@@ -37,7 +39,9 @@ const Warning = ({
 }) => {
   const hasConfirm = Boolean(confirmLabel && onConfirm);
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  const modal = (
     <div
       className={styles.backdrop}
       role='alertdialog'
@@ -58,8 +62,9 @@ const Warning = ({
           >
             {hasConfirm ? (
               <>
-                <button
+                <Button
                   type='button'
+                  style={{ width: '100%' }}
                   className={styles.dismiss}
                   onClick={() => {
                     onDismissAction?.();
@@ -67,9 +72,10 @@ const Warning = ({
                   }}
                 >
                   {dismissLabel ?? 'Cancel'}
-                </button>
-                <button
+                </Button>
+                <Button
                   type='button'
+                  style={{ width: '100%' }}
                   className={styles.confirm}
                   onClick={() => {
                     onConfirm?.();
@@ -77,11 +83,12 @@ const Warning = ({
                   }}
                 >
                   {confirmLabel}
-                </button>
+                </Button>
               </>
             ) : (
-              <button
+              <Button
                 type='button'
+                style={{ width: '100%' }}
                 className={styles.dismiss}
                 onClick={() => {
                   onDismissAction?.();
@@ -89,13 +96,15 @@ const Warning = ({
                 }}
               >
                 {dismissLabel ?? 'OK'}
-              </button>
+              </Button>
             )}
           </div>
         </div>
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 };
 
 export default Warning;

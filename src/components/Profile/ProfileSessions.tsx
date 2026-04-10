@@ -2,11 +2,15 @@ import styles from './Profile.module.scss';
 import { useTranslation } from '@/contexts/languageCore';
 import { useState, useCallback } from 'react';
 import { useUser } from '@/contexts/UserContextCore';
+import { useWarning } from '@/contexts/warning/WarningContextCore';
 import { Dropdown } from '../Dropdown/Dropdown';
 import { websocketManager } from '@/utils/websocket-manager';
 import ProfileTabDescription from './ProfileTabDescription';
-import Button from '../ui/button/Button';
 import { useWsActiveSessions } from './useWsActiveSessions';
+import Button from '../ui/button/Button';
+import { isPcSessionFormFactor } from '@/utils/sessionFormFactor';
+import pcSessionImg from '@/assets/images/sessions/pc.webp';
+import phoneSessionImg from '@/assets/images/sessions/phone.webp';
 
 const SESSION_LIFETIME_KEYS: Record<number, string> = {
   7: 'sessions.week',
@@ -42,7 +46,7 @@ export default function ProfileSessions() {
   const [sessionLifetime, setSessionLifetime] = useState<number>(
     user?.preferred_session_lifetime_days || 0,
   );
-  const [savingLifetime, setSavingLifetime] = useState(false);
+  const { showWarning } = useWarning();
 
   const onSessionLifetimeUpdated = useCallback(
     (days: number) => {
@@ -57,7 +61,6 @@ export default function ProfileSessions() {
   });
 
   const updateSessionLifetime = async (value: number) => {
-    setSavingLifetime(true);
     setSessionLifetime(value);
     if (user) setUser({ ...user, preferred_session_lifetime_days: value });
 
@@ -65,20 +68,107 @@ export default function ProfileSessions() {
       type: 'set_session_lifetime',
       days: value,
     });
-
-    setSavingLifetime(false);
   };
 
-  const revokeSession = (jti: string) => {
+  const revokeSession = useCallback((jti: string) => {
     websocketManager.sendMessage({
       type: 'revoke_session',
       jti,
     });
-  };
+  }, []);
 
-  const revokeOtherSessions = () => {
+  const sendRevokeOtherSessions = useCallback(() => {
     websocketManager.sendMessage({ type: 'revoke_other_sessions' });
-  };
+  }, []);
+
+  const confirmRevokeOtherSessions = useCallback(() => {
+    showWarning({
+      title: t('sessions.terminateOthersConfirmTitle'),
+      body: (
+        <p style={{ margin: 0, lineHeight: 1.45 }}>
+          {t('sessions.terminateOthersConfirmBody')}
+        </p>
+      ),
+      dismissLabel: t('buttons.cancel'),
+      confirmLabel: t('sessions.terminate'),
+      onConfirm: sendRevokeOtherSessions,
+    });
+  }, [sendRevokeOtherSessions, showWarning, t]);
+
+  const openSessionDetails = useCallback(
+    (session: (typeof sessions)[number]) => {
+      const location =
+        [session.city, session.country].filter(Boolean).join(', ') || 'Unknown';
+      const sessionImg = isPcSessionFormFactor(session)
+        ? pcSessionImg
+        : phoneSessionImg;
+      showWarning({
+        title: session.device,
+        body: (
+          <div className={styles.warning__info}>
+            <div className={styles.warning__sessionIllustration} aria-hidden>
+              <img src={sessionImg} alt='' />
+            </div>
+            <p className={styles['warning__info-item']}>
+              <span className={styles.subInfoLabel}>
+                {t('sessions.device')}
+              </span>
+              <span className={styles.subInfoValue}>{session.device}</span>
+            </p>
+            <p className={styles['warning__info-item']}>
+              <span className={styles.subInfoLabel}>
+                {t('sessions.ipAddress')}
+              </span>
+              <span className={styles.subInfoValue}>{session.ip_address}</span>
+            </p>
+            <p className={styles['warning__info-item']}>
+              <span className={styles.subInfoLabel}>
+                {t('sessions.location')}
+              </span>
+              <span className={styles.subInfoValue}>{location}</span>
+            </p>
+            <p className={styles['warning__info-item']}>
+              <span className={styles.subInfoLabel}>
+                {t('sessions.created')}
+              </span>
+              <span className={styles.subInfoValue}>
+                {formatDate(session.created_at)}
+              </span>
+            </p>
+            <p className={styles['warning__info-item']}>
+              <span className={styles.subInfoLabel}>
+                {t('sessions.expires')}
+              </span>
+              <span className={styles.subInfoValue}>
+                {formatDate(session.expires_at)}
+              </span>
+            </p>
+            <p className={styles['warning__info-item']}>
+              <span className={styles.subInfoLabel}>
+                {t('sessions.lastActive')}
+              </span>
+              <span className={styles.subInfoValue}>
+                {formatDate(session.last_active)}
+              </span>
+            </p>
+          </div>
+        ),
+        dismissLabel: t('buttons.close'),
+        ...(session.is_current
+          ? {
+              confirmLabel: t('buttons.ok'),
+              onConfirm: () => {},
+            }
+          : !session.is_current
+            ? {
+                confirmLabel: t('sessions.terminate'),
+                onConfirm: () => revokeSession(session.jti),
+              }
+            : {}),
+      });
+    },
+    [formatDate, revokeSession, showWarning, t],
+  );
 
   if (loading) {
     return (
@@ -95,7 +185,7 @@ export default function ProfileSessions() {
         title={t('sessions.title')}
         description={t('sessions.description')}
         iconName='Sessions'
-        backgroundColor='#ff6600'
+        backgroundColor='#020202'
       />
       {error && <div className={styles.error}>⚠️ {error}</div>}
       <div className={styles.sessionLifetime}>
@@ -112,7 +202,6 @@ export default function ProfileSessions() {
             buttonStyles={styles.sessionLifetimeDropdown}
           />
         )}
-        {savingLifetime && <span>{t('sessions.saving')}</span>}
       </div>
 
       {sessions.length === 0 ? (
@@ -121,64 +210,38 @@ export default function ProfileSessions() {
         <div className={styles.sessionsList}>
           {sessions.map((session) => (
             <div key={session.jti} className={styles.sessionItem}>
-              <div className={styles.sessionLabels}>
-                {session.is_current ? (
-                  <span className={styles.currentLabel}>
-                    {t('sessions.thisDevice')}
-                  </span>
-                ) : null}
-                {session.is_trusted ? (
-                  <span className={styles.trustedBadge}>
-                    {t('sessions.trustedDeviceBadge')}
-                  </span>
-                ) : null}
-              </div>
-
-              <div
-                className={`${styles.sessionInfo} ${
+              <button
+                type='button'
+                className={`${styles.sessionPreviewBtn} ${
                   session.is_current ? styles.currentSession : ''
                 }`}
+                onClick={() => openSessionDetails(session)}
               >
+                {session.is_current ? (
+                  <div className={styles.sessionLabels}>
+                    <span className={styles.currentLabel}>
+                      {t('sessions.thisDevice')}
+                    </span>
+                  </div>
+                ) : null}
                 <span className={styles.device}>{session.device}</span>
-
-                <span className={styles.subInfo}>
-                  {t('sessions.ipAddress')} {session.ip_address}
-                </span>
-
-                <span className={styles.subInfo}>
-                  {session.city ? `${session.city}, ` : ''}
-                  {session.country ? session.country : ''}
-                </span>
-
-                <span className={styles.subInfo}>
-                  {t('sessions.created')} {formatDate(session.created_at)}
-                </span>
-
-                <span className={styles.subInfo}>
-                  {t('sessions.expires')} {formatDate(session.expires_at)}
-                </span>
-
+                {(session.city || session.country) && (
+                  <span className={styles.subInfo}>
+                    {[session.city, session.country].filter(Boolean).join(', ')}
+                  </span>
+                )}
                 <span className={styles.subInfo}>
                   {t('sessions.lastActive')} {formatDate(session.last_active)}
                 </span>
-              </div>
-
-              {!session.is_current && (
+              </button>
+              {session.is_current ? (
                 <Button
                   className={styles.revokeBtn}
-                  onClick={() => revokeSession(session.jti)}
-                >
-                  {t('sessions.terminate')}
-                </Button>
-              )}
-              {session.is_current && sessions.length > 1 && (
-                <Button
-                  className={`${styles.revokeBtn} ${styles.revokeAllBtn}`}
-                  onClick={revokeOtherSessions}
+                  onClick={() => confirmRevokeOtherSessions()}
                 >
                   {t('sessions.terminateOthers')}
                 </Button>
-              )}
+              ) : null}
             </div>
           ))}
         </div>

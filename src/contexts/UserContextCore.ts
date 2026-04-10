@@ -66,13 +66,18 @@ export interface UserContextType extends UserState {
   logout: () => Promise<void>;
   /** Clear global auth error (e.g. device-login poll failure) without logging out. */
   dismissAuthError: () => void;
-  /** New device: poll until trusted device confirms; trusted device label when known. */
-  pendingDeviceLogin: { challengeId: string; trustedDeviceLabel?: string } | null;
+  /** New device: wait for WS challenge status; trusted device label when known. */
+  pendingDeviceLogin: {
+    challengeId: string;
+    trustedDeviceLabel?: string;
+    delivery?: 'trusted_device' | 'email';
+  } | null;
   dismissPendingDeviceLogin: () => void;
   /** e.g. passkey register/finish returned needs_device_confirmation */
   applyDeviceChallenge: (r: {
     challenge_id: string;
     trusted_device?: string;
+    delivery?: 'trusted_device' | 'email';
   }) => void;
   /** Shown once after first full session when server issues backup codes */
   pendingBackupCodes: string[] | null;

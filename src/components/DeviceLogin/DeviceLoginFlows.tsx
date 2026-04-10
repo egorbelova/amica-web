@@ -156,6 +156,7 @@ export function TrustedDeviceLoginWarningBody({
 
 export function DeviceLoginPendingOverlay({
   trustedDeviceLabel,
+  delivery = 'trusted_device',
   onCancel,
   onSubmitOtp,
   otpBusy,
@@ -169,6 +170,8 @@ export function DeviceLoginPendingOverlay({
 }: {
   /** Trusted session’s browser/OS (no versions), from server; empty if unknown. */
   trustedDeviceLabel?: string;
+  /** `email` = code sent by email (no other active sessions). */
+  delivery?: 'trusted_device' | 'email';
   onCancel: () => void;
   onSubmitOtp: (sixDigits: string) => void | Promise<void>;
   otpBusy?: boolean;
@@ -200,6 +203,7 @@ export function DeviceLoginPendingOverlay({
   }, [backupInput, onSubmitBackupCode]);
 
   const otpOk = otp.replace(/\D/g, '').length === 6;
+  const isEmailDelivery = delivery === 'email';
 
   return (
     <div
@@ -210,25 +214,40 @@ export function DeviceLoginPendingOverlay({
     >
       <div className={styles.modal}>
         <div className={styles.body}>
-          <h2 className={styles.title}>{t('login.deviceLoginTitle')}</h2>
-          <p className={styles.hint}>
-            {t('login.deviceLoginTrustedWhereHint')}
-          </p>
-          <div className={styles.requestDeviceBlock}>
-            {trustedDeviceLabel ? (
-              <>
-                <p className={styles.requestDeviceIntro}>
-                  {t('login.deviceLoginTrustedDeviceIntro')}
-                </p>
-                <p className={styles.requestDeviceName}>{trustedDeviceLabel}</p>
-              </>
-            ) : (
-              <p className={styles.requestDeviceIntro}>
-                {t('login.deviceLoginTrustedDeviceUnknown')}
+          <h2 className={styles.title}>
+            {isEmailDelivery
+              ? t('login.deviceLoginEmailTitle')
+              : t('login.deviceLoginTitle')}
+          </h2>
+          {isEmailDelivery ? (
+            <>
+              <p className={styles.hint}>{t('login.deviceLoginEmailIntro')}</p>
+              <p className={styles.hint}>{t('login.deviceLoginEmailHint')}</p>
+            </>
+          ) : (
+            <>
+              <p className={styles.hint}>
+                {t('login.deviceLoginTrustedWhereHint')}
               </p>
-            )}
-          </div>
-          <p className={styles.hint}>{t('login.deviceLoginHint')}</p>
+              <div className={styles.requestDeviceBlock}>
+                {trustedDeviceLabel ? (
+                  <>
+                    <p className={styles.requestDeviceIntro}>
+                      {t('login.deviceLoginTrustedDeviceIntro')}
+                    </p>
+                    <p className={styles.requestDeviceName}>
+                      {trustedDeviceLabel}
+                    </p>
+                  </>
+                ) : (
+                  <p className={styles.requestDeviceIntro}>
+                    {t('login.deviceLoginTrustedDeviceUnknown')}
+                  </p>
+                )}
+              </div>
+              <p className={styles.hint}>{t('login.deviceLoginHint')}</p>
+            </>
+          )}
           <form
             className={styles.otpIsolationForm}
             autoComplete='off'
@@ -283,7 +302,11 @@ export function DeviceLoginPendingOverlay({
                 onClick={() => void onResend()}
                 className={`${styles.btn} ${styles.btnBlock} ${styles.btnLink}`}
               >
-                {resendBusy ? '…' : t('login.deviceLoginResend')}
+                {resendBusy
+                  ? '…'
+                  : isEmailDelivery
+                    ? t('login.deviceLoginResendEmail')
+                    : t('login.deviceLoginResend')}
               </button>
             </>
           ) : null}

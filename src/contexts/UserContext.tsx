@@ -27,7 +27,6 @@ import type {
 } from './UserContextCore';
 import type { File as FileType } from '@/types';
 import { setLastUserId, getLastUserId, deleteChatState } from '@/utils/chatStateStorage';
-import { pollDeviceLoginUntilReady } from '@/utils/deviceLoginPoll';
 import {
   DeviceLoginPendingOverlay,
   TrustedDeviceLoginRequestBody,
@@ -140,6 +139,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const [pendingDeviceLogin, setPendingDeviceLogin] = useState<{
     challengeId: string;
     trustedDeviceLabel?: string;
+    delivery?: 'trusted_device' | 'email';
   } | null>(null);
 
   const fetchUser = useCallback(async () => {
@@ -385,8 +385,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         setDeviceResendError(null);
         setPasswordLoginNeedsTotp(false);
         const td = data.trusted_device;
+        const del = data.delivery;
         setPendingDeviceLogin({
           challengeId: data.challenge_id,
+          ...(del === 'email' || del === 'trusted_device'
+            ? { delivery: del }
+            : {}),
           ...(typeof td === 'string' && td.trim()
             ? { trustedDeviceLabel: td.trim() }
             : {}),
@@ -537,13 +541,20 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   );
 
   const applyDeviceChallenge = useCallback(
-    (r: { challenge_id: string; trusted_device?: string }) => {
+    (r: {
+      challenge_id: string;
+      trusted_device?: string;
+      delivery?: 'trusted_device' | 'email';
+    }) => {
       setDeviceOtpError(null);
       setDeviceResendError(null);
       setDeviceBackupCodeError(null);
       const td = r.trusted_device;
       setPendingDeviceLogin({
         challengeId: r.challenge_id,
+        ...(r.delivery === 'email' || r.delivery === 'trusted_device'
+          ? { delivery: r.delivery }
+          : {}),
         ...(typeof td === 'string' && td.trim()
           ? { trustedDeviceLabel: td.trim() }
           : {}),
@@ -556,39 +567,112 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     const challengeId = pendingDeviceLogin?.challengeId;
     if (!challengeId) return;
     let cancelled = false;
-    void pollDeviceLoginUntilReady(challengeId)
-      .then((r) => {
-        if (cancelled) return;
-        setPendingDeviceLogin(null);
-        if (r.backup_codes?.length) {
-          setPendingBackupCodes(r.backup_codes);
-        }
-        handleLoginSuccess({
-          access: r.access,
-          user: r.user as User,
-          refresh: undefined,
+
+    const failWith = (msg: string) => {
+      if (cancelled) return;
+      setPendingDeviceLogin(null);
+      setState((prev) => ({
+        ...prev,
+        error: msg,
+      }));
+    };
+
+    const finalizeApproved = async () => {
+      try {
+        const res = await fetch(`/api/device-login/poll/${challengeId}/`, {
+          method: 'GET',
+          credentials: 'include',
         });
-        if (!websocketManager.isConnected()) {
-          websocketManager.connect();
-        }
-      })
-      .catch((e) => {
-        if (!cancelled) {
+        const data = (await res.json()) as {
+          status?: string;
+          access?: string;
+          user?: unknown;
+          backup_codes?: string[];
+          error?: string;
+        };
+        if (cancelled) return;
+        if (res.ok && data.status === 'ok' && data.access) {
           setPendingDeviceLogin(null);
-          const msg =
-            e instanceof Error && e.message === 'DEVICE_LOGIN_REJECTED'
-              ? tSync('login.deviceLoginRejected')
-              : e instanceof Error
-                ? e.message
-                : 'Device confirmation failed';
-          setState((prev) => ({
-            ...prev,
-            error: msg,
-          }));
+          if (data.backup_codes?.length) {
+            setPendingBackupCodes(data.backup_codes);
+          }
+          handleLoginSuccess({
+            access: data.access,
+            user: data.user as User,
+            refresh: undefined,
+          });
+          if (!websocketManager.isConnected()) {
+            websocketManager.connect();
+          }
+          return;
         }
-      });
+        if (data.status === 'rejected') {
+          failWith(tSync('login.deviceLoginRejected'));
+          return;
+        }
+        if (res.status === 410 || data.status === 'expired') {
+          failWith('Device confirmation expired');
+          return;
+        }
+        if (res.status === 403 || data.error === 'wrong_client') {
+          failWith('Wrong client');
+          return;
+        }
+        failWith(String(data.error || 'Device confirmation failed'));
+      } catch {
+        failWith('Device confirmation failed');
+      }
+    };
+
+    const onStatus = (msg: {
+      challenge_id?: string;
+      status?: string;
+      error?: string;
+    }) => {
+      if (msg.challenge_id !== challengeId || cancelled) return;
+      if (msg.error) {
+        failWith(msg.error);
+        return;
+      }
+      if (msg.status === 'approved') {
+        void finalizeApproved();
+        return;
+      }
+      if (msg.status === 'rejected') {
+        failWith(tSync('login.deviceLoginRejected'));
+        return;
+      }
+      if (msg.status === 'expired') {
+        failWith('Device confirmation expired');
+      }
+    };
+
+    websocketManager.on('device_login_status', onStatus);
+    void (async () => {
+      try {
+        await websocketManager.waitForConnection();
+        if (cancelled) return;
+        const sent = websocketManager.sendMessage({
+          type: 'device_login_subscribe',
+          challenge_id: challengeId,
+        } as WebSocketMessage);
+        if (!sent) {
+          failWith('Device confirmation failed');
+        }
+      } catch {
+        failWith('Device confirmation failed');
+      }
+    })();
+
     return () => {
       cancelled = true;
+      websocketManager.off('device_login_status', onStatus);
+      if (websocketManager.isConnected()) {
+        websocketManager.sendMessage({
+          type: 'device_login_unsubscribe',
+          challenge_id: challengeId,
+        } as WebSocketMessage);
+      }
     };
   }, [pendingDeviceLogin?.challengeId, handleLoginSuccess]);
 
@@ -1017,6 +1101,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         {pendingDeviceLogin ? (
           <DeviceLoginPendingOverlay
             trustedDeviceLabel={pendingDeviceLogin.trustedDeviceLabel}
+            delivery={pendingDeviceLogin.delivery}
             onCancel={dismissPendingDeviceLogin}
             onSubmitOtp={submitDeviceLoginOtp}
             otpBusy={deviceOtpBusy}

@@ -67,6 +67,16 @@ export default {
     signOut: 'Abmelden',
     languageDescription: 'Wählen Sie Ihre bevorzugte Sprache.',
     privacyDescription: 'Verwalten Sie Datenschutz und Sicherheit, z. B. Passkeys.',
+    passkeysTitle: 'Passkeys',
+    passkeysDescription:
+      'Anmeldung ohne Passwort mit diesem Gerät oder einem Sicherheitsschlüssel. Entfernen Sie Passkeys, die Sie nicht mehr nutzen.',
+    passkeysEmpty: 'Noch keine Passkeys.',
+    passkeysLoadError: 'Passkeys konnten nicht geladen werden.',
+    passkeyAdded: 'Hinzugefügt {date}',
+    revokePasskey: 'Entfernen',
+    revokePasskeyConfirmTitle: 'Diesen Passkey entfernen?',
+    revokePasskeyConfirmBody:
+      'Sie können sich damit nicht mehr anmelden. Sie können jederzeit einen neuen hinzufügen.',
     appearance: 'Darstellung',
     appearanceDescription: 'Passen Sie Darstellung und Einstellungen an.',
     autoplayVideos: 'Videos automatisch abspielen',
@@ -106,6 +116,9 @@ export default {
     lastActive: 'Letzte Aktivität',
     terminate: 'Beenden',
     terminateOthers: 'Andere Sitzungen beenden',
+    terminateOthersConfirmTitle: 'Andere Sitzungen beenden?',
+    terminateOthersConfirmBody:
+      'Auf allen anderen Geräten werden Sie abgemeldet. Diese Sitzung bleibt aktiv.',
     week: '1 Woche',
     weeks2: '2 Wochen',
     month: '1 Monat',
@@ -141,6 +154,11 @@ export default {
     emailNotVerified: 'Confirm your email using the link we sent before you sign in.',
     emailVerifiedBanner: 'Your email is confirmed. You can sign in.',
     deviceLoginTitle: 'Confirm on trusted device',
+    deviceLoginEmailTitle: 'Check your email',
+    deviceLoginEmailIntro:
+      'We sent a 6-digit code to this account’s email. It may take a minute.',
+    deviceLoginEmailHint: 'Enter the code from that email below.',
+    deviceLoginResendEmail: 'Resend email',
     deviceLoginTrustedWhereHint:
       'The code appears where you’re already signed in to Amica — another phone, tablet, or browser tab — in a security alert.',
     deviceLoginTrustedDeviceIntro:

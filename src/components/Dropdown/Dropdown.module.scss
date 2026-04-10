@@ -18,7 +18,10 @@
 
   &:hover {
     background: var(--dropdown-toggle-hover, var(--dropdown-hover)) !important;
-    background-color: var(--dropdown-toggle-hover, var(--dropdown-hover)) !important;
+    background-color: var(
+      --dropdown-toggle-hover,
+      var(--dropdown-hover)
+    ) !important;
   }
 }
 

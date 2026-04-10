@@ -67,6 +67,16 @@ export default {
     signOut: 'Sair',
     languageDescription: 'Selecione seu idioma preferido.',
     privacyDescription: 'Gerencie privacidade e segurança, como passkeys.',
+    passkeysTitle: 'Passkeys',
+    passkeysDescription:
+      'Entre sem senha com este dispositivo ou uma chave de segurança. Remova passkeys que não usar mais.',
+    passkeysEmpty: 'Nenhum passkey ainda.',
+    passkeysLoadError: 'Não foi possível carregar os passkeys.',
+    passkeyAdded: 'Adicionado em {date}',
+    revokePasskey: 'Remover',
+    revokePasskeyConfirmTitle: 'Remover este passkey?',
+    revokePasskeyConfirmBody:
+      'Você não poderá mais entrar com ele. Pode adicionar um novo a qualquer momento.',
     appearance: 'Aparência',
     appearanceDescription: 'Personalize aparência e configurações.',
     autoplayVideos: 'Reproduzir vídeos automaticamente',
@@ -106,6 +116,9 @@ export default {
     lastActive: 'Última atividade',
     terminate: 'Encerrar',
     terminateOthers: 'Encerrar outras sessões',
+    terminateOthersConfirmTitle: 'Encerrar outras sessões?',
+    terminateOthersConfirmBody:
+      'Todos os outros dispositivos serão desconectados. Esta sessão permanece ativa.',
     week: '1 semana',
     weeks2: '2 semanas',
     month: '1 mês',
@@ -141,6 +154,11 @@ export default {
     emailNotVerified: 'Confirm your email using the link we sent before you sign in.',
     emailVerifiedBanner: 'Your email is confirmed. You can sign in.',
     deviceLoginTitle: 'Confirm on trusted device',
+    deviceLoginEmailTitle: 'Check your email',
+    deviceLoginEmailIntro:
+      'We sent a 6-digit code to this account’s email. It may take a minute.',
+    deviceLoginEmailHint: 'Enter the code from that email below.',
+    deviceLoginResendEmail: 'Resend email',
     deviceLoginTrustedWhereHint:
       'The code appears where you’re already signed in to Amica — another phone, tablet, or browser tab — in a security alert.',
     deviceLoginTrustedDeviceIntro:
