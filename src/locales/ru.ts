@@ -204,6 +204,8 @@ export default {
     trustedDeviceIpLabel: 'Приблизительный IP нового устройства',
     trustedDeviceLocationLabel: 'Приблизительное местоположение',
     trustedDeviceUaLabel: 'Браузер на новом устройстве',
+    trustedDeviceMapFrameTitle: 'Приблизительное место входа на карте',
+    trustedDeviceOpenInGoogleMaps: 'Открыть в Google Картах',
     copySignInCode: 'Копировать код входа',
     deviceOtpInvalid: 'Неверный или просроченный код.',
     deviceOtpWrongClient: 'Эта сессия не совпадает с устройством, с которого начали вход.',

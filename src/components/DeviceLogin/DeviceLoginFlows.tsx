@@ -1,8 +1,53 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation, tSync } from '@/contexts/languageCore';
 import warningStyles from '@/components/Warning/Warning.module.scss';
 import { CopyTextButton } from '@/components/ui/CopyTextButton';
+import {
+  googleMapsEmbedUrl,
+  googleMapsSearchUrl,
+  trustedDeviceMapsQuery,
+} from '@/utils/googleMapsLinks';
 import styles from './DeviceLoginFlows.module.scss';
+
+function TrustedDeviceLocationMap({
+  requestCity,
+  requestCountry,
+  requestIp,
+}: {
+  requestCity?: string;
+  requestCountry?: string;
+  requestIp?: string;
+}) {
+  const query = useMemo(
+    () => trustedDeviceMapsQuery(requestCity, requestCountry, requestIp),
+    [requestCity, requestCountry, requestIp],
+  );
+  if (!query) return null;
+  const embedSrc = googleMapsEmbedUrl(query);
+  const openHref = googleMapsSearchUrl(query);
+  return (
+    <div className={styles.mapsBlock}>
+      <div className={styles.mapsFrameWrap}>
+        <iframe
+          title={tSync('login.trustedDeviceMapFrameTitle')}
+          src={embedSrc}
+          className={styles.mapsFrame}
+          loading='lazy'
+          referrerPolicy='no-referrer-when-downgrade'
+          allowFullScreen
+        />
+      </div>
+      <a
+        href={openHref}
+        target='_blank'
+        rel='noopener noreferrer'
+        className={styles.mapsOpenLink}
+      >
+        {tSync('login.trustedDeviceOpenInGoogleMaps')}
+      </a>
+    </div>
+  );
+}
 
 /** Trusted device: sign-in attempt — browser/OS with versions, IP, approximate location. */
 export function TrustedDeviceLoginRequestBody({
@@ -40,6 +85,11 @@ export function TrustedDeviceLoginRequestBody({
           ) : null}
         </div>
       ) : null}
+      <TrustedDeviceLocationMap
+        requestCity={requestCity}
+        requestCountry={requestCountry}
+        requestIp={requestIp}
+      />
     </>
   );
 }
@@ -92,6 +142,11 @@ export function TrustedDeviceLoginWarningBody({
           ) : null}
         </div>
       ) : null}
+      <TrustedDeviceLocationMap
+        requestCity={requestCity}
+        requestCountry={requestCountry}
+        requestIp={requestIp}
+      />
       <p style={{ margin: '12px 0 0', fontSize: '0.875rem' }}>
         {tSync('login.trustedDeviceWarningFoot')}
       </p>

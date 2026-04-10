@@ -217,6 +217,8 @@ export default {
     trustedDeviceIpLabel: 'Approximate IP of the new device',
     trustedDeviceLocationLabel: 'Approximate location',
     trustedDeviceUaLabel: 'Browser / app on the new device',
+    trustedDeviceMapFrameTitle: 'Approximate sign-in location on map',
+    trustedDeviceOpenInGoogleMaps: 'Open in Google Maps',
     copySignInCode: 'Copy sign-in code',
     deviceOtpInvalid: 'That code is wrong or expired. Try again.',
     deviceOtpWrongClient:

@@ -79,6 +79,45 @@
   color: var(--color-text-secondary);
 }
 
+.mapsBlock {
+  margin-top: 12px;
+}
+
+.mapsFrameWrap {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--surface-border, rgba(127, 127, 127, 0.35));
+  background: rgba(127, 127, 127, 0.08);
+}
+
+.mapsFrame {
+  display: block;
+  width: 100%;
+  height: 160px;
+  border: 0;
+  vertical-align: top;
+}
+
+.mapsOpenLink {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--mainColor);
+  text-decoration: none;
+  font-family: 'SFProRounded', sans-serif;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mainColor);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
 .requestDeviceName {
   margin: 0;
   font-size: 0.9375rem;

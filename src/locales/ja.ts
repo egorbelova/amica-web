@@ -163,6 +163,8 @@ export default {
     trustedDeviceRevealFailedBody:
       'Try again, or decline the request if you did not start a sign-in.',
     deviceLoginRejected: 'The sign-in was declined or is no longer valid.',
+    trustedDeviceMapFrameTitle: 'Approximate sign-in location on map',
+    trustedDeviceOpenInGoogleMaps: 'Open in Google Maps',
     useBackupCodeHint:
       'Lost your trusted device? Enter a one-time backup code (from signup or account settings).',
     backupCodePlaceholder: 'XXXX-XXXX-XXXX-XXXX',

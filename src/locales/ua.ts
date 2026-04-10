@@ -174,6 +174,8 @@ export default {
     trustedDeviceWarningDismiss: 'Зрозуміло',
     trustedDeviceIpLabel: 'Приблизна IP-адреса нового пристрою',
     trustedDeviceUaLabel: 'Браузер на новому пристрої',
+    trustedDeviceMapFrameTitle: 'Приблизне місце входу на карті',
+    trustedDeviceOpenInGoogleMaps: 'Відкрити в Google Картах',
     deviceOtpInvalid: 'Невірний або прострочений код.',
     deviceOtpWrongClient: 'Ця сесія не збігається з пристроєм, з якого почали вхід.',
     deviceOtpFailed: 'Не вдалося перевірити код.',
