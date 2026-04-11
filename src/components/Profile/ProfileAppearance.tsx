@@ -77,79 +77,80 @@ export default function ProfileAppearance() {
         iconName='Appearance'
         backgroundColor='#0D2230'
       />
-      <div className={styles.optionRow}>
-        <div>{t('tipsMenu.theme')}</div>
-        <div className={styles.themeButtons}>
-          {themeOptions.map((theme) => (
-            <Button
-              key={theme}
-              className={`${styles.themeButton} ${
-                settings.theme === theme ? styles.themeButtonActive : ''
-              }`}
-              onClick={() => setSetting('theme', theme)}
-            >
-              {t(
-                `tipsMenu.theme${theme.charAt(0).toUpperCase() + theme.slice(1)}`,
-              )}
-            </Button>
-          ))}
-        </div>
-      </div>
-      <div className={styles.optionRow}>
-        <div>{t('language.time.timeFormat')}</div>
-        <Toggle
-          checked={is24Hour}
-          onChange={(checked) =>
-            setSetting('timeFormat', checked ? '24h' : '12h')
-          }
-        />
-      </div>
-      {windowWidth > 768 && (
+      <div className={styles['options-group']}>
         <div className={styles.optionRow}>
-          <div>Wide Screen Mode</div>
+          <div>{t('tipsMenu.theme')}</div>
+          <div className={styles.themeButtons}>
+            {themeOptions.map((theme) => (
+              <Button
+                key={theme}
+                className={`${styles.themeButton} ${
+                  settings.theme === theme ? styles.themeButtonActive : ''
+                }`}
+                onClick={() => setSetting('theme', theme)}
+              >
+                {t(
+                  `tipsMenu.theme${theme.charAt(0).toUpperCase() + theme.slice(1)}`,
+                )}
+              </Button>
+            ))}
+          </div>
+        </div>
+        <div className={styles.optionRow}>
+          <div>{t('language.time.timeFormat')}</div>
           <Toggle
-            checked={wideScreenModeEnabled}
-            onChange={setWideScreenModeEnabled}
+            checked={is24Hour}
+            onChange={(checked) =>
+              setSetting('timeFormat', checked ? '24h' : '12h')
+            }
           />
         </div>
-      )}
-      <div className={styles.optionRow}>
-        <div>Lite Mode</div>
-        <Toggle checked={liteModeEnabled} onChange={setLiteModeEnabled} />
-      </div>
-      {!liteModeEnabled && (
-        <>
+        {windowWidth > 768 && (
           <div className={styles.optionRow}>
-            <div>{t('profile.autoplayVideos')}</div>
+            <div>Wide Screen Mode</div>
             <Toggle
-              checked={autoplayVideos}
-              onChange={(checked) => setAutoplayVideos(checked)}
+              checked={wideScreenModeEnabled}
+              onChange={setWideScreenModeEnabled}
             />
           </div>
-          {windowWidth <= 768 && (
+        )}
+        <div className={styles.optionRow}>
+          <div>Lite Mode</div>
+          <Toggle checked={liteModeEnabled} onChange={setLiteModeEnabled} />
+        </div>
+        {!liteModeEnabled && (
+          <>
             <div className={styles.optionRow}>
-              <div>{t('profile.useWallpaperThroughout')}</div>
+              <div>{t('profile.autoplayVideos')}</div>
               <Toggle
-                checked={settings.useBackgroundThroughoutTheApp}
-                onChange={setSetting.bind(
-                  null,
-                  'useBackgroundThroughoutTheApp',
-                )}
+                checked={autoplayVideos}
+                onChange={(checked) => setAutoplayVideos(checked)}
               />
             </div>
-          )}
-          {windowWidth > 768 && settings.activeWallpaper && (
-            <div className={styles.optionRow}>
-              <div>{t('profile.wallpaperGlow')}</div>
-              <Toggle
-                checked={settings.wallpaperGlowEnabled}
-                onChange={setSetting.bind(null, 'wallpaperGlowEnabled')}
-              />
-            </div>
-          )}
-        </>
-      )}
-
+            {windowWidth <= 768 && (
+              <div className={styles.optionRow}>
+                <div>{t('profile.useWallpaperThroughout')}</div>
+                <Toggle
+                  checked={settings.useBackgroundThroughoutTheApp}
+                  onChange={setSetting.bind(
+                    null,
+                    'useBackgroundThroughoutTheApp',
+                  )}
+                />
+              </div>
+            )}
+            {windowWidth > 768 && settings.activeWallpaper && (
+              <div className={styles.optionRow}>
+                <div>{t('profile.wallpaperGlow')}</div>
+                <Toggle
+                  checked={settings.wallpaperGlowEnabled}
+                  onChange={setSetting.bind(null, 'wallpaperGlowEnabled')}
+                />
+              </div>
+            )}
+          </>
+        )}
+      </div>
       {!liteModeEnabled && (
         <div className={styles.optionRow}>
           <div className={styles.wallpapersContainer}>

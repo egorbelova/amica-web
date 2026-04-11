@@ -175,6 +175,8 @@ const Avatar = memo(function Avatar({
               src={mediaUrl}
               alt={`${displayName} avatar`}
               draggable={false}
+              loading='lazy'
+              decoding='async'
             />
           )
         ) : (
@@ -246,6 +248,8 @@ const AvatarLayer = memo(function AvatarLayer({
             src={mediaUrl}
             alt={`${displayName} avatar`}
             draggable={false}
+            loading='lazy'
+            decoding='async'
           />
         )
       ) : (

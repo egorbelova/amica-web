@@ -221,7 +221,7 @@ const Slider: React.FC<SliderProps> = ({
     <div className={styles.sliderWrapper}>
       {label && (
         <div className={styles.label}>
-          {label}:
+          {label}
           <input
             className={styles.value}
             value={Math.round(internalValue)}

@@ -13,33 +13,35 @@ export default function ProfileLanguage() {
         iconName='Language'
         backgroundColor='#4d8ddb'
       />
-      {availableLanguages.map((lang) => (
-        <div
-          key={lang.code}
-          onClick={() => changeLanguage(lang.code)}
-          className={styles.languageItem}
-        >
-          <span
-            className={
-              styles.check + ' ' + (lang.code === locale ? styles.active : '')
-            }
-          ></span>
+      <div className={styles['options-group']}>
+        {availableLanguages.map((lang) => (
+          <div
+            key={lang.code}
+            onClick={() => changeLanguage(lang.code)}
+            className={styles.languageItem}
+          >
+            <span
+              className={
+                styles.check + ' ' + (lang.code === locale ? styles.active : '')
+              }
+            ></span>
 
-          {/* <img
+            {/* <img
             src={`../flags/${lang.country}.webp`}
             alt={lang.name}
             className={styles.languageFlag}
             loading='lazy'
           /> */}
 
-          <div className={styles.languageInfo}>
-            <span className={styles.languageName}>{lang.name}</span>
-            <span className={styles.languageLabel}>
-              {t(`language.languages.${lang.code}`)}
-            </span>
+            <div className={styles.languageInfo}>
+              <span className={styles.languageName}>{lang.name}</span>
+              <span className={styles.languageLabel}>
+                {t(`language.languages.${lang.code}`)}
+              </span>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

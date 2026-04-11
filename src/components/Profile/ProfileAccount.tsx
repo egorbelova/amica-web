@@ -22,6 +22,7 @@ import {
   deleteDisplayMediaById,
   setDisplayMediaAsPrimary,
 } from '@/utils/deleteDisplayMedia';
+import Button from '../ui/button/Button';
 
 const logoutIcon = <Icon name='Logout' className={styles.logoutIcon} />;
 
@@ -44,8 +45,7 @@ export default function ProfileAccount() {
   const displayName = user?.username || '';
 
   useLayoutEffect(() => {
-    const bumpKey = () =>
-      queueMicrotask(() => setWheelTargetKey((k) => k + 1));
+    const bumpKey = () => queueMicrotask(() => setWheelTargetKey((k) => k + 1));
     const start = avatarLayoutRef.current;
     if (!start) {
       wheelTargetRef.current = null;
@@ -205,58 +205,60 @@ export default function ProfileAccount() {
 
   return (
     <div className={styles.section}>
-      <div ref={avatarLayoutRef} className={styles.accountAvatarOuter}>
-        {user?.id != null && (
-          <SideBarAvatarSection
-            chatId={user.id}
-            chatName={displayName}
-            primaryMedia={primaryMedia}
-            media={profileMedia}
-            interlocutorContactId={profileId}
-            avatarContentType='profile'
-            isAvatarEditable={usernameEditing}
-            onAvatarChange={(media: DisplayMedia) => {
-              setUser({
-                ...(user as User | null),
-                profile: {
-                  ...(user?.profile as UserProfile),
-                  primary_media: media,
-                } as UserProfile,
-              } as User);
-            }}
-            isAvatarRollerOpen={isAvatarRollerOpen}
-            interlocutorEditVisible={usernameEditing}
-            effectiveRollPosition={effectiveRollPosition}
-            onRollPositionChange={handleRollPositionChange}
-            onAvatarRollerOpen={() => setIsAvatarRollerOpen(true)}
-            rollerActionsEnabled
-            onRollerMediaDelete={handleRollerMediaDelete}
-            onRollerMediaSetPrimary={handleRollerMediaSetPrimary}
-          />
-        )}
-      </div>
+      <div className={styles['account-container']}>
+        <div ref={avatarLayoutRef} className={styles.accountAvatarOuter}>
+          {user?.id != null && (
+            <SideBarAvatarSection
+              chatId={user.id}
+              chatName={displayName}
+              primaryMedia={primaryMedia}
+              media={profileMedia}
+              interlocutorContactId={profileId}
+              avatarContentType='profile'
+              isAvatarEditable={usernameEditing}
+              onAvatarChange={(media: DisplayMedia) => {
+                setUser({
+                  ...(user as User | null),
+                  profile: {
+                    ...(user?.profile as UserProfile),
+                    primary_media: media,
+                  } as UserProfile,
+                } as User);
+              }}
+              isAvatarRollerOpen={isAvatarRollerOpen}
+              interlocutorEditVisible={usernameEditing}
+              effectiveRollPosition={effectiveRollPosition}
+              onRollPositionChange={handleRollPositionChange}
+              onAvatarRollerOpen={() => setIsAvatarRollerOpen(true)}
+              rollerActionsEnabled
+              onRollerMediaDelete={handleRollerMediaDelete}
+              onRollerMediaSetPrimary={handleRollerMediaSetPrimary}
+            />
+          )}
+        </div>
 
-      <div className={styles.accountUsernameRow}>
-        {usernameEditing ? (
-          <Input
-            placeholder={t('profile.username')}
-            value={usernameDraft}
-            onChange={(v) => setUsernameDraft(v.slice(0, 64))}
-          />
-        ) : (
-          <div className={styles.accountUsernameReadonly} aria-readonly>
-            {user?.username || '—'}
-          </div>
-        )}
-      </div>
+        <div className={styles.accountUsernameRow}>
+          {usernameEditing ? (
+            <Input
+              placeholder={t('profile.username')}
+              value={usernameDraft}
+              onChange={(v) => setUsernameDraft(v.slice(0, 64))}
+            />
+          ) : (
+            <div className={styles.accountUsernameReadonly} aria-readonly>
+              {user?.username || '—'}
+            </div>
+          )}
+        </div>
 
-      <div className={styles.info}>
-        <div className={styles.email}>{user?.email || ''}</div>
-      </div>
+        <div className={styles.info}>
+          <div className={styles.email}>{user?.email || ''}</div>
+        </div>
 
-      <div tabIndex={0} onClick={logout} className={styles.logoutBtn}>
-        {logoutIcon}
-        {t('profile.signOut')}
+        <Button onClick={logout} className={styles.logoutBtn}>
+          {logoutIcon}
+          {t('profile.signOut')}
+        </Button>
       </div>
     </div>
   );

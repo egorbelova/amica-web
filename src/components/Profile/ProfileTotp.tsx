@@ -128,15 +128,23 @@ export default function ProfileTotp() {
           <p className={styles.backupCodesCount}>
             {t('profile.totpEnabledStatus')}
           </p>
-          <input
-            type='password'
-            autoComplete='current-password'
-            placeholder={t('profile.totpDisablePasswordPlaceholder')}
-            value={disablePassword}
-            onChange={(e) => setDisablePassword(e.target.value)}
-            disabled={busy}
-            style={{ padding: '8px 10px', borderRadius: 8 }}
-          />
+          <form>
+            <input
+              type='password'
+              autoComplete='off'
+              autoCorrect='off'
+              autoCapitalize='none'
+              spellCheck={false}
+              inputMode='text'
+              aria-autocomplete='none'
+              role='textbox'
+              placeholder={t('profile.totpDisablePasswordPlaceholder')}
+              value={disablePassword}
+              onChange={(e) => setDisablePassword(e.target.value)}
+              disabled={busy}
+              style={{ padding: '8px 10px', borderRadius: 8 }}
+            />
+          </form>
           <input
             inputMode='numeric'
             autoComplete='one-time-code'

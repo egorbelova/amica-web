@@ -41,11 +41,16 @@ const SearchInput = ({
             aria-label='Search'
             className={styles['input-search__field']}
             name='term'
-            placeholder=' '
             value={value}
             onChange={(e) => onChange(e.target.value)}
             ref={inputRef}
             autoComplete='off'
+            autoCorrect='off'
+            autoCapitalize='none'
+            spellCheck={false}
+            inputMode='text'
+            aria-autocomplete='none'
+            role='textbox'
             type='text'
           />
           <span

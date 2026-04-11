@@ -188,64 +188,68 @@ export default function ProfileSessions() {
         backgroundColor='#020202'
       />
       {error && <div className={styles.error}>⚠️ {error}</div>}
-      <div className={styles.sessionLifetime}>
-        <label>{t('sessions.sessionLifetime')} </label>
-        {user && (
-          <Dropdown
-            items={sessionLifetimeOptions.map((opt) => ({
-              label: t(SESSION_LIFETIME_KEYS[opt.value] ?? 'sessions.week'),
-              value: opt.value,
-            }))}
-            value={sessionLifetime}
-            onChange={updateSessionLifetime}
-            placeholder={t('sessions.selectLifetime')}
-            buttonStyles={styles.sessionLifetimeDropdown}
-          />
+      <div className={styles['options-group']}>
+        <div className={styles.sessionLifetime}>
+          <label>{t('sessions.sessionLifetime')} </label>
+          {user && (
+            <Dropdown
+              items={sessionLifetimeOptions.map((opt) => ({
+                label: t(SESSION_LIFETIME_KEYS[opt.value] ?? 'sessions.week'),
+                value: opt.value,
+              }))}
+              value={sessionLifetime}
+              onChange={updateSessionLifetime}
+              placeholder={t('sessions.selectLifetime')}
+              buttonStyles={styles.sessionLifetimeDropdown}
+            />
+          )}
+        </div>
+
+        {sessions.length === 0 ? (
+          <p>{t('sessions.noSessions')}</p>
+        ) : (
+          <div className={styles.sessionsList}>
+            {sessions.map((session) => (
+              <div key={session.jti} className={styles.sessionItem}>
+                <button
+                  type='button'
+                  className={`${styles.sessionPreviewBtn} ${
+                    session.is_current ? styles.currentSession : ''
+                  }`}
+                  onClick={() => openSessionDetails(session)}
+                >
+                  {session.is_current ? (
+                    <div className={styles.sessionLabels}>
+                      <span className={styles.currentLabel}>
+                        {t('sessions.thisDevice')}
+                      </span>
+                    </div>
+                  ) : null}
+                  <span className={styles.device}>{session.device}</span>
+                  {(session.city || session.country) && (
+                    <span className={styles.subInfo}>
+                      {[session.city, session.country]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </span>
+                  )}
+                  <span className={styles.subInfo}>
+                    {t('sessions.lastActive')} {formatDate(session.last_active)}
+                  </span>
+                </button>
+                {session.is_current ? (
+                  <Button
+                    className={styles.revokeBtn}
+                    onClick={() => confirmRevokeOtherSessions()}
+                  >
+                    {t('sessions.terminateOthers')}
+                  </Button>
+                ) : null}
+              </div>
+            ))}
+          </div>
         )}
       </div>
-
-      {sessions.length === 0 ? (
-        <p>{t('sessions.noSessions')}</p>
-      ) : (
-        <div className={styles.sessionsList}>
-          {sessions.map((session) => (
-            <div key={session.jti} className={styles.sessionItem}>
-              <button
-                type='button'
-                className={`${styles.sessionPreviewBtn} ${
-                  session.is_current ? styles.currentSession : ''
-                }`}
-                onClick={() => openSessionDetails(session)}
-              >
-                {session.is_current ? (
-                  <div className={styles.sessionLabels}>
-                    <span className={styles.currentLabel}>
-                      {t('sessions.thisDevice')}
-                    </span>
-                  </div>
-                ) : null}
-                <span className={styles.device}>{session.device}</span>
-                {(session.city || session.country) && (
-                  <span className={styles.subInfo}>
-                    {[session.city, session.country].filter(Boolean).join(', ')}
-                  </span>
-                )}
-                <span className={styles.subInfo}>
-                  {t('sessions.lastActive')} {formatDate(session.last_active)}
-                </span>
-              </button>
-              {session.is_current ? (
-                <Button
-                  className={styles.revokeBtn}
-                  onClick={() => confirmRevokeOtherSessions()}
-                >
-                  {t('sessions.terminateOthers')}
-                </Button>
-              ) : null}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
