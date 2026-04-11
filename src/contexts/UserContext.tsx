@@ -105,16 +105,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     p: string;
     totp?: string;
   } | null>(null);
-  const pendingTotpSecondFactorRef = useRef<
-    | { kind: 'google'; accessToken: string }
-    | { kind: 'passkey'; body: Record<string, unknown> }
-    | null
-  >(null);
-  const [pendingTotpSecondFactor, setPendingTotpSecondFactor] = useState<
-    | { kind: 'google'; accessToken: string }
-    | { kind: 'passkey'; body: Record<string, unknown> }
-    | null
-  >(null);
+  const pendingTotpSecondFactorRef = useRef<{
+    kind: 'google';
+    accessToken: string;
+  } | null>(null);
+  const [pendingTotpSecondFactor, setPendingTotpSecondFactor] = useState<{
+    kind: 'google';
+    accessToken: string;
+  } | null>(null);
   const [passwordLoginNeedsTotp, setPasswordLoginNeedsTotp] = useState(false);
   const [pendingBackupCodes, setPendingBackupCodes] = useState<string[] | null>(
     null,
@@ -940,49 +938,20 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   );
 
   const loginWithPasskey = useCallback(
-    async (
-      passkeyData: unknown,
-      totpCode?: string,
-    ): Promise<'success' | 'totp_required' | 'invalid_totp'> => {
+    async (passkeyData: unknown): Promise<'success'> => {
       lastPasswordCredentialsRef.current = null;
-      const payload =
-        typeof passkeyData === 'object' && passkeyData !== null
-          ? {
-              ...(passkeyData as Record<string, unknown>),
-              ...(totpCode?.trim() ? { totp_code: totpCode.trim() } : {}),
-            }
-          : passkeyData;
       const res = await fetch('/api/passkey/auth/finish/', {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(passkeyData ?? {}),
       });
       const data = (await res.json()) as Record<string, unknown>;
       if (!res.ok) {
         if (data.error === 'email_not_verified') {
           throw new Error(tSync('login.emailNotVerified'));
-        }
-        if (res.status === 403 && data.error === 'totp_required') {
-          const b =
-            typeof passkeyData === 'object' && passkeyData !== null
-              ? { ...(passkeyData as Record<string, unknown>) }
-              : {};
-          pendingTotpSecondFactorRef.current = { kind: 'passkey', body: b };
-          setPendingTotpSecondFactor({ kind: 'passkey', body: b });
-          return 'totp_required';
-        }
-        if (data.error === 'invalid_totp') {
-          if (totpCode?.trim()) {
-            return 'invalid_totp';
-          }
-          setState((prev) => ({
-            ...prev,
-            error: tSync('login.invalidTotp'),
-          }));
-          return 'invalid_totp';
         }
         throw new Error(String(data.error || 'Passkey login failed'));
       }
@@ -1004,12 +973,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const submitTotpSecondFactor = useCallback(
     async (code: string): Promise<boolean> => {
       const p = pendingTotpSecondFactorRef.current;
-      if (!p) return false;
+      if (!p || p.kind !== 'google') return false;
       setState((prev) => ({ ...prev, error: null }));
-      const out =
-        p.kind === 'google'
-          ? await loginWithGoogle(p.accessToken, code)
-          : await loginWithPasskey(p.body, code);
+      const out = await loginWithGoogle(p.accessToken, code);
       if (out === 'success') {
         pendingTotpSecondFactorRef.current = null;
         setPendingTotpSecondFactor(null);
@@ -1018,7 +984,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       if (out === 'invalid_totp') return true;
       return false;
     },
-    [loginWithGoogle, loginWithPasskey],
+    [loginWithGoogle],
   );
 
   const dismissAuthError = useCallback(() => {

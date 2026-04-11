@@ -48,15 +48,10 @@ export interface UserContextType extends UserState {
     idToken: string,
     totpCode?: string,
   ) => Promise<'success' | 'totp_required' | 'invalid_totp'>;
-  loginWithPasskey: (
-    passkeyData: unknown,
-    totpCode?: string,
-  ) => Promise<'success' | 'totp_required' | 'invalid_totp'>;
-  /** After Google/Passkey returned totp_required, submit the 6-digit code. */
-  pendingTotpSecondFactor:
-    | { kind: 'google'; accessToken: string }
-    | { kind: 'passkey'; body: Record<string, unknown> }
-    | null;
+  /** WebAuthn proves possession; TOTP is not required after passkey auth. */
+  loginWithPasskey: (passkeyData: unknown) => Promise<'success'>;
+  /** After Google returned totp_required, submit the 6-digit code. */
+  pendingTotpSecondFactor: { kind: 'google'; accessToken: string } | null;
   /** Returns true if the code was wrong (keep modal open). */
   submitTotpSecondFactor: (code: string) => Promise<boolean>;
   dismissPendingTotpSecondFactor: () => void;
