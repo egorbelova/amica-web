@@ -65,9 +65,11 @@ export default {
   },
   profile: {
     settings: 'Settings',
-    backupCodesTitle: 'Backup Codes',
+    backupCodesTitle: 'Recovery codes',
     backupCodesDescription:
-      'One-time codes to sign in if you lose your trusted device. Generating new codes invalidates all previous codes.',
+      'One-time codes for signing in when you cannot use your authenticator app. They are created when you enable authenticator above and removed if you turn two-factor off. Generating new codes invalidates all previous codes.',
+    backupCodesRequiresTotp:
+      'Turn on authenticator above first. Recovery codes are issued when two-factor is enabled and deleted when it is disabled.',
     backupCodesUnused: 'Unused codes: {count}',
     regenerateBackupCodes: 'Generate New Codes',
     regenerateBackupCodesConfirm:
@@ -86,6 +88,13 @@ export default {
     totpConfirmEnable: 'Confirm and enable',
     totpEnabledStatus: 'Authenticator is enabled for your account.',
     totpDisable: 'Turn off authenticator',
+    totpDisableSecondFactorHint:
+      'Enter your current password and either a 6-digit code from your authenticator or a one-time recovery code.',
+    totpDisableBackupPlaceholder: 'XXXX-XXXX-XXXX-XXXX',
+    totpDisableUseBackupInstead: 'Use a recovery code instead',
+    totpDisableUseTotpInstead: 'Use authenticator code instead',
+    totpInvalidBackupCode:
+      'That recovery code is invalid or was already used.',
     totpDisablePasswordPlaceholder: 'Current password',
     totpTrustedDeviceRequired:
       'Set up or change this only from your trusted device (see Active sessions).',
@@ -273,6 +282,11 @@ export default {
       'Enter the 6-digit code from your authenticator app, then sign in again.',
     invalidTotp: 'Invalid authenticator code.',
     totpLabel: 'Authenticator code',
+    totpBackupModalTitle: 'Use a backup code',
+    totpBackupModalBody:
+      'Lost access to your authenticator? Enter one of the one-time backup codes you saved when enabling two-factor authentication.',
+    totpUseBackupCodeButton: "I can't access my authenticator — use a backup code",
+    totpUseAuthenticatorButton: 'Back to authenticator code',
   },
   signUp: {
     title: 'Sign Up',

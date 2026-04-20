@@ -16,7 +16,8 @@
     "ensure-stb": "node scripts/ensure-stb.mjs",
     "build:wasm": "bash scripts/build-image-compress-wasm.sh",
     "test": "echo \"No tests yet\"",
-    "update-build-lockfile": "node scripts/update-build-lockfile.mjs"
+    "update-build-lockfile": "node scripts/update-build-lockfile.mjs",
+    "translate:locales": "bun scripts/translate-locales.ts"
   },
   "dependencies": {
     "lottie-react": "^2.4.1",

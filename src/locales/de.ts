@@ -9,6 +9,7 @@ export default {
     undo: 'Rückgängig',
     copy: 'Copy',
     copied: 'Copied!',
+    ok: 'OK',
   },
   tipsMenu: {
     appearance: 'Darstellung',
@@ -64,9 +65,70 @@ export default {
   },
   profile: {
     settings: 'Einstellungen',
+    backupCodesTitle: 'Wiederherstellungscodes',
+    backupCodesDescription:
+      'Einmalcodes für die Anmeldung, wenn Sie Ihre Authentifizierungs-App nicht verwenden können. Sie werden erstellt, wenn Sie die Authentifizierung oben aktivieren, und gelöscht, wenn Sie die Zwei-Faktor-Authentifizierung deaktivieren. Durch das Generieren neuer Codes werden alle bisherigen Codes ungültig.',
+    backupCodesRequiresTotp:
+      'Aktivieren Sie zunächst den Authentifikator. Wiederherstellungscodes werden vergeben, wenn die Zwei-Faktor-Authentifizierung aktiviert ist, und gelöscht, wenn sie deaktiviert wird.',
+    backupCodesUnused: 'Nicht genutzte Codes: {count}',
+    regenerateBackupCodes: 'Neue Codes generieren',
+    regenerateBackupCodesConfirm:
+      'Dadurch werden Ihre aktuellen Codes ungültig. Fahren Sie nur fort, wenn Sie die neue Liste speichern können.',
+    backupCodesRegenerateWarningTitle: 'Neue Backup-Codes generieren?',
+    backupCodesRegenerateCancel: 'Abbrechen',
+    backupCodesRegenerateConfirm: 'Erstellen',
+    backupCodesRegenerateError:
+      'Es konnten keine Codes generiert werden. Öffnen Sie die Einstellungen auf Ihrem vertrauenswürdigen Gerät.',
+    totpTitle: 'Authentifizierungs-App',
+    totpDescription:
+      'Fügen Sie bei der Anmeldung einen zweiten Schritt mit Google Authenticator oder einer anderen TOTP-App hinzu. Richten Sie dies von Ihrem vertrauenswürdigen Gerät aus ein.',
+    totpEnable: 'Authentifikator einrichten',
+    totpOpenAuthenticatorLink: 'In der Authentifikator-App öffnen',
+    totpCodePlaceholder: '6-stelliger Code',
+    totpConfirmEnable: 'Bestätigen und aktivieren',
+    totpEnabledStatus: 'Für Ihr Konto ist die Authentifizierung aktiviert.',
+    totpDisable: 'Authentifizierer deaktivieren',
+    totpDisableSecondFactorHint:
+      'Geben Sie Ihr aktuelles Passwort und entweder einen 6-stelligen Code aus Ihrer Authentifizierungs-App oder einen einmaligen Wiederherstellungscode ein.',
+    totpDisableBackupPlaceholder: 'XXXX-XXXX-XXXX-XXXX',
+    totpDisableUseBackupInstead:
+      'Verwenden Sie stattdessen einen Wiederherstellungscode',
+    totpDisableUseTotpInstead:
+      'Verwenden Sie stattdessen den Authentifizierungscode',
+    totpInvalidBackupCode:
+      'Dieser Wiederherstellungscode ist ungültig oder wurde bereits verwendet.',
+    totpDisablePasswordPlaceholder: 'Aktuelles Passwort',
+    totpTrustedDeviceRequired:
+      'Nehmen Sie diese Einstellungen nur auf Ihrem vertrauenswürdigen Gerät vor (siehe „Aktive Sitzungen“).',
+    totpSetupStartError:
+      'Die Einrichtung des Authentifikators konnte nicht gestartet werden.',
+    totpConfirmError:
+      'Der Authentifikator konnte nicht aktiviert werden. Überprüfen Sie den Code und versuchen Sie es erneut.',
+    totpDisableError: 'Der Authentifikator konnte nicht deaktiviert werden.',
+    totpInvalidCode: 'Dieser Code ist ungültig.',
+    totpWrongPassword: 'Falsches Passwort.',
+    totpCopySecret: 'Geheimen Schlüssel kopieren',
+    totpCopyAuthenticatorLink: 'Link zur Einrichtung kopieren',
+    trustedDeviceTitle: 'Trusted device',
+    trustedDeviceBodyHas:
+      'Sign-ins from new browsers or devices may need your approval on this device first. Under Active sessions, the trusted device shows a badge.',
+    trustedDeviceBodyNone:
+      'Your first successful sign-in sets a trusted device. You will see which session is trusted under Active sessions.',
+    trustedSessionsTitle: 'Vertrauenswürdige Sitzungen',
+    trustedSessionsDescription:
+      'Aktive Sitzungen, deren Fingerabdruck mit dem vertrauenswürdigen Gerät Ihres Kontos übereinstimmt. Beenden Sie eine Sitzung hier oder unter „Aktive Sitzungen“.',
+    trustedSessionsNotSet:
+      'Sie haben noch kein vertrauenswürdiges Gerät festgelegt. Bei Ihrer ersten erfolgreichen Anmeldung wird eines festgelegt.',
+    trustedSessionsEmpty:
+      'Derzeit werden keine aktiven Sitzungen als vertrauenswürdig angezeigt. Überprüfen Sie die aktiven Sitzungen oder melden Sie sich über Ihren üblichen Browser an.',
+    trustedSessionsTerminateOthers:
+      'Andere vertrauenswürdige Sitzungen beenden',
+    username: 'Benutzername',
+    usernameInvalid: 'Geben Sie einen Benutzernamen ein (1–64 Zeichen).',
     signOut: 'Abmelden',
     languageDescription: 'Wählen Sie Ihre bevorzugte Sprache.',
-    privacyDescription: 'Verwalten Sie Datenschutz und Sicherheit, z. B. Passkeys.',
+    privacyDescription:
+      'Verwalten Sie Datenschutz und Sicherheit, z. B. Passkeys.',
     passkeysTitle: 'Passkeys',
     passkeysDescription:
       'Anmeldung ohne Passwort mit diesem Gerät oder einem Sicherheitsschlüssel. Entfernen Sie Passkeys, die Sie nicht mehr nutzen.',
@@ -92,11 +154,6 @@ export default {
       blackAndWhite: 'Schwarzweiß',
       colourWash: 'Farbton',
     },
-    trustedDeviceTitle: 'Trusted device',
-    trustedDeviceBodyHas:
-      'Sign-ins from new browsers or devices may need your approval on this device first. Under Active sessions, the trusted device shows a badge.',
-    trustedDeviceBodyNone:
-      'Your first successful sign-in sets a trusted device. You will see which session is trusted under Active sessions.',
   },
   privacy: {},
   sessions: {
@@ -110,7 +167,9 @@ export default {
     noSessions: 'Keine aktiven Sitzungen',
     thisDevice: 'Dieses Gerät',
     trustedDeviceBadge: 'Trusted device',
+    device: 'Gerät',
     ipAddress: 'IP-Adresse',
+    location: 'Standort',
     created: 'Erstellt',
     expires: 'Läuft ab',
     lastActive: 'Letzte Aktivität',
@@ -151,7 +210,8 @@ export default {
     needAccount: 'Noch kein Konto?',
     signUp: 'Registrieren',
     backToLogin: 'Zurück zur Anmeldung',
-    emailNotVerified: 'Confirm your email using the link we sent before you sign in.',
+    emailNotVerified:
+      'Confirm your email using the link we sent before you sign in.',
     emailVerifiedBanner: 'Your email is confirmed. You can sign in.',
     deviceLoginTitle: 'Confirm on trusted device',
     deviceLoginEmailTitle: 'Check your email',
@@ -166,6 +226,8 @@ export default {
     deviceLoginTrustedDeviceUnknown:
       'We couldn’t load a device name. Open Amica on the phone or browser you usually use for this account.',
     deviceLoginHint: 'Open Amica on your trusted device and enter this code:',
+    deviceLoginSubmitCode: 'Code einreichen',
+    deviceLoginOtpLabel: 'Einmalcode',
     deviceLoginWaiting: 'Waiting for confirmation…',
     deviceLoginCancel: 'Cancel',
     deviceLoginResend: 'Resend notification',
@@ -181,8 +243,23 @@ export default {
     trustedDeviceRevealFailedBody:
       'Try again, or decline the request if you did not start a sign-in.',
     deviceLoginRejected: 'The sign-in was declined or is no longer valid.',
+    trustedDeviceWarningTitle: 'Neuer Anmeldeversuch',
+    trustedDeviceWarningIntro:
+      'Falls dies auf Sie zutrifft, geben Sie diesen Code auf Ihrem anderen Gerät ein. Geben Sie ihn nicht an Dritte weiter.',
+    trustedDeviceWarningFoot:
+      'Falls Sie sich nicht angemeldet haben, sichern Sie Ihr Konto und ändern Sie Ihr Passwort.',
+    trustedDeviceWarningDismiss: 'Verstanden',
+    trustedDeviceIpLabel: 'Ungefähre IP-Adresse des neuen Geräts',
+    trustedDeviceLocationLabel: 'Ungefährer Standort',
+    trustedDeviceUaLabel: 'Browser / App auf dem neuen Gerät',
     trustedDeviceMapFrameTitle: 'Approximate sign-in location on map',
     trustedDeviceOpenInGoogleMaps: 'Open in Google Maps',
+    copySignInCode: 'Anmeldecode kopieren',
+    deviceOtpInvalid:
+      'Dieser Code ist falsch oder abgelaufen. Bitte versuche es erneut.',
+    deviceOtpWrongClient:
+      'Diese Sitzung stimmt nicht mit dem Gerät überein, mit dem die Anmeldung gestartet wurde.',
+    deviceOtpFailed: 'Der Code konnte nicht überprüft werden.',
     useBackupCodeHint:
       'Lost your trusted device? Enter a one-time backup code (from signup or account settings).',
     backupCodePlaceholder: 'XXXX-XXXX-XXXX-XXXX',
@@ -203,6 +280,19 @@ export default {
     trustedConfirmHint: 'Enter the 6-digit code shown on the new device.',
     trustedConfirmDismiss: 'Dismiss',
     trustedConfirmSubmit: 'Confirm',
+    totpModalTitle: 'Authentifizierungscode',
+    totpModalBody:
+      'Öffne deine Authentifizierungs-App (z. B. Google Authenticator) und gib den 6-stelligen Code ein.',
+    totpRequiredHint:
+      'Geben Sie den 6-stelligen Code aus Ihrer Authentifizierungs-App ein und melden Sie sich dann erneut an.',
+    invalidTotp: 'Ungültiger Authentifizierungscode.',
+    totpLabel: 'Authentifizierungscode',
+    totpBackupModalTitle: 'Verwenden Sie einen Sicherheitscode',
+    totpBackupModalBody:
+      'Haben Sie den Zugriff auf Ihre Authentifizierungs-App verloren? Geben Sie einen der Einmal-Sicherheitscodes ein, die Sie bei der Einrichtung der Zwei-Faktor-Authentifizierung gespeichert haben.',
+    totpUseBackupCodeButton:
+      'Ich kann nicht auf meinen Authentifikator zugreifen – verwende einen Backup-Code',
+    totpUseAuthenticatorButton: 'Zurück zum Authentifizierungscode',
   },
   signUp: {
     title: 'Registrieren',
@@ -279,15 +369,17 @@ export default {
     seenBy: 'Gesehen von:',
   },
   toast: {
+    emailCopied: 'E-Mail kopiert',
     mediaCopied: 'Medien kopiert',
     messageCopied: 'Nachricht kopiert',
     fileDownloaded: 'Datei heruntergeladen',
-    emailCopied: 'E-Mail kopiert',
     fileDownloadFailed: 'Download fehlgeschlagen',
     wsSendFailed: 'Senden fehlgeschlagen. Verbindung prüfen.',
     joinGroupFailed: 'Gruppe beitreten fehlgeschlagen.',
     createGroupTimeout:
       'Gruppe konnte nicht erstellt werden. Bitte erneut versuchen.',
+    avatarDeleteFailed: 'Dieser Avatar konnte nicht gelöscht werden.',
+    setPrimaryFailed: 'Der primäre Avatar konnte nicht festgelegt werden.',
   },
   sidebar: {
     members: 'Mitglieder',
@@ -311,6 +403,8 @@ export default {
     newGroupNamePlaceholder: 'Gruppenname',
     createGroupButton: 'Erstellen',
     membersCount: 'Mitglieder',
+    deleteRollerAvatar: 'Löschen',
+    setAsPrimaryRollerAvatar: 'Als primär festlegen',
   },
   aria: {
     tabSelector: 'Tab-Auswahl',

@@ -22,7 +22,12 @@ export type LoginPasswordOutcome =
   | 'deferred'
   | 'needs_totp'
   | 'invalid_totp'
+  | 'invalid_backup_code'
   | 'email_not_verified';
+
+export type SecondFactorSubmission =
+  | { kind: 'totp'; code: string }
+  | { kind: 'backup'; code: string };
 
 export interface UserContextType extends UserState {
   isAuthenticated: boolean;
@@ -31,8 +36,7 @@ export interface UserContextType extends UserState {
   loginWithPassword: (
     username: string,
     password: string,
-    backupCode?: string,
-    totpCode?: string,
+    secondFactor?: SecondFactorSubmission,
   ) => Promise<LoginPasswordOutcome>;
   signupWithCredentials: (
     username: string,
@@ -43,17 +47,22 @@ export interface UserContextType extends UserState {
     email?: string;
     emailVerificationOtpId?: string;
   }>;
-  /** `totp_required` → pending second factor; `invalid_totp` when verifying code. */
+  /** `totp_required` → pending second factor; `invalid_*` when verifying. */
   loginWithGoogle: (
     idToken: string,
-    totpCode?: string,
-  ) => Promise<'success' | 'totp_required' | 'invalid_totp'>;
+    secondFactor?: SecondFactorSubmission,
+  ) => Promise<
+    'success' | 'totp_required' | 'invalid_totp' | 'invalid_backup_code'
+  >;
   /** WebAuthn proves possession; TOTP is not required after passkey auth. */
   loginWithPasskey: (passkeyData: unknown) => Promise<'success'>;
-  /** After Google returned totp_required, submit the 6-digit code. */
+  /** After Google returned totp_required, submit the 6-digit code or a backup code. */
   pendingTotpSecondFactor: { kind: 'google'; accessToken: string } | null;
-  /** Returns true if the code was wrong (keep modal open). */
-  submitTotpSecondFactor: (code: string) => Promise<boolean>;
+  /** Returns true if the submitted factor was wrong (keep modal open). */
+  submitTotpSecondFactor: (
+    kind: 'totp' | 'backup',
+    value: string,
+  ) => Promise<boolean>;
   dismissPendingTotpSecondFactor: () => void;
   /** Password login: server asked for authenticator code. */
   passwordLoginNeedsTotp: boolean;

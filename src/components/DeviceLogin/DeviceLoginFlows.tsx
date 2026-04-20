@@ -164,9 +164,6 @@ export function DeviceLoginPendingOverlay({
   onResend,
   resendBusy,
   resendError,
-  onSubmitBackupCode,
-  backupCodeBusy,
-  backupCodeError,
 }: {
   /** Trusted session’s browser/OS (no versions), from server; empty if unknown. */
   trustedDeviceLabel?: string;
@@ -179,14 +176,9 @@ export function DeviceLoginPendingOverlay({
   onResend?: () => void | Promise<void>;
   resendBusy?: boolean;
   resendError?: string | null;
-  onSubmitBackupCode?: (rawCode: string) => void | Promise<void>;
-  backupCodeBusy?: boolean;
-  backupCodeError?: string | null;
 }) {
   const { t } = useTranslation();
   const [otp, setOtp] = useState('');
-  const [backupInput, setBackupInput] = useState('');
-  const [showBackupRecovery, setShowBackupRecovery] = useState(false);
   /** Safari: read-only until first focus so Keychain does not attach “use saved login” to this field. */
   const [otpAutofillGuard, setOtpAutofillGuard] = useState(true);
 
@@ -195,12 +187,6 @@ export function DeviceLoginPendingOverlay({
     if (d.length !== 6) return;
     void onSubmitOtp(d);
   }, [otp, onSubmitOtp]);
-
-  const submitBackup = useCallback(() => {
-    const raw = backupInput.trim();
-    if (!raw || !onSubmitBackupCode) return;
-    void onSubmitBackupCode(raw);
-  }, [backupInput, onSubmitBackupCode]);
 
   const otpOk = otp.replace(/\D/g, '').length === 6;
   const isEmailDelivery = delivery === 'email';
@@ -294,11 +280,7 @@ export function DeviceLoginPendingOverlay({
               ) : null}
               <button
                 type='button'
-                disabled={
-                  Boolean(resendBusy) ||
-                  Boolean(otpBusy) ||
-                  Boolean(backupCodeBusy)
-                }
+                disabled={Boolean(resendBusy) || Boolean(otpBusy)}
                 onClick={() => void onResend()}
                 className={`${styles.btn} ${styles.btnBlock} ${styles.btnLink}`}
               >
@@ -308,49 +290,6 @@ export function DeviceLoginPendingOverlay({
                     ? t('login.deviceLoginResendEmail')
                     : t('login.deviceLoginResend')}
               </button>
-            </>
-          ) : null}
-          {onSubmitBackupCode ? (
-            <>
-              {!showBackupRecovery ? (
-                <button
-                  type='button'
-                  onClick={() => setShowBackupRecovery(true)}
-                  className={`${styles.btn} ${styles.btnBlock} ${styles.btnLink}`}
-                >
-                  {t('login.useRecoveryCodeButton')}
-                </button>
-              ) : (
-                <>
-                  <p className={styles.hint} style={{ marginTop: 16 }}>
-                    {t('login.useBackupCodeHint')}
-                  </p>
-                  <input
-                    type='text'
-                    autoComplete='off'
-                    spellCheck={false}
-                    value={backupInput}
-                    disabled={backupCodeBusy}
-                    onChange={(e) =>
-                      setBackupInput(e.target.value.toUpperCase())
-                    }
-                    placeholder={t('login.backupCodePlaceholder')}
-                    className={styles.otpInput}
-                    style={{ fontFamily: 'ui-monospace, monospace' }}
-                  />
-                  {backupCodeError ? (
-                    <p className={styles.error}>{backupCodeError}</p>
-                  ) : null}
-                  <button
-                    type='button'
-                    disabled={backupCodeBusy || !backupInput.trim()}
-                    onClick={submitBackup}
-                    className={`${styles.btn} ${styles.btnBlock} ${styles.btnSecondary}`}
-                  >
-                    {t('login.backupCodeSubmit')}
-                  </button>
-                </>
-              )}
             </>
           ) : null}
           <button

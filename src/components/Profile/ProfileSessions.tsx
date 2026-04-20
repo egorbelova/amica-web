@@ -237,7 +237,7 @@ export default function ProfileSessions() {
                     {t('sessions.lastActive')} {formatDate(session.last_active)}
                   </span>
                 </button>
-                {session.is_current ? (
+                {session.is_current && sessions.length > 1 ? (
                   <Button
                     className={styles.revokeBtn}
                     onClick={() => confirmRevokeOtherSessions()}

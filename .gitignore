@@ -9,6 +9,10 @@ lerna-debug.log*
 
 node_modules
 
+# Secrets (translate script, local overrides)
+.env
+.env.local
+
 # stb (fetched by scripts/ensure-stb.mjs for local wasm builds)
 native/image_compress/third_party/stb
 

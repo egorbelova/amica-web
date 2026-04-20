@@ -9,6 +9,7 @@ export default {
     undo: '元に戻す',
     copy: 'Copy',
     copied: 'Copied!',
+    ok: '了解',
   },
   tipsMenu: {
     appearance: '外観',
@@ -64,9 +65,67 @@ export default {
   },
   profile: {
     settings: '設定',
+    backupCodesTitle: '復旧コード',
+    backupCodesDescription:
+      '認証アプリが使用できない場合にログインするためのワンタイムコードです。これらは、上記で認証アプリを有効にした際に生成され、二段階認証を無効にすると削除されます。新しいコードを生成すると、それまでのすべてのコードは無効になります。',
+    backupCodesRequiresTotp:
+      'まず、上記の認証アプリを有効にしてください。2段階認証が有効になるとリカバリーコードが発行され、無効にすると削除されます。',
+    backupCodesUnused: '未使用のコード：{count}',
+    regenerateBackupCodes: '新しいコードを生成する',
+    regenerateBackupCodesConfirm:
+      'これにより、現在のコードは無効になります。新しいリストを保存できる場合のみ、続行してください。',
+    backupCodesRegenerateWarningTitle:
+      '新しいバックアップコードを生成しますか？',
+    backupCodesRegenerateCancel: 'キャンセル',
+    backupCodesRegenerateConfirm: '生成する',
+    backupCodesRegenerateError:
+      'コードを生成できませんでした。信頼できるデバイスから設定を開いてください。',
+    totpTitle: '認証アプリ',
+    totpDescription:
+      'Google Authenticator またはその他の TOTP アプリを使用して、サインイン時に 2 段階認証を追加してください。信頼できる端末から設定を行ってください。',
+    totpEnable: '認証アプリの設定',
+    totpOpenAuthenticatorLink: '認証アプリで開く',
+    totpCodePlaceholder: '6桁のコード',
+    totpConfirmEnable: '確認して有効にする',
+    totpEnabledStatus: 'このアカウントでは認証機能が有効になっています。',
+    totpDisable: '認証アプリをオフにする',
+    totpDisableSecondFactorHint:
+      '現在のパスワードと、認証アプリから取得した6桁のコード、またはワンタイム回復コードのいずれかを入力してください。',
+    totpDisableBackupPlaceholder: 'XXXX-XXXX-XXXX-XXXX',
+    totpDisableUseBackupInstead: '代わりにリカバリーコードを使用してください',
+    totpDisableUseTotpInstead: '代わりに認証コードを使用してください',
+    totpInvalidBackupCode:
+      'その回復コードは無効です、またはすでに使用されています。',
+    totpDisablePasswordPlaceholder: '現在のパスワード',
+    totpTrustedDeviceRequired:
+      'この設定は、信頼できるデバイスからのみ行ったり変更したりしてください（「アクティブなセッション」を参照）。',
+    totpSetupStartError: '認証ツールの設定を開始できませんでした。',
+    totpConfirmError:
+      '認証アプリを有効にできませんでした。コードを確認して、もう一度お試しください。',
+    totpDisableError: '認証アプリをオフにできませんでした。',
+    totpInvalidCode: 'そのコードは無効です。',
+    totpWrongPassword: 'パスワードが間違っています。',
+    totpCopySecret: '秘密鍵をコピーする',
+    totpCopyAuthenticatorLink: '設定リンクをコピー',
+    trustedDeviceTitle: 'Trusted device',
+    trustedDeviceBodyHas:
+      'Sign-ins from new browsers or devices may need your approval on this device first. Under Active sessions, the trusted device shows a badge.',
+    trustedDeviceBodyNone:
+      'Your first successful sign-in sets a trusted device. You will see which session is trusted under Active sessions.',
+    trustedSessionsTitle: '信頼されたセッション',
+    trustedSessionsDescription:
+      'アカウントの信頼済みデバイスとフィンガープリントが一致するアクティブなセッションです。ここでセッションを終了するか、「アクティブなセッション」の下で終了してください。',
+    trustedSessionsNotSet:
+      'まだ信頼済みデバイスを設定していません。初回ログインに成功すると、自動的に設定されます。',
+    trustedSessionsEmpty:
+      '現在、信頼済みとして表示されているアクティブなセッションはありません。「アクティブなセッション」を確認するか、普段お使いのブラウザからサインインしてください。',
+    trustedSessionsTerminateOthers: '他の信頼済みセッションを終了する',
+    username: 'ユーザー名',
+    usernameInvalid: 'ユーザー名を入力してください（1～64文字）。',
     signOut: 'サインアウト',
     languageDescription: 'お好みの言語を選択してください。',
-    privacyDescription: 'passkeysなどのプライバシーとセキュリティを管理します。',
+    privacyDescription:
+      'passkeysなどのプライバシーとセキュリティを管理します。',
     passkeysTitle: 'パスキー',
     passkeysDescription:
       'このデバイスまたはセキュリティキーでパスワードなしでサインインします。不要になったパスキーは削除できます。',
@@ -92,11 +151,6 @@ export default {
       blackAndWhite: '白黒',
       colourWash: 'トーン',
     },
-    trustedDeviceTitle: 'Trusted device',
-    trustedDeviceBodyHas:
-      'Sign-ins from new browsers or devices may need your approval on this device first. Under Active sessions, the trusted device shows a badge.',
-    trustedDeviceBodyNone:
-      'Your first successful sign-in sets a trusted device. You will see which session is trusted under Active sessions.',
   },
   privacy: {},
   sessions: {
@@ -110,7 +164,9 @@ export default {
     noSessions: 'アクティブなセッションはありません',
     thisDevice: 'このデバイス',
     trustedDeviceBadge: 'Trusted device',
+    device: 'デバイス',
     ipAddress: 'IPアドレス',
+    location: '場所',
     created: '作成日時',
     expires: '有効期限',
     lastActive: '最終アクティブ',
@@ -151,7 +207,8 @@ export default {
     needAccount: 'アカウントをお持ちでないですか？',
     signUp: 'サインアップ',
     backToLogin: 'ログインに戻る',
-    emailNotVerified: 'Confirm your email using the link we sent before you sign in.',
+    emailNotVerified:
+      'Confirm your email using the link we sent before you sign in.',
     emailVerifiedBanner: 'Your email is confirmed. You can sign in.',
     deviceLoginTitle: 'Confirm on trusted device',
     deviceLoginEmailTitle: 'Check your email',
@@ -166,6 +223,8 @@ export default {
     deviceLoginTrustedDeviceUnknown:
       'We couldn’t load a device name. Open Amica on the phone or browser you usually use for this account.',
     deviceLoginHint: 'Open Amica on your trusted device and enter this code:',
+    deviceLoginSubmitCode: 'コードを送信',
+    deviceLoginOtpLabel: 'ワンタイムコード',
     deviceLoginWaiting: 'Waiting for confirmation…',
     deviceLoginCancel: 'Cancel',
     deviceLoginResend: 'Resend notification',
@@ -181,8 +240,23 @@ export default {
     trustedDeviceRevealFailedBody:
       'Try again, or decline the request if you did not start a sign-in.',
     deviceLoginRejected: 'The sign-in was declined or is no longer valid.',
+    trustedDeviceWarningTitle: '新しいサインインの試行',
+    trustedDeviceWarningIntro:
+      'もしこれがあなた自身の場合、このコードを別の端末でご利用ください。他の人には絶対に教えないでください。',
+    trustedDeviceWarningFoot:
+      'ログインしようとした覚えがない場合は、アカウントのセキュリティを強化し、パスワードを変更してください。',
+    trustedDeviceWarningDismiss: '了解',
+    trustedDeviceIpLabel: '新しいデバイスのIPアドレスの概算',
+    trustedDeviceLocationLabel: 'おおよその場所',
+    trustedDeviceUaLabel: '新しいデバイス上のブラウザ／アプリ',
     trustedDeviceMapFrameTitle: 'Approximate sign-in location on map',
     trustedDeviceOpenInGoogleMaps: 'Open in Google Maps',
+    copySignInCode: 'サインインコードをコピー',
+    deviceOtpInvalid:
+      'そのコードは間違っているか、有効期限が切れています。もう一度お試しください。',
+    deviceOtpWrongClient:
+      'このセッションは、サインインを開始したデバイスと一致しません。',
+    deviceOtpFailed: 'コードを確認できませんでした。',
     useBackupCodeHint:
       'Lost your trusted device? Enter a one-time backup code (from signup or account settings).',
     backupCodePlaceholder: 'XXXX-XXXX-XXXX-XXXX',
@@ -203,6 +277,19 @@ export default {
     trustedConfirmHint: 'Enter the 6-digit code shown on the new device.',
     trustedConfirmDismiss: 'Dismiss',
     trustedConfirmSubmit: 'Confirm',
+    totpModalTitle: '認証コード',
+    totpModalBody:
+      '認証アプリ（例：Google Authenticator）を開き、6桁のコードを入力してください。',
+    totpRequiredHint:
+      '認証アプリに表示されている6桁のコードを入力し、再度サインインしてください。',
+    invalidTotp: '認証コードが無効です。',
+    totpLabel: '認証コード',
+    totpBackupModalTitle: 'バックアップコードを使用する',
+    totpBackupModalBody:
+      '認証アプリにアクセスできなくなりましたか？二段階認証を有効にした際に保存しておいたワンタイムのバックアップコードを入力してください。',
+    totpUseBackupCodeButton:
+      '認証アプリにアクセスできません — バックアップコードを使用してください',
+    totpUseAuthenticatorButton: '認証コードに戻る',
   },
   signUp: {
     title: 'サインアップ',
@@ -279,15 +366,17 @@ export default {
     seenBy: '閲覧者：',
   },
   toast: {
+    emailCopied: 'メールをコピーしました',
     mediaCopied: 'メディアをコピーしました',
     messageCopied: 'メッセージをコピーしました',
     fileDownloaded: 'ファイルをダウンロードしました',
-    emailCopied: 'メールをコピーしました',
     fileDownloadFailed: 'ダウンロードに失敗しました',
     wsSendFailed: '送信できませんでした。接続を確認してください。',
     joinGroupFailed: 'グループに参加できませんでした。',
     createGroupTimeout:
       'グループを作成できませんでした。もう一度お試しください。',
+    avatarDeleteFailed: 'このアバターを削除できませんでした。',
+    setPrimaryFailed: 'メインのアバターを設定できませんでした。',
   },
   sidebar: {
     members: 'メンバー',
@@ -311,6 +400,8 @@ export default {
     newGroupNamePlaceholder: 'グループ名',
     createGroupButton: '作成',
     membersCount: 'メンバー',
+    deleteRollerAvatar: '削除',
+    setAsPrimaryRollerAvatar: 'メインに設定',
   },
   aria: {
     tabSelector: 'タブセレクター',

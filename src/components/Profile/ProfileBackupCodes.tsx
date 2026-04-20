@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from '@/contexts/languageCore';
-import { apiJson } from '@/utils/apiFetch';
+import { apiJson, type ApiError } from '@/utils/apiFetch';
 import { BackupCodesSavedModal } from '@/components/DeviceLogin/BackupCodesModal';
 import { useWarning } from '@/contexts/warning/WarningContextCore';
 import { useUser } from '@/contexts/UserContextCore';
@@ -11,6 +11,7 @@ export default function ProfileBackupCodes() {
   const { t } = useTranslation();
   const { showWarning } = useWarning();
   const { user } = useUser();
+  const totpOn = Boolean(user?.totp_enabled);
   const [unusedBackupCount, setUnusedBackupCount] = useState<number | null>(
     null,
   );
@@ -20,21 +21,26 @@ export default function ProfileBackupCodes() {
   );
 
   const loadBackupStatus = useCallback(async () => {
+    if (!totpOn) {
+      setUnusedBackupCount(null);
+      return;
+    }
     try {
-      const data = await apiJson<{ unused_count?: number; error?: string }>(
-        '/api/backup-codes/status/',
-      );
+      const data = await apiJson<{
+        unused_count?: number;
+        totp_enabled?: boolean;
+      }>('/api/backup-codes/status/');
       setUnusedBackupCount(
         typeof data.unused_count === 'number' ? data.unused_count : 0,
       );
     } catch {
       setUnusedBackupCount(null);
     }
-  }, []);
+  }, [totpOn]);
 
   useEffect(() => {
     void loadBackupStatus();
-  }, [loadBackupStatus, user?.id]);
+  }, [loadBackupStatus, user?.id, totpOn]);
 
   const runRegenerateBackupCodes = useCallback(async () => {
     setRegenerateBusy(true);
@@ -51,8 +57,13 @@ export default function ProfileBackupCodes() {
         setRegeneratedCodes(data.backup_codes);
       }
       void loadBackupStatus();
-    } catch {
-      window.alert(t('profile.backupCodesRegenerateError'));
+    } catch (e) {
+      const d = (e as ApiError).data as { error?: string } | undefined;
+      if (d?.error === 'totp_not_enabled') {
+        window.alert(t('profile.backupCodesRequiresTotp'));
+      } else {
+        window.alert(t('profile.backupCodesRegenerateError'));
+      }
     } finally {
       setRegenerateBusy(false);
     }
@@ -75,12 +86,16 @@ export default function ProfileBackupCodes() {
   }, [showWarning, t, runRegenerateBackupCodes]);
 
   const unusedLabel =
-    unusedBackupCount != null
+    totpOn && unusedBackupCount != null
       ? t('profile.backupCodesUnused').replace(
           '{count}',
           String(unusedBackupCount),
         )
       : null;
+
+  if (!totpOn) {
+    return null;
+  }
 
   return (
     <div className={styles.backupCodesBlock}>

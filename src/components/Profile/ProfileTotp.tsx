@@ -4,17 +4,23 @@ import { apiJson, type ApiError } from '@/utils/apiFetch';
 import { useUser } from '@/contexts/UserContextCore';
 import Button from '@/components/ui/button/Button';
 import { CopyTextButton } from '@/components/ui/CopyTextButton';
+import { BackupCodesSavedModal } from '@/components/DeviceLogin/BackupCodesModal';
 import styles from './Profile.module.scss';
 
 export default function ProfileTotp() {
   const { t } = useTranslation();
   const { user, refreshUser } = useUser();
+  const [issuedBackupCodes, setIssuedBackupCodes] = useState<string[] | null>(
+    null,
+  );
   const [busy, setBusy] = useState(false);
   const [setupUri, setSetupUri] = useState<string | null>(null);
   const [setupSecret, setSetupSecret] = useState<string | null>(null);
   const [confirmCode, setConfirmCode] = useState('');
   const [disablePassword, setDisablePassword] = useState('');
   const [disableCode, setDisableCode] = useState('');
+  const [disableMode, setDisableMode] = useState<'totp' | 'backup'>('totp');
+  const [disableBackupCode, setDisableBackupCode] = useState('');
   const [message, setMessage] = useState<string | null>(null);
 
   const totpOn = Boolean(user?.totp_enabled);
@@ -53,7 +59,10 @@ export default function ProfileTotp() {
     setBusy(true);
     setMessage(null);
     try {
-      await apiJson<{ success?: boolean }>('/api/totp/setup/confirm/', {
+      const data = await apiJson<{
+        success?: boolean;
+        backup_codes?: string[];
+      }>('/api/totp/setup/confirm/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: confirmCode.trim() }),
@@ -61,6 +70,9 @@ export default function ProfileTotp() {
       setSetupUri(null);
       setSetupSecret(null);
       setConfirmCode('');
+      if (data.backup_codes?.length) {
+        setIssuedBackupCodes(data.backup_codes);
+      }
       await refreshUser();
     } catch (e) {
       const d = (e as ApiError).data as { error?: string } | undefined;
@@ -90,11 +102,15 @@ export default function ProfileTotp() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           password: disablePassword,
-          code: disableCode.trim(),
+          ...(disableMode === 'totp'
+            ? { code: disableCode.trim() }
+            : { backup_code: disableBackupCode.trim() }),
         }),
       });
       setDisablePassword('');
       setDisableCode('');
+      setDisableBackupCode('');
+      setDisableMode('totp');
       await refreshUser();
     } catch (e) {
       const d = (e as ApiError).data as { error?: string } | undefined;
@@ -102,13 +118,28 @@ export default function ProfileTotp() {
         setMessage(t('profile.totpWrongPassword'));
       } else if (d?.error === 'invalid_totp') {
         setMessage(t('profile.totpInvalidCode'));
+      } else if (d?.error === 'invalid_backup_code') {
+        setMessage(t('profile.totpInvalidBackupCode'));
       } else {
         setMessage(t('profile.totpDisableError'));
       }
     } finally {
       setBusy(false);
     }
-  }, [disableCode, disablePassword, refreshUser, t]);
+  }, [
+    disableBackupCode,
+    disableCode,
+    disableMode,
+    disablePassword,
+    refreshUser,
+    t,
+  ]);
+
+  const canSubmitDisable =
+    Boolean(disablePassword.trim()) &&
+    (disableMode === 'totp'
+      ? disableCode.length === 6
+      : disableBackupCode.trim().length >= 8);
 
   return (
     <div className={styles.backupCodesBlock}>
@@ -128,10 +159,13 @@ export default function ProfileTotp() {
           <p className={styles.backupCodesCount}>
             {t('profile.totpEnabledStatus')}
           </p>
+          <p className={styles.backupCodesDescription} style={{ margin: 0 }}>
+            {t('profile.totpDisableSecondFactorHint')}
+          </p>
           <form>
             <input
               type='password'
-              autoComplete='off'
+              autoComplete='current-password'
               autoCorrect='off'
               autoCapitalize='none'
               spellCheck={false}
@@ -145,20 +179,60 @@ export default function ProfileTotp() {
               style={{ padding: '8px 10px', borderRadius: 8 }}
             />
           </form>
-          <input
-            inputMode='numeric'
-            autoComplete='one-time-code'
-            placeholder={t('profile.totpCodePlaceholder')}
-            value={disableCode}
-            onChange={(e) =>
-              setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))
-            }
+          {disableMode === 'totp' ? (
+            <input
+              inputMode='numeric'
+              autoComplete='one-time-code'
+              placeholder={t('profile.totpCodePlaceholder')}
+              value={disableCode}
+              onChange={(e) =>
+                setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))
+              }
+              disabled={busy}
+              style={{ padding: '8px 10px', borderRadius: 8 }}
+            />
+          ) : (
+            <input
+              type='text'
+              autoComplete='off'
+              spellCheck={false}
+              placeholder={t('profile.totpDisableBackupPlaceholder')}
+              value={disableBackupCode}
+              onChange={(e) =>
+                setDisableBackupCode(e.target.value.toUpperCase())
+              }
+              disabled={busy}
+              style={{
+                padding: '8px 10px',
+                borderRadius: 8,
+                fontFamily: 'ui-monospace, monospace',
+              }}
+            />
+          )}
+          <button
+            type='button'
             disabled={busy}
-            style={{ padding: '8px 10px', borderRadius: 8 }}
-          />
+            onClick={() => {
+              setDisableMode((m) => (m === 'totp' ? 'backup' : 'totp'));
+              setMessage(null);
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              color: 'var(--linkColor, #60a5fa)',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              textAlign: 'left',
+            }}
+          >
+            {disableMode === 'totp'
+              ? t('profile.totpDisableUseBackupInstead')
+              : t('profile.totpDisableUseTotpInstead')}
+          </button>
           <Button
             type='button'
-            disabled={busy || !disablePassword || disableCode.length !== 6}
+            disabled={busy || !canSubmitDisable}
             onClick={() => void disableTotp()}
             className={styles.backupCodesButton}
           >
@@ -251,6 +325,12 @@ export default function ProfileTotp() {
           {busy ? '…' : t('profile.totpEnable')}
         </Button>
       )}
+      {issuedBackupCodes?.length ? (
+        <BackupCodesSavedModal
+          codes={issuedBackupCodes}
+          onDismiss={() => setIssuedBackupCodes(null)}
+        />
+      ) : null}
     </div>
   );
 }

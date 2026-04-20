@@ -100,11 +100,6 @@ function getPlaceholderUser(): User {
 export const UserProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const lastPasswordCredentialsRef = useRef<{
-    u: string;
-    p: string;
-    totp?: string;
-  } | null>(null);
   const pendingTotpSecondFactorRef = useRef<{
     kind: 'google';
     accessToken: string;
@@ -117,10 +112,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const [pendingBackupCodes, setPendingBackupCodes] = useState<string[] | null>(
     null,
   );
-  const [deviceBackupCodeBusy, setDeviceBackupCodeBusy] = useState(false);
-  const [deviceBackupCodeError, setDeviceBackupCodeError] = useState<
-    string | null
-  >(null);
   const [deviceOtpBusy, setDeviceOtpBusy] = useState(false);
   const [deviceOtpError, setDeviceOtpError] = useState<string | null>(null);
   const [deviceResendBusy, setDeviceResendBusy] = useState(false);
@@ -163,6 +154,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
           ) {
             return {
               ...prev,
+              user: data.user!,
               loading: false,
               activeWallpaperFromServer: data.active_wallpaper ?? prev.activeWallpaperFromServer,
             };
@@ -378,7 +370,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       fallbackMessage = 'Unexpected auth response',
     ): 'session' | 'deferred' => {
       if (data.needs_device_confirmation && typeof data.challenge_id === 'string') {
-        setDeviceBackupCodeError(null);
         setDeviceOtpError(null);
         setDeviceResendError(null);
         setPasswordLoginNeedsTotp(false);
@@ -419,7 +410,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
 
   const dismissPendingDeviceLogin = useCallback(() => {
     setPendingDeviceLogin(null);
-    setDeviceBackupCodeError(null);
     setDeviceOtpError(null);
     setDeviceResendError(null);
   }, []);
@@ -494,50 +484,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     setPendingBackupCodes(null);
   }, []);
 
-  const submitDeviceLoginBackupCode = useCallback(
-    async (rawCode: string) => {
-      const c = lastPasswordCredentialsRef.current;
-      if (!c) {
-        setDeviceBackupCodeError(tSync('login.backupCodeNeedPassword'));
-        return;
-      }
-      setDeviceBackupCodeBusy(true);
-      setDeviceBackupCodeError(null);
-      try {
-        const res = await fetch('/api/login/', {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: c.u,
-            password: c.p,
-            backup_code: rawCode,
-            ...(c.totp ? { totp_code: c.totp } : {}),
-          }),
-        });
-        const data = (await res.json()) as Record<string, unknown>;
-        if (!res.ok) {
-          if (data.error === 'invalid_backup_code') {
-            setDeviceBackupCodeError(tSync('login.backupCodeInvalid'));
-            return;
-          }
-          throw new Error(String(data.error || 'Login failed'));
-        }
-        setPendingDeviceLogin(null);
-        ingestSuccessfulAuthPayload(data, 'Login failed');
-      } catch (e) {
-        setDeviceBackupCodeError(
-          e instanceof Error ? e.message : 'Login failed',
-        );
-      } finally {
-        setDeviceBackupCodeBusy(false);
-      }
-    },
-    [ingestSuccessfulAuthPayload],
-  );
-
   const applyDeviceChallenge = useCallback(
     (r: {
       challenge_id: string;
@@ -546,7 +492,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     }) => {
       setDeviceOtpError(null);
       setDeviceResendError(null);
-      setDeviceBackupCodeError(null);
       const td = r.trusted_device;
       setPendingDeviceLogin({
         challengeId: r.challenge_id,
@@ -784,16 +729,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     async (
       username: string,
       password: string,
-      backupCode?: string,
-      totpCode?: string,
+      secondFactor?: { kind: 'totp'; code: string } | { kind: 'backup'; code: string },
     ): Promise<LoginPasswordOutcome> => {
-      lastPasswordCredentialsRef.current = {
-        u: username,
-        p: password,
-        ...(totpCode?.trim() ? { totp: totpCode.trim() } : {}),
-      };
-      setDeviceBackupCodeError(null);
-      // Do not set global loading: App unmounts login/signup when loading is true.
       setState((prev) => ({ ...prev, error: null }));
       try {
         const res = await fetch('/api/login/', {
@@ -805,8 +742,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
           body: JSON.stringify({
             username,
             password,
-            ...(backupCode ? { backup_code: backupCode } : {}),
-            ...(totpCode?.trim() ? { totp_code: totpCode.trim() } : {}),
+            ...(secondFactor?.kind === 'totp' && secondFactor.code.trim()
+              ? { totp_code: secondFactor.code.trim() }
+              : {}),
+            ...(secondFactor?.kind === 'backup' && secondFactor.code.trim()
+              ? { backup_code: secondFactor.code.trim() }
+              : {}),
           }),
         });
         const data = (await res.json()) as Record<string, unknown>;
@@ -828,17 +769,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
           if (data.error === 'invalid_totp') {
             return 'invalid_totp';
           }
-          if (backupCode && data.error === 'invalid_backup_code') {
-            throw new Error('INVALID_BACKUP');
+          if (data.error === 'invalid_backup_code') {
+            return 'invalid_backup_code';
           }
           throw new Error(String(data.error || 'Login failed'));
         }
         const outcome = ingestSuccessfulAuthPayload(data, 'Login failed');
         return outcome === 'deferred' ? 'deferred' : 'session';
       } catch (err) {
-        if (err instanceof Error && err.message === 'INVALID_BACKUP') {
-          throw err;
-        }
         const message = err instanceof Error ? err.message : 'Login failed';
         setState((prev) => ({
           ...prev,
@@ -852,10 +790,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
 
   const signupWithCredentials = useCallback(
     async (username: string, email: string, password: string) => {
-      lastPasswordCredentialsRef.current = {
-        u: (username || '').trim() || email.trim(),
-        p: password,
-      };
       // Avoid global loading: App unmounts login/signup when it is true.
       setState((prev) => ({ ...prev, error: null }));
       await websocketManager.waitForConnection();
@@ -892,9 +826,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const loginWithGoogle = useCallback(
     async (
       idToken: string,
-      totpCode?: string,
-    ): Promise<'success' | 'totp_required' | 'invalid_totp'> => {
-      lastPasswordCredentialsRef.current = null;
+      secondFactor?:
+        | { kind: 'totp'; code: string }
+        | { kind: 'backup'; code: string },
+    ): Promise<
+      'success' | 'totp_required' | 'invalid_totp' | 'invalid_backup_code'
+    > => {
       const res = await fetch('/api/google/', {
         method: 'POST',
         credentials: 'include',
@@ -903,7 +840,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         },
         body: JSON.stringify({
           access_token: idToken,
-          ...(totpCode?.trim() ? { totp_code: totpCode.trim() } : {}),
+          ...(secondFactor?.kind === 'totp' && secondFactor.code.trim()
+            ? { totp_code: secondFactor.code.trim() }
+            : {}),
+          ...(secondFactor?.kind === 'backup' && secondFactor.code.trim()
+            ? { backup_code: secondFactor.code.trim() }
+            : {}),
         }),
       });
       const data = (await res.json()) as Record<string, unknown>;
@@ -920,7 +862,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
           return 'totp_required';
         }
         if (data.error === 'invalid_totp') {
-          if (totpCode?.trim()) {
+          if (secondFactor?.kind === 'totp' && secondFactor.code.trim()) {
             return 'invalid_totp';
           }
           setState((prev) => ({
@@ -928,6 +870,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
             error: tSync('login.invalidTotp'),
           }));
           return 'invalid_totp';
+        }
+        if (data.error === 'invalid_backup_code') {
+          return 'invalid_backup_code';
         }
         throw new Error(String(data.error || 'Google login failed'));
       }
@@ -939,7 +884,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
 
   const loginWithPasskey = useCallback(
     async (passkeyData: unknown): Promise<'success'> => {
-      lastPasswordCredentialsRef.current = null;
       const res = await fetch('/api/passkey/auth/finish/', {
         method: 'POST',
         credentials: 'include',
@@ -971,17 +915,23 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const submitTotpSecondFactor = useCallback(
-    async (code: string): Promise<boolean> => {
+    async (
+      kind: 'totp' | 'backup',
+      value: string,
+    ): Promise<boolean> => {
       const p = pendingTotpSecondFactorRef.current;
       if (!p || p.kind !== 'google') return false;
       setState((prev) => ({ ...prev, error: null }));
-      const out = await loginWithGoogle(p.accessToken, code);
+      const out = await loginWithGoogle(p.accessToken, {
+        kind,
+        code: value,
+      });
       if (out === 'success') {
         pendingTotpSecondFactorRef.current = null;
         setPendingTotpSecondFactor(null);
         return false;
       }
-      if (out === 'invalid_totp') return true;
+      if (out === 'invalid_totp' || out === 'invalid_backup_code') return true;
       return false;
     },
     [loginWithGoogle],
@@ -1075,9 +1025,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
             onResend={resendDeviceLoginNotify}
             resendBusy={deviceResendBusy}
             resendError={deviceResendError}
-            onSubmitBackupCode={submitDeviceLoginBackupCode}
-            backupCodeBusy={deviceBackupCodeBusy}
-            backupCodeError={deviceBackupCodeError}
           />
         ) : null}
       </LanguageProvider>

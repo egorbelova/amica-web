@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import GoogleLoginButton from '../components/GoogleLoginButton/GoogleLoginButton';
 import { PasskeyLoginButton } from '../components/PasskeyButton/PasskeyLoginButton';
-import { LoginTotpModal } from '@/components/Login/LoginTotpModal';
+import {
+  LoginTotpModal,
+  type LoginTotpSubmitKind,
+} from '@/components/Login/LoginTotpModal';
 import { useUser } from '../contexts/UserContextCore';
 import { useTranslation } from '@/contexts/languageCore';
 import styles from './LoginPage.module.scss';
@@ -99,14 +102,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
   }, [formData.username, formData.password, loginWithPassword]);
 
   const handleTotpModalSubmit = useCallback(
-    async (code: string) => {
+    async (kind: LoginTotpSubmitKind, value: string) => {
       const r = await loginWithPassword(
         formData.username,
         formData.password,
-        undefined,
-        code,
+        { kind, code: value },
       );
-      return r === 'invalid_totp';
+      return r === 'invalid_totp' || r === 'invalid_backup_code';
     },
     [formData.username, formData.password, loginWithPassword],
   );
@@ -140,11 +142,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onShowSignup }) => {
   ]);
 
   const handleUnifiedTotpSubmit = useCallback(
-    async (code: string) => {
+    async (kind: LoginTotpSubmitKind, value: string) => {
       if (pendingTotpSecondFactor) {
-        return submitTotpSecondFactor(code);
+        return submitTotpSecondFactor(kind, value);
       }
-      return handleTotpModalSubmit(code);
+      return handleTotpModalSubmit(kind, value);
     },
     [pendingTotpSecondFactor, submitTotpSecondFactor, handleTotpModalSubmit],
   );
