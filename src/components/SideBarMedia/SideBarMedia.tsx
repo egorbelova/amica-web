@@ -188,6 +188,37 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
     [selectedChat?.type, selectedChat?.my_role],
   );
 
+  /** DM: Contact row; group/channel: Chat row for GenericRelation display_media */
+  const avatarUploadContentType =
+    selectedChat?.type === 'D' ? 'contact' : 'chat';
+  const avatarUploadObjectId =
+    selectedChat == null
+      ? 0
+      : selectedChat.type === 'D'
+        ? (interlocutor?.contact_id ?? 0)
+        : selectedChat.id;
+
+  const canEditGroupOrChannelAvatar = useMemo(() => {
+    if (!selectedChat) return false;
+    if (selectedChat.type === 'G') return true;
+    if (selectedChat.type === 'C') return isChannelAdmin;
+    return false;
+  }, [selectedChat, isChannelAdmin]);
+
+  const selectedChatId = selectedChat?.id;
+
+  const handleChatAvatarChange = useCallback(
+    (media: DisplayMedia) => {
+      if (selectedChatId == null) return;
+      const id = selectedChatId;
+      setChats((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, primary_media: media } : c)),
+      );
+      void fetchChat(id);
+    },
+    [selectedChatId, setChats, fetchChat],
+  );
+
   const channelPublicUrl = useMemo(() => {
     if (selectedChat?.id == null || selectedChat.type !== 'C') return '';
     return `${window.location.origin}${window.location.pathname}#${selectedChat.id}`;
@@ -440,13 +471,21 @@ const SideBarMedia: React.FC<SideBarMediaProps> = ({ onClose, visible }) => {
             chatName={selectedChat.name ?? ''}
             primaryMedia={selectedChat.primary_media}
             media={selectedChat.media}
-            interlocutorContactId={interlocutor?.contact_id}
+            interlocutorContactId={avatarUploadObjectId}
+            avatarContentType={avatarUploadContentType}
+            isAvatarEditable={
+              (selectedChat.type === 'D' && interlocutorEditVisible) ||
+              canEditGroupOrChannelAvatar
+            }
+            onAvatarChange={handleChatAvatarChange}
             isAvatarRollerOpen={isAvatarRollerOpen}
             interlocutorEditVisible={interlocutorEditVisible}
             effectiveRollPosition={effectiveRollPosition}
             onRollPositionChange={handleRollPositionChange}
             onAvatarRollerOpen={() => setIsAvatarRollerOpen(true)}
-            rollerActionsEnabled={interlocutorEditVisible}
+            rollerActionsEnabled={
+              interlocutorEditVisible || canEditGroupOrChannelAvatar
+            }
             onRollerMediaDelete={handleRollerMediaDelete}
             onRollerMediaSetPrimary={handleRollerMediaSetPrimary}
           />
